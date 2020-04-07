@@ -38,7 +38,7 @@
             </el-form>
           </div>
         </el-tab-pane>
-        <el-tab-pane :label="$t('tips.tips10')" name="scanImport">
+        <el-tab-pane :label="$t('tips.tips10')" v-if="false" name="scanImport">
           <div class="scan tc">
             <div id="qrcode" class="qrcode"></div>
             <div class="font12" style="margin: 20px 0 0 0">

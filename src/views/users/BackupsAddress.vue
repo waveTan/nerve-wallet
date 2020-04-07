@@ -19,7 +19,7 @@
         </div>
         <div class="btn mb_20">
           <el-button type="success" @click="backKeystore">{{$t('newAddress.newAddress16')}}</el-button>
-          <el-button type="success" @click="backScan">{{$t('tips.tips8')}}</el-button>
+          <el-button type="success" @click="backScan" v-if="false">{{$t('tips.tips8')}}</el-button>
           <el-button type="success" @click="backKey">{{$t('newAddress.newAddress17')}}</el-button>
           <el-button @click="toUrl('home')">{{$t('tab.tab24')}}</el-button>
         </div>
