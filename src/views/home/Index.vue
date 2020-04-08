@@ -21,8 +21,16 @@
       </div>
     </div>
     <div class="footer cb w1200">
-      <h4>链内交易</h4>
-      <div class="">
+      <div class="titles">
+        <h4 class="fl">链内交易</h4>
+        <div class="fr">
+          <el-autocomplete v-model="state" placeholder="请输入币种名称" suffix-icon="el-icon-search"
+                           :fetch-suggestions="querySearchAsync"
+                           @select="handleSelect">
+          </el-autocomplete>
+        </div>
+      </div>
+      <div class="cb">
         <el-table :data="tableData" border class="tabs">
           <el-table-column label="" width="30">
           </el-table-column>
@@ -91,18 +99,59 @@
             locking: '12345678.12345678',
             available: '12345678.12345678'
           },
-        ]
+        ],//币种列表
+
+        restaurants: [],
+        state: '',
+        timeout: null
       };
     },
     created() {
     },
     mounted() {
+      this.restaurants = this.loadAll();
     },
     components: {
       PieChart,
     },
     watch: {},
     methods: {
+
+      loadAll() {
+        return [
+          {"value": "BTC", "address": "1"},
+          {"value": "NULS", "address": "2"},
+          {"value": "ETH", "address": "3"},
+          {"value": "EOS", "address": "4"},
+          {"value": "HT", "address": "5"},
+          {"value": "BNB", "address": "6"},
+        ];
+      },
+
+      /**
+       * @disc: 搜索
+       * @params: queryString
+       * @params: cb
+       * @date: 2020-04-08 10:26
+       * @author: Wave
+       */
+      querySearchAsync(queryString, cb) {
+        let restaurants = this.restaurants;
+        let results = queryString ? restaurants.filter(this.createStateFilter(queryString)) : restaurants;
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(() => {
+          cb(results);
+        }, 1000 * Math.random());
+      },
+      createStateFilter(queryString) {
+        return (state) => {
+          return (state.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+        };
+      },
+      handleSelect(item) {
+        console.log(item);
+      },
+
 
       /**
        * @disc: 链内转账
@@ -214,15 +263,22 @@
       }
     }
     .footer {
-      h4 {
-        font-size: 16px;
-        font-weight: bold;
-        color: #2688f7;
+      .titles {
         border-bottom: 1px solid #dfe4ef;
-        padding: 0 0 10px 0;
-        margin: 0 0 20px 0;
+        height: 40px;
+        h4 {
+          font-size: 16px;
+          font-weight: bold;
+          color: #2688f7;
+          padding: 10px 0 0 0;
+          margin: 0;
+        }
+        .el-input__icon {
+          line-height: 30px;
+        }
       }
       .tabs {
+        margin: 20px 0 0 0;
         .el-table__header-wrapper {
           .has-gutter {
             th {
