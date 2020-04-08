@@ -17,6 +17,7 @@
         </div>
       </div>
       <div class="right fr">
+        <PieChart></PieChart>
       </div>
     </div>
     <div class="footer cb w1200">
@@ -53,6 +54,7 @@
 
 <script>
   import {divisionDecimals} from '@/api/util'
+  import PieChart from '@/components/PieChart'
 
   export default {
     data() {
@@ -88,6 +90,9 @@
     created() {
     },
     mounted() {
+    },
+    components: {
+      PieChart,
     },
     watch: {},
     methods: {
