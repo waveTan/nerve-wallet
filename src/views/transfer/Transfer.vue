@@ -4,11 +4,11 @@
       <div class="title">链内转账</div>
       <el-form :model="transferForm" :rules="transferRules" ref="transferForm" class="w630 transfer_form">
         <el-form-item label="付款地址" prop="fromAddress">
-          <el-input v-model="transferForm.fromAddress"></el-input>
+          <el-input v-model="transferForm.fromAddress" disabled></el-input>
         </el-form-item>
         <el-form-item label="资产类型" prop="assetType" class="asset_type">
-          <el-select v-model="transferForm.assetType" placeholder="">
-            <el-option v-for="item in assetList" :key="item.chainId" :label="item.name" :value="item.chainId">
+          <el-select v-model="transferForm.assetType" filterable placeholder="" @change="changeAssetType">
+            <el-option v-for="item in assetList" :key="item._id" :label="item.symbol" :value="item">
             </el-option>
           </el-select>
         </el-form-item>
@@ -16,14 +16,14 @@
           <el-input v-model="transferForm.toAddress"></el-input>
         </el-form-item>
         <div style="width: 630px;height: 30px"></div>
-        <div class="fr font12" style="padding: 8px 0 0 0">可用余额: 123456.123456</div>
+        <div class="fr font12" style="padding: 8px 0 0 0">可用余额: {{balanceInfo.balances}}</div>
         <el-form-item label="转账金额" prop="amount">
           <el-input v-model="transferForm.amount"></el-input>
         </el-form-item>
         <el-form-item label="活动形式" prop="remarks">
           <el-input type="textarea" v-model="transferForm.remarks"></el-input>
         </el-form-item>
-        <div class="fee font14 mb_20">手续费: 0.002 NVT</div>
+        <div class="fee font14 mb_20">手续费: {{transferForm.fee}} NULS</div>
         <el-form-item class="btn-next">
           <el-button type="primary" @click="submitTransferForm('transferForm')">下一步</el-button>
         </el-form-item>
@@ -32,11 +32,11 @@
 
     <el-dialog title="转账确认" :visible.sync="transferFormDialog" class="transfer_form_dialog" width="500px">
       <ul>
-        <li><span>付款地址：</span><font>tNULSeBaMrbMRiFAUeeAt6swb4xVBNyi81YL24</font></li>
-        <li><span>接收地址：</span><font>tNULSeBaMrbMRiFAUeeAt6swb4xVBNyi81YL24</font></li>
-        <li><span>金额：</span><font>888.12465 NULS</font></li>
-        <li><span>手续费：</span><font>0.001 NULS</font></li>
-        <li><span>备注：</span><font>转账备注信息</font></li>
+        <li><span>付款地址：</span><font>{{transferForm.fromAddress}}</font></li>
+        <li><span>接收地址：</span><font>{{transferForm.toAddress}}</font></li>
+        <li><span>金额：</span><font>{{transferForm.amount}} NULS</font></li>
+        <li><span>手续费：</span><font>{{transferForm.fee}} NULS</font></li>
+        <li><span>备注：</span><font>{{transferForm.remarks}}</font></li>
       </ul>
       <div slot="footer" class="dialog-footer">
         <el-button @click="transferFormDialog = false">取 消</el-button>
@@ -50,9 +50,9 @@
 </template>
 
 <script>
-  import {getNulsBalance,} from '@/api/requestData'
+  import {getNulsBalance} from '@/api/requestData'
   import {MAIN_INFO} from '@/config.js'
-  import {Times} from '@/api/util'
+  import {divisionDecimals, Times, addressInfo} from '@/api/util'
   import Password from '@/components/PasswordBar'
 
   export default {
@@ -91,18 +91,21 @@
       };
 
       return {
-        //资产列表
-        assetList: [
-          {name: 'NULS', chainId: 1},
-          {name: 'NEV', chainId: 2},
-          {name: 'BTC', chainId: 3},
-        ],
+        addressInfo: {},//默认账户信息
+        assetList: [], //资产列表
+        changeAssetInfo: {},//选择的资产信息
+        balanceInfo: {
+          balance: 0,
+          balances: 0,
+          nonce: ""
+        },//账户余额信息
         //转账数据
         transferForm: {
           fromAddress: '',
-          toAddress: 'tNULSeBaMrbMRiFAUeeAt6swb4xVBNyi81YL24',
-          assetType: 'NULS',
-          amount: '500',
+          toAddress: '',
+          assetType: '',
+          amount: '',
+          fee: 0.001,
           remarks: '',
         },
         //验证信息
@@ -115,14 +118,44 @@
       };
     },
     created() {
+      this.assetList = sessionStorage.hasOwnProperty('allAssetsList') ? JSON.parse(sessionStorage.getItem('allAssetsList')) : [];
+      this.addressInfo = addressInfo(1);
+      this.transferForm.fromAddress = this.addressInfo.address;
     },
     mounted() {
+      let transferParams = sessionStorage.hasOwnProperty('transferParams') ? JSON.parse(sessionStorage.getItem('transferParams')) : {};
+      this.transferForm.assetType = transferParams.symbol;
+      this.balanceInfo.balances = transferParams.available
     },
     watch: {},
     components: {
       Password,
     },
+    destroyed() {
+      sessionStorage.removeItem('transferParams')
+    },
     methods: {
+
+      /**
+       * @disc: 选择资产
+       * @params: e
+       * @date: 2020-04-08 16:49
+       * @author: Wave
+       */
+      async changeAssetType(e) {
+        this.changeAssetInfo = e;
+        try {
+          let resBalanceInfo = await getNulsBalance(e.chainId, e.assetsId, this.addressInfo.address);
+          //console.log(resBalanceInfo);
+          if (resBalanceInfo.success) {
+            this.balanceInfo.balance = resBalanceInfo.data.balance;
+            this.balanceInfo.balances = Number(divisionDecimals(resBalanceInfo.data.balance, e.decimals));
+            this.balanceInfo.nonce = resBalanceInfo.data.nonce;
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      },
 
       /**
        * @disc: 下一步

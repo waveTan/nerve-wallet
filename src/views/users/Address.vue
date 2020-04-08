@@ -87,7 +87,7 @@
 <script>
   import nuls from 'nuls-sdk-js'
   import Password from '@/components/PasswordBar'
-  import {timesDecimals, chainIdNumber, addressInfo, chainID, Plus} from '@/api/util'
+  import {divisionDecimals, chainIdNumber, addressInfo, chainID, Plus} from '@/api/util'
   import {getPrefixByChainId} from '@/api/requestData'
 
   export default {
@@ -151,9 +151,10 @@
               for (let item of this.addressList) {
                 if (item.address === addressInfo.address) {
                   addressInfo.alias = response.result.alias;
-                  addressInfo.balance = timesDecimals(response.result.balance);
-                  addressInfo.consensusLock = timesDecimals(response.result.consensusLock);
-                  addressInfo.totalReward = timesDecimals(response.result.totalReward);
+                  addressInfo.balance = divisionDecimals(response.result.balance);
+                  addressInfo.consensusLock = divisionDecimals(response.result.consensusLock);
+                  addressInfo.totalReward = divisionDecimals(response.result.totalReward);
+                  addressInfo.total = divisionDecimals(response.result.totalBalance);
                   addressInfo.tokens = [];
                   addressInfo.chainId = nuls.verifyAddress(item.address).chainId;
                 }

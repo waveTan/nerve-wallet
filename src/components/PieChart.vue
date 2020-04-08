@@ -53,9 +53,7 @@
         this.newData = [];
         this.data.map(v => {
           let rate = '0%';
-          console.log(this.total, '456465');
           if (Number(this.total)) {
-            // debugger;
             rate = Division(v.value * 100, this.total).toFixed(2) + '%'
           }
           this.newData.push({
@@ -82,7 +80,6 @@
           itemWidth: 8,
           formatter: (name) => {
             const item = this.newData.filter(v => v.key === name)[0];
-            // console.log(item, '----name');
             if (!item) return '';
             return `{name|${name}}{value|$${item.value}}{rate|${item.rate}}`
           },

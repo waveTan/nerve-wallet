@@ -23,7 +23,7 @@
 <script>
   import nuls from 'nuls-sdk-js'
   import axios from 'axios'
-  import {chainID, chainIdNumber, addressInfo, timesDecimals} from '@/api/util'
+  import {chainID, chainIdNumber, addressInfo, divisionDecimals} from '@/api/util'
 
   export default {
     name: "bottom-bar",
@@ -121,11 +121,11 @@
                 for (let item of addressList) {
                   if (item.address === addressInfos.address) {
                     item.alias = response.result.alias;
-                    item.balance = timesDecimals(response.result.balance);
-                    item.consensusLock = timesDecimals(response.result.consensusLock);
-                    item.totalReward = timesDecimals(response.result.totalReward);
+                    item.balance = divisionDecimals(response.result.balance);
+                    item.consensusLock = divisionDecimals(response.result.consensusLock);
+                    item.totalReward = divisionDecimals(response.result.totalReward);
                     if (response.result.lastReward) {
-                      item.lastReward = timesDecimals(response.result.lastReward);
+                      item.lastReward = divisionDecimals(response.result.lastReward);
                     } else {
                       item.lastReward = 0;
                     }

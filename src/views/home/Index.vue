@@ -6,32 +6,36 @@
         <div>
           <div class="fl total">
             <h6>总额</h6>
-            <p>≈ $ 88888.8888</p>
+            <p>≈ $ {{myAssetsInfo.total}}</p>
           </div>
           <div class="fr lock">
             <h6>可用</h6>
-            <p>≈ $ 88888.8888</p>
+            <p>≈ $ {{myAssetsInfo.available}}</p>
             <h6>锁定</h6>
-            <p>≈ $ 888.8888</p>
+            <p>≈ $ {{myAssetsInfo.locking}}</p>
           </div>
         </div>
       </div>
       <div class="right fr">
-        <PieChart :data="cData"></PieChart>
+        <PieChart :data="chartData" :total="myAssetsInfo.total"></PieChart>
       </div>
     </div>
     <div class="footer cb w1200">
       <div class="titles">
         <h4 class="fl">链内交易</h4>
         <div class="fr">
-          <el-autocomplete v-model="state" placeholder="请输入币种名称" suffix-icon="el-icon-search"
+          <el-autocomplete v-model="searchValue" placeholder="请输入内容"
                            :fetch-suggestions="querySearchAsync"
                            @select="handleSelect">
+            <i class="el-icon-search" slot="suffix"></i>
+            <template slot-scope="{ item }">
+              <div class="name">{{ item.symbol }}</div>
+            </template>
           </el-autocomplete>
         </div>
       </div>
       <div class="cb">
-        <el-table :data="tableData" border class="tabs">
+        <el-table :data="ledgerData" border class="tabs">
           <el-table-column label="" width="30">
           </el-table-column>
           <el-table-column prop="currency" label="币种" width="100">
@@ -40,7 +44,10 @@
           </el-table-column>
           <el-table-column prop="number" label="数量" width="170">
           </el-table-column>
-          <el-table-column prop="valuation" label="估值" width="170">
+          <el-table-column label="估值" width="170">
+            <template slot-scope="scope">
+              ${{scope.row.valuation}}
+            </template>
           </el-table-column>
           <el-table-column prop="locking" label="锁定" width="170">
           </el-table-column>
@@ -49,8 +56,8 @@
           <el-table-column label="操作" min-width="200">
             <template slot-scope="scope">
               <el-button @click="inChains(scope.row)" type="text" size="small">链内转账</el-button>
-              <el-button @click="crossLink(scope.row)" type="text" size="small">跨链转账</el-button>
-              <el-button @click="crossLinkCarry(scope.row)" type="text" size="small">跨链提币</el-button>
+              <el-button @click="crossLink(scope.row)" type="text" size="small" disabled>跨链转账</el-button>
+              <el-button @click="crossLinkCarry(scope.row)" type="text" size="small" disabled>跨链提币</el-button>
               <el-button @click="transactionList(scope.row)" type="text" size="small">交易记录</el-button>
             </template>
           </el-table-column>
@@ -61,55 +68,31 @@
 </template>
 
 <script>
-  import {divisionDecimals} from '@/api/util'
+  import axios from 'axios'
+  import {divisionDecimals, Plus, Times, Division, addressInfo} from '@/api/util'
   import PieChart from '@/components/PieChart'
 
   export default {
     data() {
       return {
-        cData: [
-          {key: 'NVT', value: 1, rate: 0.1},
-          {key: 'NULS', value: 2, rate: 0.2},
-          {key: 'BTC', value: 3, rate: 0.3},
-          {key: 'ETH', value: 3, rate: 0.4},
-          {key: 'BCH', value: 5, rate: 0.5}
-        ],
-        tableData: [
-          {
-            currency: 'nuls',
-            name: 'NULS',
-            number: '123456.1234567',
-            valuation: '12345678.12345678',
-            locking: '12345678.12345678',
-            available: '12345678.12345678'
-          },
-          {
-            currency: 'nuls',
-            name: 'NULS',
-            number: '123456.1234567',
-            valuation: '12345678.12345678',
-            locking: '12345678.12345678',
-            available: '12345678.12345678'
-          },
-          {
-            currency: 'nuls',
-            name: 'NULS',
-            number: '123456.1234567',
-            valuation: '12345678.12345678',
-            locking: '12345678.12345678',
-            available: '12345678.12345678'
-          },
-        ],//币种列表
-
-        restaurants: [],
-        state: '',
-        timeout: null
+        addressInfo: {},//默认账户信息
+        myAssetsInfo: {
+          total: 0,
+          available: 0,
+          locking: 0,
+        },//我的资产信息
+        allAssetsList: [], //所有币种列表（搜索框用）
+        searchValue: '', //搜索框内容
+        ledgerData: [],//币种列表
+        chartData: [], //环形图数据
       };
     },
     created() {
+      this.addressInfo = addressInfo(1);
+      this.symbolReport();
     },
     mounted() {
-      this.restaurants = this.loadAll();
+      //this.getAccountList(this.addressInfo.address, 1);
     },
     components: {
       PieChart,
@@ -117,15 +100,28 @@
     watch: {},
     methods: {
 
-      loadAll() {
-        return [
-          {"value": "BTC", "address": "1"},
-          {"value": "NULS", "address": "2"},
-          {"value": "ETH", "address": "3"},
-          {"value": "EOS", "address": "4"},
-          {"value": "HT", "address": "5"},
-          {"value": "BNB", "address": "6"},
-        ];
+      /**
+       * @disc: 获取资产信息
+       * @params: address
+       * @params: type 1：返回资产不为零的
+       * @date: 2020-04-08 14:01
+       * @author: Wave
+       */
+      async symbolReport() {
+        let url = "http://192.168.1.132:18003";
+        const params = {
+          "jsonrpc": "2.0",
+          "method": "getSymbolBaseInfo",
+          "params": [2],
+          "id": Math.floor(Math.random() * 1000)
+        };
+        let res = await axios.post(url, params);
+        //console.log(res);
+        if (res.data.result.length !== 0) {
+          this.allAssetsList = res.data.result;
+          sessionStorage.setItem('allAssetsList', JSON.stringify(this.allAssetsList));
+          this.getAccountList(this.addressInfo.address, 1);
+        }
       },
 
       /**
@@ -136,22 +132,82 @@
        * @author: Wave
        */
       querySearchAsync(queryString, cb) {
-        let restaurants = this.restaurants;
+        let restaurants = this.allAssetsList;
         let results = queryString ? restaurants.filter(this.createStateFilter(queryString)) : restaurants;
-        clearTimeout(this.timeout);
-        this.timeout = setTimeout(() => {
-          cb(results);
-        }, 1000 * Math.random());
-      },
-      createStateFilter(queryString) {
-        return (state) => {
-          return (state.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
-        };
-      },
-      handleSelect(item) {
-        console.log(item);
+        // 调用 callback 返回建议列表的数据
+        cb(results);
       },
 
+      /**
+       * @disc: 数据筛选
+       * @params: queryString 筛选字段
+       * @date: 2020-04-08 15:04
+       * @author: Wave
+       */
+      createStateFilter(queryString) {
+        return (state) => {
+          return (state.symbol.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+        };
+      },
+
+      /**
+       * @disc: 搜索框选中的币种
+       * @params: item
+       * @date: 2020-04-08 15:05
+       * @author: Wave
+       */
+      handleSelect(item) {
+        console.log(item);
+        this.searchValue = item.symbol;
+      },
+
+      /**
+       * @disc: 获取链内资产列表
+       * @params: address
+       * @params: type 1：返回资产不为零的
+       * @date: 2020-04-08 14:01
+       * @author: Wave
+       */
+      async getAccountList(address, type) {
+        let url = "http://192.168.1.132:18003";
+        const params = {
+          "jsonrpc": "2.0",
+          "method": "getAccountLedgerList",
+          "params": [2, address, type],
+          "id": Math.floor(Math.random() * 1000)
+        };
+        let res = await axios.post(url, params);
+        //console.log(res);
+        if (res.data.result.length !== 0) {
+          for (let item of res.data.result) {
+            //console.log(item);
+            let assetsInfo = this.allAssetsList.filter(k => k.chainId === item.chainId);
+            item.usdPrice = assetsInfo[0].usdPrice;
+            item.currency = assetsInfo[0].icon;
+            item.name = item.symbol;
+            item.number = divisionDecimals(item.totalBalance, item.decimals);
+            item.valuation = Number(Times(item.number, item.usdPrice));
+            item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
+            item.usdLocking = Number(Times(item.locking, item.usdPrice));
+            item.available = divisionDecimals(item.balance, item.decimals);
+            item.usdAvailable = Number(Times(item.available, item.usdPrice));
+
+            //我的资产数据
+            this.myAssetsInfo.total = Number(Plus(this.myAssetsInfo.total, item.valuation));
+            this.myAssetsInfo.available = Number(Plus(this.myAssetsInfo.available, item.usdAvailable));
+            this.myAssetsInfo.locking = Number(Plus(this.myAssetsInfo.locking, item.usdLocking));
+          }
+          this.ledgerData = res.data.result;
+
+          //环形图数据
+          for (let item of this.ledgerData) {
+            item.key = item.symbol;
+            item.value = item.valuation;
+            item.rate = Number(Division(item.valuation, this.myAssetsInfo.total)) * 100;
+          }
+          this.chartData = this.ledgerData;
+        }
+      },
 
       /**
        * @disc: 链内转账
@@ -160,8 +216,8 @@
        * @author: Wave
        */
       inChains(row) {
-        console.log(row);
-        this.toUrl('transfer', '', 0)
+        //console.log(row);
+        this.toUrl('transfer', row, 0)
       },
 
       /**
@@ -194,7 +250,7 @@
        */
       transactionList(row) {
         console.log(row);
-        this.toUrl('transfer', '', 0)
+        this.toUrl('txList', '', 0)
       },
 
       /**
@@ -205,8 +261,11 @@
        */
       toUrl(name, parameter, type) {
         if (type === 0) {
+          if (name === 'transfer') {
+            sessionStorage.setItem('transferParams', JSON.stringify(parameter))
+          }
           this.$router.push({
-            name: name
+            name: name,
           })
         } else {
           connectToExplorer(name, parameter);
@@ -273,7 +332,7 @@
           padding: 10px 0 0 0;
           margin: 0;
         }
-        .el-input__icon {
+        .el-icon-search {
           line-height: 30px;
         }
       }
