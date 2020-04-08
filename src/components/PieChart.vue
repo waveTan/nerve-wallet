@@ -1,6 +1,6 @@
 <template>
   <ve-pie
-          height="94%"
+          height="100%"
           class="pie-chart"
           :data="chartData"
           :extend="chartExtends"
@@ -13,21 +13,21 @@
   import _ from 'lodash'
   import {Division} from '@/api/util'
 
-  const data = [
+  /*const data = [
     {key: 'NVT', value: 1, rate: 0.1},
     {key: 'NULS', value: 2, rate: 0.2},
     {key: 'BTC', value: 3, rate: 0.3},
     {key: 'ETH', value: 3, rate: 0.4},
     {key: 'BCH', value: 5, rate: 0.5}
-  ];
+  ];*/
 
   export default {
     data() {
-      this.newData = [];
+      this.newData = [...this.data];
       return {
         chartData: {
           columns: ['key', 'value'],
-          rows: []
+          rows: [...this.data]
         },
         chartExtends: {},
         chart: null
@@ -35,8 +35,7 @@
     },
     props: {
       data: {
-        type: Array,
-        default: data
+        type: Array
       },
       loading: {
         type: Boolean,
@@ -83,7 +82,7 @@
           itemWidth: 8,
           formatter: (name) => {
             const item = this.newData.filter(v => v.key === name)[0];
-            console.log(item, '----name');
+            // console.log(item, '----name');
             if (!item) return '';
             return `{name|${name}}{value|$${item.value}}{rate|${item.rate}}`
           },

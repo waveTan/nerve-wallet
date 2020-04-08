@@ -17,7 +17,7 @@
         </div>
       </div>
       <div class="right fr">
-        <PieChart></PieChart>
+        <PieChart :data="cData"></PieChart>
       </div>
     </div>
     <div class="footer cb w1200">
@@ -59,6 +59,13 @@
   export default {
     data() {
       return {
+        cData: [
+          {key: 'NVT', value: 1, rate: 0.1},
+          {key: 'NULS', value: 2, rate: 0.2},
+          {key: 'BTC', value: 3, rate: 0.3},
+          {key: 'ETH', value: 3, rate: 0.4},
+          {key: 'BCH', value: 5, rate: 0.5}
+        ],
         tableData: [
           {
             currency: 'nuls',
