@@ -1,5 +1,5 @@
 <template>
-  <div class="header">
+  <div class="header shadow1">
     <div class="w1200">
       <div class="logo">
         <img class="click" @click="toUrl('home')" :src=logoSvg>
@@ -62,14 +62,13 @@
 
 <script>
   import logo from '@/assets/img/logo.svg'
-  import logoSvg from '@/assets/img/logo-beta.svg'
   import {superLong, chainIdNumber, addressInfo, connectToExplorer} from '@/api/util'
   import {RUN_DEV} from '@/config.js'
 
   export default {
     data() {
       return {
-        logoSvg: RUN_DEV ? logo : logoSvg, //logo
+        logoSvg: logo, //logo
         navActive: '/',//菜单选中
         addressList: [], //地址列表
         lang: 'cn', //语言选择
@@ -212,7 +211,7 @@
   @import "./../assets/css/style";
 
   .header {
-    border-bottom: 1px solid @Dcolour;
+    /*border-bottom: 1px solid @Dcolour;*/
     height: 80px;
     .logo {
       width: 120px;

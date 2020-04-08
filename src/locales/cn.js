@@ -587,9 +587,9 @@ const cn = {
   "nodeStatus": {
     "undefined": "",
     "0": "全部节点",
-    "1": "普通节点",
-    "2": "开发者节点",
-    "3": "大使节点"
+    "1": "虚拟银行",
+    "2": "共识节点",
+    "3": "普通节点"
   },
 
   "lockType": {
@@ -670,6 +670,12 @@ const cn = {
     "consensus9": "所有节点",
     "consensus10": "请选择输入ID\\别名\\地址....",
     "consensus11": "我的节点",
+    "consensus12": "节点类型",
+    "consensus13": "节点详情",
+    "consensus14": "委托量",
+    "consensus15": "节点排名",
+    "consensus16": "累积奖励",
+    "consensus17": "累积奖励",
   },
 
   "newConsensus": {
