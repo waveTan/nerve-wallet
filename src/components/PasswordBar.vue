@@ -62,7 +62,7 @@
 
         passwordVisible: false, //密码弹框
         passwordForm: {
-          password: '',
+          password: 'nuls123456',
         },
         passwordRules: {
           password: [

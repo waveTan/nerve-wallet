@@ -44,15 +44,26 @@
       </div>
     </el-dialog>
 
-    <Password ref="password" @passwordSubmit="passSubmit">
+    <Password ref="password" @passwordSubmit="coinPassSubmit">
     </Password>
   </div>
 </template>
 
 <script>
-  import {getNulsBalance} from '@/api/requestData'
+  import nuls from 'nuls-sdk-js'
+  import sdk from 'nuls-sdk-js/lib/api/sdk'
+  import {getNulsBalance, validateAndBroadcast, getBaseAssetInfo} from '@/api/requestData'
   import {MAIN_INFO} from '@/config.js'
-  import {divisionDecimals, Times, addressInfo} from '@/api/util'
+  import {
+    Plus,
+    divisionDecimals,
+    timesDecimals,
+    Times,
+    Minus,
+    addressInfo,
+    passwordVerification,
+    htmlEncode
+  } from '@/api/util'
   import Password from '@/components/PasswordBar'
 
   export default {
@@ -83,9 +94,11 @@
           callback(new Error(this.$t('transfer.transfer12') + ": " + decimals))
         } else if (Number(value) < 0.001) {
           callback(new Error(this.$t('transfer.transfer13')))
-        } /*else if (Number(value) > Number(Minus(this.changeAssets.balance, 0.001)) && this.changeAssets.symbol === 'NULS') {
-          callback(new Error(this.$t('transfer.transfer131') + Number(Minus(this.changeAssets.balance, 0.001))))
-        }*/ else {
+        } else if (this.balanceInfo.balance === 0) {
+          callback(new Error("该资产没有可用余额！"))
+        } else if (Number(value) > Number(Minus(this.balanceInfo.balance, 0.001))) {
+          callback(new Error(this.$t('transfer.transfer131') + Number(Minus(this.balanceInfo.balance, 0.001))))
+        } else {
           callback()
         }
       };
@@ -102,9 +115,9 @@
         //转账数据
         transferForm: {
           fromAddress: '',
-          toAddress: '',
+          toAddress: 'tNULSeBaMrbMRiFAUeeAt6swb4xVBNyi81YL24',
           assetType: '',
-          amount: '',
+          amount: '100',
           fee: 0.001,
           remarks: '',
         },
@@ -123,9 +136,15 @@
       this.transferForm.fromAddress = this.addressInfo.address;
     },
     mounted() {
-      let transferParams = sessionStorage.hasOwnProperty('transferParams') ? JSON.parse(sessionStorage.getItem('transferParams')) : {};
+      let transferParams = {};
+      if (sessionStorage.hasOwnProperty('transferParams')) {
+        transferParams = JSON.parse(sessionStorage.getItem('transferParams'))
+      } else {
+        let assetsInfo = this.assetList.filter(k => k.chainId === 2);
+        transferParams = assetsInfo[0];
+      }
       this.transferForm.assetType = transferParams.symbol;
-      this.balanceInfo.balances = transferParams.available
+      this.changeAssetType(transferParams);
     },
     watch: {},
     components: {
@@ -144,6 +163,7 @@
        */
       async changeAssetType(e) {
         this.changeAssetInfo = e;
+        this.transferForm.assetType = e.symbol;
         try {
           let resBalanceInfo = await getNulsBalance(e.chainId, e.assetsId, this.addressInfo.address);
           //console.log(resBalanceInfo);
@@ -181,6 +201,112 @@
       confirmSubmission() {
         this.$refs.password.showPassword(true);
         this.transferFormDialog = false;
+      },
+
+      /**
+       * @disc: 转账密码输入
+       * @params: password
+       * @date: 2019-09-02 10:49
+       * @author: Wave
+       */
+      async coinPassSubmit(password) {
+        let passwordInfo = await passwordVerification(this.addressInfo, password);
+        //console.log(passwordInfo);
+        if (!passwordInfo.success) {
+          this.$message({message: "对不起，密码错误！", type: 'error', duration: 3000});
+          return;
+        }
+        //console.log(this.assetsInfo);
+        let transferInfo = {
+          fromAddress: this.addressInfo.address,
+          assetsChainId: this.changeAssetInfo.chainId,
+          assetsId: this.changeAssetInfo.assetId,
+          fee: 100000
+        };
+        transferInfo['toAddress'] = this.transferForm.toAddress;
+        transferInfo['amount'] = timesDecimals(this.transferForm.amount, this.changeAssetInfo.decimal);
+        //console.log(transferInfo);
+        let inOrOutputs = await this.inputsOrOutputs(transferInfo);
+        console.log(inOrOutputs);
+        //交易组装
+        let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 2);
+        //获取hash
+        let hash = await tAssemble.getHash();
+        //console.log(hash);
+        //交易签名
+        let txSignature = await sdk.getSignData(hash.toString('hex'), passwordInfo.pri);
+        //通过拼接签名、公钥获取HEX
+        let signData = await sdk.appSplicingPub(txSignature.signValue, passwordInfo.pub);
+        tAssemble.signatures = signData;
+        let txhex = tAssemble.txSerialize().toString("hex");
+        console.log(txhex.toString('hex'));
+        let broadcastResult = await validateAndBroadcast(txhex.toString('hex'));
+        console.log(broadcastResult);
+        if (!broadcastResult.success) {
+          this.$message({
+            message: "广播交易失败：" + JSON.stringify(broadcastResult),
+            type: 'error',
+            duration: 3000
+          });
+          return;
+        } else {
+          this.$message({message: "交易已经发出，等待区块确认", type: 'success', duration: 1000});
+          this.transferFormDialog = false;
+          this.$refs['transferForm'].resetFields();
+        }
+      },
+
+      /**
+       * 获取inputs and outputs
+       * @param transferInfo
+       * @param balanceInfo
+       * @param type
+       * @returns {*}
+       **/
+      async inputsOrOutputs(transferInfo) {
+        const defaultAsset = {assetsChainId: 2, assetsId: 1};
+        let newAmount = 0;
+        let inputs = [];
+        if (transferInfo.assetsChainId === defaultAsset.assetsChainId && transferInfo.assetsId === defaultAsset.assetsId) {
+          const balanceInfo = await getBaseAssetInfo(transferInfo.assetsChainId, transferInfo.assetsId, transferInfo.fromAddress);
+          newAmount = Number(Plus(transferInfo.amount, transferInfo.fee));
+          inputs = [{
+            address: transferInfo.fromAddress,
+            assetsChainId: transferInfo.assetsChainId,
+            assetsId: transferInfo.assetsId,
+            amount: newAmount,
+            locked: 0,
+            nonce: balanceInfo.data.nonce
+          }];
+        } else {
+          const balanceInfo = await getBaseAssetInfo(transferInfo.assetsChainId, transferInfo.assetsId, transferInfo.fromAddress);
+          newAmount = Number(transferInfo.amount);
+          inputs = [{
+            address: transferInfo.fromAddress,
+            assetsChainId: transferInfo.assetsChainId,
+            assetsId: transferInfo.assetsId,
+            amount: newAmount,
+            locked: 0,
+            nonce: balanceInfo.data.nonce
+          }];
+          const defaultBalanceInfo = await getBaseAssetInfo(defaultAsset.assetsChainId, defaultAsset.assetsId, transferInfo.fromAddress);
+          inputs.push({
+            address: transferInfo.fromAddress,
+            assetsChainId: defaultAsset.assetsChainId,
+            assetsId: defaultAsset.assetsId,
+            amount: transferInfo.fee,
+            locked: 0,
+            nonce: defaultBalanceInfo.data.nonce
+          });
+        }
+        let outputs = [{
+          address: transferInfo.toAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: transferInfo.amount,
+          lockTime: 0
+        }];
+        return {success: true, data: {inputs: inputs, outputs: outputs}};
       },
 
       /**

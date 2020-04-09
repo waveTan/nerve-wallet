@@ -159,6 +159,28 @@ export async function getNulsBalance(assetChainId = 2, assetId = 1, address) {
 }
 
 /**
+ * 获取地址资产信息
+ * @param chainId
+ * @param assetId
+ * @param address
+ * @returns {Promise<any>}
+ */
+export async function getBaseAssetInfo(chainId = 2, assetId = 1, address) {
+  return await post('/', 'getAccountBalance', [chainId, assetId, address])
+    .then((response) => {
+      //console.log(response);
+      if (response.result) {
+        return {success: true, data: response.result}
+      } else {
+        return {success: false, data: response}
+      }
+    })
+    .catch((error) => {
+      return {success: false, data: error};
+    });
+}
+
+/**
  * 验证交易
  * @param txHex
  * @returns {Promise<any>}
