@@ -1,46 +1,47 @@
 <template>
   <div class="transfer bg-gray">
     <div class="w1200 bg-white">
-      <div class="title">链内转账</div>
+      <div class="title">{{$t('home.home3')}}</div>
       <el-form :model="transferForm" :rules="transferRules" ref="transferForm" class="w630 transfer_form">
-        <el-form-item label="付款地址" prop="fromAddress">
+        <el-form-item :label="$t('transfer.transfer0')" prop="fromAddress">
           <el-input v-model="transferForm.fromAddress" disabled></el-input>
         </el-form-item>
-        <el-form-item label="资产类型" prop="assetType" class="asset_type">
+        <el-form-item :label="$t('transfer.transfer2')" prop="assetType" class="asset_type">
           <el-select v-model="transferForm.assetType" filterable placeholder="" @change="changeAssetType">
             <el-option v-for="item in assetList" :key="item._id" :label="item.symbol" :value="item">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="收款地址" prop="toAddress">
+        <el-form-item :label="$t('transfer.transfer1')" prop="toAddress">
           <el-input v-model="transferForm.toAddress"></el-input>
         </el-form-item>
         <div style="width: 630px;height: 30px"></div>
-        <div class="fr font12" style="padding: 8px 0 0 0">可用余额: {{balanceInfo.balances}}</div>
-        <el-form-item label="转账金额" prop="amount">
+        <div class="fr font12" style="padding: 8px 0 0 0">{{$t('public.usableBalance')}}: {{balanceInfo.balances}}</div>
+        <el-form-item :label="$t('transfer.transfer3')" prop="amount">
           <el-input v-model="transferForm.amount"></el-input>
         </el-form-item>
-        <el-form-item label="活动形式" prop="remarks">
+        <el-form-item :label="$t('transfer.transfer4')" prop="remarks">
           <el-input type="textarea" v-model="transferForm.remarks"></el-input>
         </el-form-item>
-        <div class="fee font14 mb_20">手续费: {{transferForm.fee}} NULS</div>
+        <div class="fee font14 mb_20">{{$t('public.fee')}}: {{transferForm.fee}} NULS</div>
         <el-form-item class="btn-next">
-          <el-button type="primary" @click="submitTransferForm('transferForm')">下一步</el-button>
+          <el-button type="primary" @click="submitTransferForm('transferForm')">{{$t('public.next')}}</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-dialog title="转账确认" :visible.sync="transferFormDialog" class="transfer_form_dialog" width="500px">
+    <el-dialog :title="$t('transfer.transfer6')" :visible.sync="transferFormDialog" class="transfer_form_dialog"
+               width="500px">
       <ul>
-        <li><span>付款地址：</span><font>{{transferForm.fromAddress}}</font></li>
-        <li><span>接收地址：</span><font>{{transferForm.toAddress}}</font></li>
-        <li><span>金额：</span><font>{{transferForm.amount}} NULS</font></li>
-        <li><span>手续费：</span><font>{{transferForm.fee}} NULS</font></li>
-        <li><span>备注：</span><font>{{transferForm.remarks}}</font></li>
+        <li><span>{{$t('transfer.transfer0')}}：</span><font>{{transferForm.fromAddress}}</font></li>
+        <li><span>{{$t('transfer.transfer1')}}：</span><font>{{transferForm.toAddress}}</font></li>
+        <li><span>{{$t('public.amount')}}：</span><font>{{transferForm.amount}} NULS</font></li>
+        <li><span>{{$t('public.fee')}}：</span><font>{{transferForm.fee}} NULS</font></li>
+        <li><span>{{$t('public.remarks')}}：</span><font>{{transferForm.remarks}}</font></li>
       </ul>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="transferFormDialog = false">取 消</el-button>
-        <el-button type="primary" @click="confirmSubmission">确认提交</el-button>
+        <el-button @click="transferFormDialog = false">{{$t('address.address10')}}</el-button>
+        <el-button type="primary" @click="confirmSubmission">{{$t('transfer.transfer8')}}</el-button>
       </div>
     </el-dialog>
 
@@ -95,7 +96,7 @@
         } else if (Number(value) < 0.001) {
           callback(new Error(this.$t('transfer.transfer13')))
         } else if (this.balanceInfo.balance === 0) {
-          callback(new Error("该资产没有可用余额！"))
+          callback(new Error(this.$t('tips.tips23')))
         } else if (Number(value) > Number(Minus(this.balanceInfo.balance, 0.001))) {
           callback(new Error(this.$t('transfer.transfer131') + Number(Minus(this.balanceInfo.balance, 0.001))))
         } else {
@@ -115,9 +116,9 @@
         //转账数据
         transferForm: {
           fromAddress: '',
-          toAddress: 'tNULSeBaMrbMRiFAUeeAt6swb4xVBNyi81YL24',
+          toAddress: '',
           assetType: '',
-          amount: '100',
+          amount: '',
           fee: 0.001,
           remarks: '',
         },
@@ -213,7 +214,7 @@
         let passwordInfo = await passwordVerification(this.addressInfo, password);
         //console.log(passwordInfo);
         if (!passwordInfo.success) {
-          this.$message({message: "对不起，密码错误！", type: 'error', duration: 3000});
+          this.$message({message: this.$t('tips.tips24'), type: 'error', duration: 3000});
           return;
         }
         //console.log(this.assetsInfo);
@@ -244,13 +245,13 @@
         console.log(broadcastResult);
         if (!broadcastResult.success) {
           this.$message({
-            message: "广播交易失败：" + JSON.stringify(broadcastResult),
+            message: this.$t('public.err') + JSON.stringify(broadcastResult),
             type: 'error',
             duration: 3000
           });
           return;
         } else {
-          this.$message({message: "交易已经发出，等待区块确认", type: 'success', duration: 1000});
+          this.$message({message: this.$t('tips.tips0'), type: 'success', duration: 1000});
           this.transferFormDialog = false;
           this.$refs['transferForm'].resetFields();
         }

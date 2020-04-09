@@ -495,6 +495,13 @@ const en = {
     "tab30": "Go backup",
     "tab31": "Send",
     "tab32": "Safety warning: ",
+
+    "tab33": "My assets",
+    "tab34": "Within the chain trading",
+    "tab35": "Currency",
+    "tab36": "Name",
+    "tab37": "Number ",
+    "tab38": "Valuation",
   },
 
   "type": {
@@ -621,6 +628,10 @@ const en = {
     "home0": "Main assets",
     "home1": "Cross assets",
     "home2": "Transaction record",
+
+    "home3": "Chain transfer",
+    "home4": "Across transfer",
+    "home5": "Across money",
   },
 
   "frozenList": {
@@ -891,7 +902,6 @@ const en = {
     "tips9": "Backup QR code",
     "tips10": "Scan import",
     "tips11": "Login easily",
-
     "tips12": "Collection information ",
     "tips13": "Please fill in the amount received",
     "tips14": "Please choose your currency",
@@ -902,6 +912,10 @@ const en = {
     "tips19": "Scan login",
     "tips20": "Scan backup",
     "tips21": "Scan transactions",
+
+    "tips22": "Please enter currency name",
+    "tips23": "This asset has no available balance!",
+    "tips24": "Sorry, the password is wrong!",
     "tips": "tips",
   },
   ...enLocale

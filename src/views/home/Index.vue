@@ -1,17 +1,17 @@
 <template>
-  <div class="home">
+  <div class="home" v-loading="homeLoading">
     <div class="top w1200">
       <div class="left fl shadow">
-        <h4>我的资产</h4>
+        <h4>{{$t('tab.tab33')}}</h4>
         <div>
           <div class="fl total">
-            <h6>总额</h6>
+            <h6>{{$t('tab.tab2')}}</h6>
             <p>≈ $ {{myAssetsInfo.total}}</p>
           </div>
           <div class="fr lock">
-            <h6>可用</h6>
+            <h6>{{$t('tab.tab4')}}</h6>
             <p>≈ $ {{myAssetsInfo.available}}</p>
-            <h6>锁定</h6>
+            <h6>{{$t('tab.tab3')}}</h6>
             <p>≈ $ {{myAssetsInfo.locking}}</p>
           </div>
         </div>
@@ -22,9 +22,9 @@
     </div>
     <div class="footer cb w1200">
       <div class="titles">
-        <h4 class="fl">链内交易</h4>
+        <h4 class="fl">{{$t('tab.tab34')}}</h4>
         <div class="fr">
-          <el-autocomplete v-model="searchValue" placeholder="请输入内容"
+          <el-autocomplete v-model="searchValue" :placeholder="$t('tips.tips22')"
                            :fetch-suggestions="querySearchAsync"
                            @select="handleSelect">
             <i class="el-icon-search" slot="suffix"></i>
@@ -38,27 +38,29 @@
         <el-table :data="ledgerData" border class="tabs">
           <el-table-column label="" width="30">
           </el-table-column>
-          <el-table-column prop="currency" label="币种" width="100">
+          <el-table-column prop="currency" :label="$t('tab.tab35')" width="100">
           </el-table-column>
-          <el-table-column prop="name" label="名称" width="100">
+          <el-table-column prop="name" :label="$t('tab.tab36')" width="100">
           </el-table-column>
-          <el-table-column prop="number" label="数量" width="170">
+          <el-table-column prop="number" :label="$t('tab.tab37')" width="170">
           </el-table-column>
-          <el-table-column label="估值" width="170">
+          <el-table-column :label="$t('tab.tab38')" width="170">
             <template slot-scope="scope">
               ${{scope.row.valuation}}
             </template>
           </el-table-column>
-          <el-table-column prop="locking" label="锁定" width="170">
+          <el-table-column prop="locking" :label="$t('tab.tab3')" width="170">
           </el-table-column>
-          <el-table-column prop="available" label="可用" width="170">
+          <el-table-column prop="available" :label="$t('tab.tab4')" width="170">
           </el-table-column>
-          <el-table-column label="操作" min-width="200">
+          <el-table-column :label="$t('nodeService.nodeService6')" min-width="200">
             <template slot-scope="scope">
-              <el-button @click="inChains(scope.row)" type="text" size="small">链内转账</el-button>
-              <el-button @click="crossLink(scope.row)" type="text" size="small" disabled>跨链转账</el-button>
-              <el-button @click="crossLinkCarry(scope.row)" type="text" size="small" disabled>跨链提币</el-button>
-              <el-button @click="transactionList(scope.row)" type="text" size="small">交易记录</el-button>
+              <el-button @click="inChains(scope.row)" type="text" size="small">{{$t('home.home3')}}</el-button>
+              <el-button @click="crossLink(scope.row)" type="text" size="small" disabled>{{$t('home.home4')}}
+              </el-button>
+              <el-button @click="crossLinkCarry(scope.row)" type="text" size="small" disabled>{{$t('home.home5')}}
+              </el-button>
+              <el-button @click="transactionList(scope.row)" type="text" size="small">{{$t('home.home2')}}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -85,6 +87,7 @@
         searchValue: '', //搜索框内容
         ledgerData: [],//币种列表
         chartData: [], //环形图数据
+        homeLoading: true,//加载动画
       };
     },
     created() {
@@ -206,6 +209,7 @@
             item.rate = Number(Division(item.valuation, this.myAssetsInfo.total)) * 100;
           }
           this.chartData = this.ledgerData;
+          this.homeLoading = false;
         }
       },
 
