@@ -674,8 +674,13 @@ const cn = {
     "consensus13": "节点详情",
     "consensus14": "委托量",
     "consensus15": "节点排名",
-    "consensus16": "累积奖励",
-    "consensus17": "累积奖励",
+    "consensus16": "累计奖励",
+    "consensus17": "累计奖励",
+    "consensus18": "委托记录",
+    "consensus19": "共计委托",
+    "consensus20": "追加",
+    "consensus21": "共识中",
+    "consensus22": "待共识",
   },
 
   "newConsensus": {

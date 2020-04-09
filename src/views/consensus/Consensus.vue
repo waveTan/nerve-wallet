@@ -5,7 +5,7 @@
         <h3 class="fl">{{$t('consensus.consensus11')}}</h3>
         <div class="node-info fl" v-if="myNodeData.length">
           <ul>
-            <li>ID: {{myNodeData[0].agentId}}</li>
+            <li class="uppercase">ID: {{myNodeData[0].agentId}}</li>
             <li>{{$t('public.alias')}}: {{myNodeData[0].alias || '-'}}</li>
             <li>{{$t('consensus.consensus12')}}: {{myNodeData[0].type}}</li>
           </ul>

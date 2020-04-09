@@ -39,7 +39,7 @@
           {{$t('public.fee')}}: 0.001 <span class="fCN">{{agentAsset.agentAsset.symbol}}</span>
         </div>
         <el-form-item class="form-next">
-          <el-button type="success" @click="submitForm('createrForm')" :disabled="isRed">{{$t('password.password3')}}
+          <el-button type="primary" @click="submitForm('createrForm')" :disabled="isRed">{{$t('password.password3')}}
           </el-button>
         </el-form-item>
       </el-form>
