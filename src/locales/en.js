@@ -669,6 +669,17 @@ const en = {
     "consensus9": "All nodes",
     "consensus10": "Please choose to enter ID\\alias\\address...",
     "consensus11": "My node",
+    "consensus12": "Node type",
+    "consensus13": "Node details",
+    "consensus14": "Staked amount",
+    "consensus15": "Node ranking",
+    "consensus16": "Cumulative rewards",
+    "consensus17": "Cumulative rewards",
+    "consensus18": "Commission record",
+    "consensus19": "Total commission",
+    "consensus20": "Addition",
+    "consensus21": "Consensus",
+    "consensus22": "Pending consensus",
   },
 
   "newConsensus": {

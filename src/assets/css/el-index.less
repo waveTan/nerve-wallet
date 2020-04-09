@@ -84,8 +84,11 @@
 }
 
 .el-table {
+  &.el-table--striped .el-table__body tr.el-table__row--striped td {
+    background: #f3f6fd;
+  }
   th {
-    background-color: @Bcolour2 !important;
+    background-color: #78a0f3 !important;
     padding: 8px 0 !important;
   }
   .el-table__header-wrapper {
@@ -93,8 +96,11 @@
       .has-gutter {
         tr {
           th {
-            background-color: @Bcolour2;
+            background-color: #78a0f3;
             border-right: 0;
+            .cell {
+              color: #fff;
+            }
           }
         }
       }
@@ -363,5 +369,10 @@
 .el-message{
   .el-message__content{
     line-height: 20px;
+  }
+}
+.el-button {
+  &.el-button--primary {
+    background-color: @Ncolour;
   }
 }
