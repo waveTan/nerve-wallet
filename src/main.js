@@ -6,6 +6,8 @@ import VePie from 'v-charts/lib/pie.common'
 import i18n from './i18n'
 import {post} from './api/https'
 
+Vue.config.devtools = process.env.NODE_ENV === 'development'
+
 Vue.config.productionTip = false;
 //定义全局变量
 Vue.prototype.$post = post;

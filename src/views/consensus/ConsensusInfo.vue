@@ -60,7 +60,7 @@
         </el-table-column>
       </el-table>
       <el-dialog :title="$t('consensus.consensus20')" :visible.sync="additionDialog" width="38rem">
-        <el-form :model="jionNodeForm" status-icon :rules="jionNodeRules">
+        <el-form :model="jionNodeForm" status-icon :rules="jionNodeRules" ref="jionNodeForm">
           <el-form-item :label="$t('consensusInfo.consensusInfo1')+': '" prop="amount">
             <span class="balance font12 fr">{{$t('consensus.consensus2')}}：{{balanceInfo.balance/100000000}}</span>
             <el-input v-model="jionNodeForm.amount"></el-input>
@@ -71,7 +71,7 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="additionDialog = false">{{$t('password.password2')}}</el-button>
-          <el-button type="primary" @click="additionDialog = true">{{$t('password.password3')}}</el-button>
+          <el-button type="primary" @click="jionNodeSubmitForm('jionNodeForm')">{{$t('password.password3')}}</el-button>
         </div>
       </el-dialog>
       <!--<div class="entrust w1200 bg-white" v-show="jionNode">
