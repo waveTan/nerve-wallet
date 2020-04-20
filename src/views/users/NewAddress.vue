@@ -218,7 +218,7 @@
       this.activeName = this.resetAddress !== '0' ? 'keyImport' : 'keystoreImport';
     },
     mounted() {
-      this.ramNumber();
+      //this.ramNumber();
     },
     beforeDestroy() {
       clearInterval(this.scanImportInterval);
@@ -238,7 +238,7 @@
           url: localStorage.hasOwnProperty('url') ? JSON.parse(localStorage.getItem('url')).urls : 'https://beta.wallet.nuls.io/api',
           send: this.importRandomString,
         };
-        console.log(this.importRandomString);
+        //console.log(this.importRandomString);
         let qrcode = new QRCode('qrcode', {
           width: 250,
           height: 250,
@@ -462,12 +462,12 @@
               margin: 10px 20px 20px;
               border-radius: 4px;
               &:hover {
-                background: linear-gradient(to right, #67C23A, #67C23A);
+                background: linear-gradient(to right, #78a0f3, #78a0ff);
                 color: #FFFFFF;
               }
             }
             .is-active {
-              background: linear-gradient(to right, #67C23A, #67C23A);
+              background: linear-gradient(to right, #78a0f3, #78a0ff);
               color: #FFFFFF;
             }
           }
@@ -490,6 +490,14 @@
           .import-form {
             margin: 60px auto 100px;
           }
+          .el-button--success {
+            background-color: #3face2;
+            border-color: #3face2;
+            &:hover {
+              background-color: #3ab3e1;
+              border-color: #3ab3e1;
+            }
+          }
         }
         .scan {
           width: 100%;
@@ -508,6 +516,14 @@
             margin: 60px auto 100px;
           }
         }
+      }
+    }
+    .el-button--success {
+      background-color: #78a0f3;
+      border-color: #78a0f3;
+      &:hover {
+        background-color: #79a4ef;
+        border-color: #99ccee;
       }
     }
   }

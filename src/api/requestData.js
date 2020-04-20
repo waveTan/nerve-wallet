@@ -290,8 +290,8 @@ export async function getContractConstructor(contractCodeHex) {
  */
 export async function getAllAddressPrefix() {
   let newData = [
-    {chainId: 1, addressPrefix: 'NULS'},
-    {chainId: 2, addressPrefix: 'tNULS'},
+    {chainId: 4, addressPrefix: 'NVT'},
+    {chainId: 4, addressPrefix: 'TNVT'},
   ];
   await post('/', 'getAllAddressPrefix', [])
     .then((response) => {

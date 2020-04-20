@@ -125,8 +125,7 @@
       backKey() {
         this.backType = 1;
         this.$refs.password.showPassword(true)
-      }
-      ,
+      },
 
       /**
        *  获取密码框的密码
@@ -162,8 +161,7 @@
             this.createScan(scanInfo);
           }, 300);
         }
-      }
-      ,
+      },
 
       /**
        * @disc: 生成备份二维码
@@ -187,8 +185,7 @@
        */
       scanDialogClose() {
         document.getElementById('qrcode').innerHTML = ''
-      }
-      ,
+      },
 
       /**
        * 复制方法
@@ -198,8 +195,7 @@
         copys(sting);
         this.$message({message: this.$t('public.copySuccess'), type: 'success', duration: 1000});
         this.keyDialog = false;
-      }
-      ,
+      },
 
       /**
        * 连接跳转
@@ -213,8 +209,7 @@
         } else {
           connectToExplorer('nuls', name);
         }
-      }
-      ,
+      },
     }
   }
 </script>
@@ -283,6 +278,14 @@
           }
           .mt_20 {
             margin: 100px auto 30px !important;
+          }
+          .el-button--success {
+            background-color: #78a0f3;
+            border-color: #78a0f3;
+            &:hover {
+              background-color: #79a4ef;
+              border-color: #99ccee;
+            }
           }
         }
       }

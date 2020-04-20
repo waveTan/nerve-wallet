@@ -115,7 +115,7 @@
       setTimeout(() => {
         this.getAddressList();
         this.getAddressLists(this.addressList);
-      }, 600);
+      }, 200);
     },
     methods: {
 

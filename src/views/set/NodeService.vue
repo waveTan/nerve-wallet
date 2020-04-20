@@ -446,6 +446,15 @@
           padding: 20px;
           .btns {
             .el-form-item__content {
+              .el-button--success {
+                background-color: #78a0f3;
+                border-color: #78a0f3;
+                &:hover {
+                  background-color: #79a4ef;
+                  border-color: #99ccee;
+                }
+              }
+
               .el-button {
                 width: 130px;
                 span {

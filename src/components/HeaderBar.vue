@@ -73,7 +73,8 @@
         addressList: [], //地址列表
         lang: 'cn', //语言选择
         nodeServiceInfo: {},
-        symbol: 'NULS', //symbol
+        symbol: 'NVT', //symbol
+        urlPath: '',//当前路径
       };
     },
     components: {},
@@ -97,7 +98,9 @@
     },
     mounted() {
       setInterval(() => {
-        this.symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol : 'NULS';
+        this.urlPath = this.$route.path;
+        //console.log(this.urlPath);
+        this.symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol : 'NVT';
         document.title = this.symbol + " Wallet";
         this.getAddressList();
         if (sessionStorage.hasOwnProperty('info')) {
@@ -107,6 +110,11 @@
           this.nodeServiceInfo.isRunSmartContract = false;
         }
       }, 500)
+    },
+    watch: {
+      urlPath: function (val, oldVal) {
+        console.log(val, oldVal);
+      }
     },
     methods: {
 

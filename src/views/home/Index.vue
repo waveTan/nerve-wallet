@@ -96,7 +96,17 @@
       this.symbolReport();
     },
     mounted() {
+      setTimeout(() => {
+        console.log(this.addressInfo);
+        if (!this.addressInfo) {
+          this.$router.push({
+            name: 'newAddress',
+          })
+        }
+      }, 500)
+
       //this.getAccountList(this.addressInfo.address, 1);
+
     },
     components: {
       PieChart,
