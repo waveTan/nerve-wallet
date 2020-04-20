@@ -1,7 +1,7 @@
 import nuls from 'nuls-sdk-js'
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
-import {explorerUrl, RUN_DEV} from '@/config.js'
+import {explorerUrl, IS_DEV,MAIN_INFO} from '@/config.js'
 import openner from "./opener-web";
 
 /**
@@ -119,7 +119,7 @@ export function chainID() {
     let newUrl = JSON.parse(localStorage.getItem('url'));
     return newUrl.chainId
   } else {
-    return RUN_DEV ? 1 : 2;
+    return MAIN_INFO.chainId;
   }
 }
 

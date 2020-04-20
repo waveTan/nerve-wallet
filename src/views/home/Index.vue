@@ -17,7 +17,8 @@
         </div>
       </div>
       <div class="right fr">
-        <PieChart :data="chartData" :total="myAssetsInfo.total"></PieChart>
+        <PieChart :data="chartData" :total="myAssetsInfo.total">
+        </PieChart>
       </div>
     </div>
     <div class="footer cb w1200">
@@ -111,19 +112,30 @@
        * @author: Wave
        */
       async symbolReport() {
-        let url = "http://192.168.1.132:18003";
+        let url = JSON.parse(localStorage.getItem('url'));
         const params = {
           "jsonrpc": "2.0",
           "method": "getSymbolBaseInfo",
           "params": [2],
           "id": Math.floor(Math.random() * 1000)
         };
-        let res = await axios.post(url, params);
-        //console.log(res);
-        if (res.data.result.length !== 0) {
+        try {
+          let res = await axios.post(url.urls, params);
+          console.log(res);
+
           this.allAssetsList = res.data.result;
           sessionStorage.setItem('allAssetsList', JSON.stringify(this.allAssetsList));
           this.getAccountList(this.addressInfo.address, 1);
+
+          /*if (res.data.result.length === 0) {
+            console.log(res.data.result)
+          }else {
+            this.allAssetsList = res.data.result;
+            sessionStorage.setItem('allAssetsList', JSON.stringify(this.allAssetsList));
+            this.getAccountList(this.addressInfo.address, 1);
+          }*/
+        } catch (err) {
+          console.log(err)
         }
       },
 
@@ -172,44 +184,49 @@
        * @author: Wave
        */
       async getAccountList(address, type) {
-        let url = "http://192.168.1.132:18003";
+        let url = JSON.parse(localStorage.getItem('url'));
         const params = {
           "jsonrpc": "2.0",
           "method": "getAccountLedgerList",
-          "params": [2, address, type],
+          "params": [4, address, type],
           "id": Math.floor(Math.random() * 1000)
         };
-        let res = await axios.post(url, params);
-        //console.log(res);
-        if (res.data.result.length !== 0) {
-          for (let item of res.data.result) {
-            //console.log(item);
-            let assetsInfo = this.allAssetsList.filter(k => k.chainId === item.chainId);
-            item.usdPrice = assetsInfo[0].usdPrice;
-            item.currency = assetsInfo[0].icon;
-            item.name = item.symbol;
-            item.number = divisionDecimals(item.totalBalance, item.decimals);
-            item.valuation = Number(Times(item.number, item.usdPrice));
-            item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
-            item.usdLocking = Number(Times(item.locking, item.usdPrice));
-            item.available = divisionDecimals(item.balance, item.decimals);
-            item.usdAvailable = Number(Times(item.available, item.usdPrice));
+        //console.log(params);
+        try {
+          let res = await axios.post(url.urls, params);
+          console.log(res);
+          if (res.data.hasOwnProperty('result')) {
+            for (let item of res.data.result) {
+              //console.log(item);
+              let assetsInfo = this.allAssetsList.filter(k => k.chainId === item.chainId);
+              item.usdPrice = assetsInfo[0].usdPrice;
+              item.currency = assetsInfo[0].icon;
+              item.name = item.symbol;
+              item.number = divisionDecimals(item.totalBalance, item.decimals);
+              item.valuation = Number(Times(item.number, item.usdPrice));
+              item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
+              item.usdLocking = Number(Times(item.locking, item.usdPrice));
+              item.available = divisionDecimals(item.balance, item.decimals);
+              item.usdAvailable = Number(Times(item.available, item.usdPrice));
 
-            //我的资产数据
-            this.myAssetsInfo.total = Number(Plus(this.myAssetsInfo.total, item.valuation));
-            this.myAssetsInfo.available = Number(Plus(this.myAssetsInfo.available, item.usdAvailable));
-            this.myAssetsInfo.locking = Number(Plus(this.myAssetsInfo.locking, item.usdLocking));
-          }
-          this.ledgerData = res.data.result;
+              //我的资产数据
+              this.myAssetsInfo.total = Number(Plus(this.myAssetsInfo.total, item.valuation));
+              this.myAssetsInfo.available = Number(Plus(this.myAssetsInfo.available, item.usdAvailable));
+              this.myAssetsInfo.locking = Number(Plus(this.myAssetsInfo.locking, item.usdLocking));
+            }
+            this.ledgerData = res.data.result;
 
-          //环形图数据
-          for (let item of this.ledgerData) {
-            item.key = item.symbol;
-            item.value = item.valuation;
-            item.rate = Number(Division(item.valuation, this.myAssetsInfo.total)) * 100;
+            //环形图数据
+            for (let item of this.ledgerData) {
+              item.key = item.symbol;
+              item.value = item.valuation;
+              item.rate = Number(Division(item.valuation, this.myAssetsInfo.total)) * 100;
+            }
+            this.chartData = this.ledgerData;
+            this.homeLoading = false;
           }
-          this.chartData = this.ledgerData;
-          this.homeLoading = false;
+        } catch (err) {
+          console.log(err);
         }
       },
 

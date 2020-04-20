@@ -151,7 +151,7 @@
         this.nodeServiceData = this.$store.getters.getUrlData;
         let newInfo = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')) : '';
         if (newInfo) {
-          let newUrlsList = ['https://wallet.nuls.io/public', 'https://public1.nuls.io', 'https://public1.nuls.io', 'https://beta.wallet.nuls.io/api', 'http://beta.public1.nuls.io/', 'http://beta.public2.nuls.io/']
+          let newUrlsList = ['https://wallet.nuls.io/public', 'https://public1.nuls.io', 'https://public1.nuls.io', 'https://beta.wallet.nuls.io/api', 'http://beta.public1.nuls.io/', 'http://beta.public2.nuls.io/'];
           let newUrlData = this.$store.getters.getUrlData;
           if (newInfo.defaultAsset.symbol !== 'NULS') {
             for (let item of newUrlsList) {
