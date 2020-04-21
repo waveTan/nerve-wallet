@@ -14,8 +14,7 @@
     <div class="new w1200 mt_20 bg-white">
       <div class="step_tow w630">
         <div class="tip bg-gray">
-          <p class="tc" v-if="RUN_PATTERN">{{$t('newAddress.newAddress13')}}</p>
-          <p class="tc" v-else>{{$t('newAddress.newAddress131')}}</p>
+          <p class="tc">{{$t('newAddress.newAddress131')}}</p>
         </div>
         <div class="btn mb_20">
           <el-button type="success" @click="backKeystore">{{$t('newAddress.newAddress16')}}</el-button>
@@ -62,7 +61,6 @@
   import Password from '@/components/PasswordBar'
   import BackBar from '@/components/BackBar'
   import {copys, chainID, passwordVerification, connectToExplorer} from '@/api/util'
-  import {RUN_PATTERN} from '@/config.js'
   import {getPrefixByChainId} from '@/api/requestData'
 
   export default {
@@ -72,7 +70,6 @@
         newAddressInfo: {},//备份账户信息
         keyDialog: false, //key弹框
         backType: 0,//备份类型 0：keystore备份 1：明文私钥备份 2:二维码备份
-        RUN_PATTERN: RUN_PATTERN,//运行模式
         scanDialog: false,//二维码显示框
       };
     },

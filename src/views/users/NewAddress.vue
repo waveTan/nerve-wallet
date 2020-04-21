@@ -491,11 +491,11 @@
             margin: 60px auto 100px;
           }
           .el-button--success {
-            background-color: #3face2;
-            border-color: #3face2;
+            background-color: #78a0f3;
+            border-color: #78a0f3;
             &:hover {
-              background-color: #3ab3e1;
-              border-color: #3ab3e1;
+              background-color: #79a4ef;
+              border-color: #99ccee;
             }
           }
         }

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {explorerData,RUN_DEV} from '@/config'
+import {explorerData,IS_DEV} from '@/config'
 
 Vue.use(Vuex);
 
@@ -15,7 +15,7 @@ export default new Vuex.Store({
     },
     setUrlData(state, data) {
       state.urlData = data;
-      let urlName = RUN_DEV ? 'mainUrlData' :'TestUrlData';
+      let urlName = IS_DEV ? 'mainUrlData' :'TestUrlData';
       localStorage.setItem(urlName, JSON.stringify(data));
     },
   },
@@ -24,7 +24,7 @@ export default new Vuex.Store({
 
     getUrlData(state) {
       if (state.urlData.length === 0) {
-        let urlName = RUN_DEV ? 'mainUrlData' :'TestUrlData';
+        let urlName = IS_DEV ? 'mainUrlData' :'TestUrlData';
         state.urlData = localStorage.hasOwnProperty(urlName) ? JSON.parse(localStorage.getItem(urlName)) : explorerData;
         localStorage.setItem(urlName, JSON.stringify(state.urlData));
       }

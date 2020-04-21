@@ -10,7 +10,8 @@
             <li>{{$t('consensus.consensus12')}}: {{myNodeData[0].type}}</li>
           </ul>
         </div>
-        <div class="to-node-detail click fCN fr" v-if="myNodeData.length" @click="toUrl('consensusInfo',myNodeData[0].txHash)">
+        <div class="to-node-detail click fCN fr" v-if="myNodeData.length"
+             @click="toUrl('consensusInfo',myNodeData[0].txHash)">
           {{$t('consensus.consensus13')}}
         </div>
       </div>
@@ -45,7 +46,7 @@
         </div>
         <div class="node" v-loading="allNodeLoading" v-show="viewList">
           <div class="node_info shadow1" v-for="item in searchData" :key="item.agentId">
-            <h4 >
+            <h4>
               <span class="uppercase fCN">{{item.agentId}}</span>&nbsp;
               <i class="iconfont fr"
                  :class="item.status ===0 ? 'icondaigongshi fred' : 'icongongshizhong fCN'"></i>
@@ -69,7 +70,8 @@
               </template>
             </el-table-column>
             <el-table-column :label="$t('public.alias')" min-width="150" align="left">
-              <template slot-scope="scope"><span>{{ scope.row.agentAlias ? scope.row.agentAlias : '-' }}</span></template>
+              <template slot-scope="scope"><span>{{ scope.row.agentAlias ? scope.row.agentAlias : '-' }}</span>
+              </template>
             </el-table-column>
             <el-table-column prop="creditValue" :label="$t('public.credit')" min-width="150"></el-table-column>
 
@@ -368,7 +370,7 @@
               for (let items of difference) {
                 newCollectList.push(this.allNodeData.filter(item => item.agentId === items)[0])
               }
-              this.myNodeLoading = false
+              this.myNodeLoading = false;
               this.myNodeData = [...response.result.list, ...newCollectList];
             }
           })
@@ -513,7 +515,7 @@
         .exist-node {
           display: flex;
           justify-content: space-around;
-          &>div {
+          & > div {
             color: #74819e;
             p {
               font-weight: 600;
@@ -534,7 +536,7 @@
       .el-input.search {
         float: none;
         width: 360px;
-        &+i {
+        & + i {
           font-size: 24px;
           margin-top: 15px;
         }

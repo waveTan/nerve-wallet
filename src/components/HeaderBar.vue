@@ -63,7 +63,7 @@
 <script>
   import logo from '@/assets/img/logo.svg'
   import {superLong, chainIdNumber, addressInfo, connectToExplorer} from '@/api/util'
-  import {RUN_DEV} from '@/config.js'
+  import {IS_DEV} from '@/config.js'
 
   export default {
     data() {
@@ -146,7 +146,7 @@
             if (keyPath[1] === 'official') {
               newUrl = 'https://nuls.io/'
             } else if (keyPath[1] === 'explorer') {
-              newUrl = RUN_DEV ? 'https://nulscan.io/' : 'http://beta.nulscan.io/'
+              newUrl = IS_DEV ? 'https://nulscan.io/' : 'http://beta.nulscan.io/'
             } else if (keyPath[1] === 'docs') {
               newUrl = 'https://docs.nuls.io/'
             }
@@ -211,7 +211,6 @@
         })
       },
     },
-    watch: {}
   }
 </script>
 
@@ -219,7 +218,6 @@
   @import "./../assets/css/style";
 
   .header {
-    /*border-bottom: 1px solid @Dcolour;*/
     height: 80px;
     .logo {
       width: 120px;

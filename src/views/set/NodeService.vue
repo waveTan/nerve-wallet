@@ -94,7 +94,7 @@
 
 <script>
   import axios from 'axios'
-  import {RUN_DEV} from '@/config'
+  import {IS_DEV} from '@/config'
 
   export default {
     data() {
@@ -117,7 +117,7 @@
       };
       return {
         loading: false,//切换时加载动画
-        urlName: RUN_DEV ? 'mainUrlData' : 'TestUrlData',//服务节点名称
+        urlName: IS_DEV ? 'mainUrlData' : 'TestUrlData',//服务节点名称
         nodeServiceData: [],//节点列表
         nodeServiceLoading: false,//节点列表加载动画
         nodeServiceDialog: false,//服务地址弹框

@@ -2,6 +2,7 @@
  * Created by zhoulijun on 2019-09-17.
  */
 "use strict";
+
 //开发模式
 export const IS_DEV = process.env.NODE_ENV === 'production';
 //燃烧地址的公钥
@@ -22,7 +23,7 @@ export const explorerData = [
     chainId: MAIN_INFO.chainId,
     assetId: MAIN_INFO.assetId,
     decimals: 8,
-    chainName: 'NVT',
+    chainName: 'nerve',
     urls: '/api',
     delay: '10ms',
     selection: true,
@@ -33,7 +34,7 @@ export const explorerData = [
     chainId: MAIN_INFO.chainId,
     assetId: MAIN_INFO.assetId,
     decimals: 8,
-    chainName: 'NVT',
+    chainName: 'nerve',
     urls: 'http://192.168.1.132:17003',
     delay: '10ms',
     selection: false,

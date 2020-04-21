@@ -32,11 +32,12 @@
 
     <el-dialog :title="$t('transfer.transfer6')" :visible.sync="transferFormDialog" class="transfer_form_dialog"
                width="500px">
-      <ul>
+      <ul style="height: 150px">
         <li><span>{{$t('transfer.transfer0')}}：</span><font>{{transferForm.fromAddress}}</font></li>
         <li><span>{{$t('transfer.transfer1')}}：</span><font>{{transferForm.toAddress}}</font></li>
-        <li><span>{{$t('public.amount')}}：</span><font>{{transferForm.amount}} NULS</font></li>
-        <li><span>{{$t('public.fee')}}：</span><font>{{transferForm.fee}} NULS</font></li>
+        <li><span>{{$t('public.amount')}}：</span><font>{{transferForm.amount}} {{this.transferForm.assetType}}</font>
+        </li>
+        <li><span>{{$t('public.fee')}}：</span><font>{{transferForm.fee}} {{prefix}}</font></li>
         <li><span>{{$t('public.remarks')}}：</span><font>{{transferForm.remarks}}</font></li>
       </ul>
       <div slot="footer" class="dialog-footer">
@@ -59,7 +60,6 @@
     Plus,
     divisionDecimals,
     timesDecimals,
-    Times,
     Minus,
     addressInfo,
     passwordVerification,
@@ -127,7 +127,7 @@
           toAddress: [{validator: validateToAddress, trigger: 'change'}],
           amount: [{validator: validateAmount, trigger: ['blur', 'change']}],
         },
-
+        prefix: MAIN_INFO.prefix,
         transferFormDialog: false,//确认弹框
       };
     },
@@ -228,7 +228,7 @@
         transferInfo['amount'] = timesDecimals(this.transferForm.amount, this.changeAssetInfo.decimal);
         //console.log(transferInfo);
         let inOrOutputs = await this.inputsOrOutputs(transferInfo);
-        console.log(inOrOutputs);
+        //console.log(inOrOutputs);
         //交易组装
         let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 2);
         //获取hash
@@ -240,9 +240,9 @@
         let signData = await sdk.appSplicingPub(txSignature.signValue, passwordInfo.pub);
         tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        console.log(txhex.toString('hex'));
+        //console.log(txhex.toString('hex'));
         let broadcastResult = await validateAndBroadcast(txhex.toString('hex'));
-        console.log(broadcastResult);
+        //console.log(broadcastResult);
         if (!broadcastResult.success) {
           this.$message({
             message: this.$t('public.err') + JSON.stringify(broadcastResult),
@@ -253,7 +253,11 @@
         } else {
           this.$message({message: this.$t('tips.tips0'), type: 'success', duration: 1000});
           this.transferFormDialog = false;
-          this.$refs['transferForm'].resetFields();
+          //this.$refs['transferForm'].resetFields();
+          this.transferForm.toAddress = '';
+          this.transferForm.amount = '';
+          this.transferForm.remarks = '';
+
         }
       },
 
@@ -265,7 +269,8 @@
        * @returns {*}
        **/
       async inputsOrOutputs(transferInfo) {
-        const defaultAsset = {assetsChainId: 2, assetsId: 1};
+        //console.log(MAIN_INFO);
+        const defaultAsset = {assetsChainId: MAIN_INFO.chainId, assetsId: MAIN_INFO.assetId};
         let newAmount = 0;
         let inputs = [];
         if (transferInfo.assetsChainId === defaultAsset.assetsChainId && transferInfo.assetsId === defaultAsset.assetsId) {
@@ -352,6 +357,14 @@
         margin: 30px auto 0;
         .el-button--primary {
           width: 100%;
+        }
+        .el-button--primary {
+          background-color: #78a0f3;
+          border-color: #78a0f3;
+          &:hover {
+            background-color: #79a4ef;
+            border-color: #99ccee;
+          }
         }
       }
     }

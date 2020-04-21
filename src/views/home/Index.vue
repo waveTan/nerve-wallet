@@ -72,7 +72,7 @@
 
 <script>
   import axios from 'axios'
-  import {divisionDecimals, Plus, Times, Division, addressInfo} from '@/api/util'
+  import {divisionDecimals, Plus, Times, Division, addressInfo, connectToExplorer} from '@/api/util'
   import PieChart from '@/components/PieChart'
 
   export default {
@@ -97,16 +97,14 @@
     },
     mounted() {
       setTimeout(() => {
-        console.log(this.addressInfo);
+        //console.log(this.addressInfo);
         if (!this.addressInfo) {
           this.$router.push({
             name: 'newAddress',
           })
         }
       }, 500)
-
       //this.getAccountList(this.addressInfo.address, 1);
-
     },
     components: {
       PieChart,
@@ -131,7 +129,7 @@
         };
         try {
           let res = await axios.post(url.urls, params);
-          console.log(res);
+          //console.log(res);
 
           this.allAssetsList = res.data.result;
           sessionStorage.setItem('allAssetsList', JSON.stringify(this.allAssetsList));
@@ -204,7 +202,7 @@
         //console.log(params);
         try {
           let res = await axios.post(url.urls, params);
-          console.log(res);
+          //console.log(res);
           if (res.data.hasOwnProperty('result')) {
             for (let item of res.data.result) {
               //console.log(item);

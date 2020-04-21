@@ -54,9 +54,7 @@
 </template>
 
 <script>
-  import axios from 'axios'
   import packages from './../../../package'
-  import {RUN_PATTERN, RUN_DEV, FILE_URL} from '@/config.js'
 
   export default {
     data() {
@@ -69,9 +67,6 @@
         system: '',
         version: packages.version,//版本号
         newVersion: '',//最新版本号
-        RUN_PATTERN: RUN_PATTERN,//运行模式
-        RUN_DEV: RUN_DEV,// 运行环境
-        FILE_URL: FILE_URL,//桌面程序下载路径
       };
     },
     created() {
@@ -90,17 +85,6 @@
         this.updateDialogVisible = true;
         this.tips = {};
         this.downloadPercent = 0;
-        const _this = this;
-        _this.$electron.ipcRenderer.send("checkForUpdate");
-        await _this.$electron.ipcRenderer.on("message", (event, text) => {
-          _this.tips = text;
-        });
-        _this.$electron.ipcRenderer.on("downloadProgress", (event, progressObj) => {
-          _this.downloadPercent = Number(progressObj.percent.toFixed(2)) || 0;
-        });
-        _this.$electron.ipcRenderer.on("isUpdateNow", () => {
-          _this.$electron.ipcRenderer.send("isUpdateNow");
-        });
       },
 
       /**
@@ -114,32 +98,9 @@
        * 查看日志
        */
       seeLog() {
-        const os = require('os');
-        this.system = os.type();
-        let str = __dirname;
-        let updateUrl = '';
-        if (this.system === 'Windows_NT') {
-          let ss = str.split("\\");
-          let temp = "\\" + ss[ss.length - 2];
-          let num = str.lastIndexOf(temp);
-          this.logUrl = str.slice(0, num) + '\\wallet_web_log';
-          updateUrl = this.FILE_URL + '/latest.yml'
-        } else if (this.system === 'Darwin') {
-          let ss = str.split("/");
-          let temp = "/" + ss[ss.length - 2];
-          let num = str.lastIndexOf(temp);
-          this.logUrl = str.slice(0, num) + '/wallet_web_log';
-          updateUrl = this.FILE_URL + '/latest-mac.yml'
-        }
-        axios.get(updateUrl, {})
-          .then((response) => {
-            //console.log(response.data.substr(9,5));
-            this.newVersion = response.data.substr(9, 5);
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+
       }
+
     }
   }
 </script>
