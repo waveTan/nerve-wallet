@@ -61,10 +61,10 @@
           <p>{{$t('public.packingAddress')}}:&nbsp;</p>
           <label>{{createrForm.blockAddress}}</label>
         </div>
-        <div class="div-data">
+        <!--<div class="div-data">
           <p>{{$t('public.commission')}}:&nbsp;</p>
           <label class="yellow">{{createrForm.rate}}% </label>
-        </div>
+        </div>-->
         <div class="div-data">
           <p>{{$t('public.deposit')}}:&nbsp;</p>
           <label class="yellow">{{createrForm.amount}} <span
@@ -85,6 +85,7 @@
 
 <script>
   import nuls from 'nuls-sdk-js'
+  import {MAIN_INFO} from '@/config.js'
   import {
     getNulsBalance,
     inputsOrOutputs,
@@ -162,8 +163,8 @@
         isRed: false,//创建地址是否有红牌惩罚
         //创建节点表单
         createrForm: {
-          rewardAddress: 'TNVTdN9iC89WZuPwAhS1JkfLVeJhUwnP3sY5k',
-          blockAddress: 'TNVTdN9i9etqVyCHt8gRiLkq8qtD4yo5orzQZ',
+          rewardAddress: 'TNVTdN9i9Gg6E89Jwcayrgvc62oq1WXwxunCW',
+          blockAddress: 'TNVTdN9i7NWX9x916BADpHNS2o88iVuf1EKNx',
           amount: '20000',
           rate: '20',
         },
@@ -182,19 +183,12 @@
           ],
         },
         newConsensusVisible: false,//创建节点确认弹框
-        prefix: '',//地址前缀
+        prefix: MAIN_INFO.prefix,//地址前缀
         getNewConsensusRandomString: '',
         sendNewConsensusRandomString: '',
       };
     },
     created() {
-      getPrefixByChainId(chainID()).then((response) => {
-        //console.log(response);
-        this.prefix = response
-      }).catch((err) => {
-        console.log(err);
-        this.prefix = '';
-      });
       this.addressInfo = addressInfo(1);
       setInterval(() => {
         this.addressInfo = addressInfo(1);

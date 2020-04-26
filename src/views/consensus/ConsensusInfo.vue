@@ -12,25 +12,24 @@
       </div>
       <div class="body clear">
         <div class="left-part">
+          <p>{{$t('consensusInfo.consensusInfo8')}} <label>{{nodeInfo.agentAlias ? nodeInfo.agentAlias :'-' }}</label></p>
           <p>{{$t('public.createAddress')}} <label>{{nodeInfo.agentAddress}}</label></p>
           <p>{{$t('public.rewardAddress')}} <label>{{nodeInfo.rewardAddress}}</label></p>
           <p>{{$t('public.packingAddress')}} <label>{{nodeInfo.packingAddress}}</label></p>
-          <p>{{$t('consensus.consensus12')}} <label>{{nodeInfo.type}}</label></p>
-          <p>{{$t('consensusInfo.consensusInfo8')}} <label>{{nodeInfo.agentAlias ? nodeInfo.agentAlias :'--' }}</label>
-          </p>
-          <p>{{$t('public.credit')}} <label>{{nodeInfo.creditValue}}</label></p>
+          <p>{{$t('consensus.consensus12')}} <label>{{judgeNodeType(nodeInfo.bankNode, nodeInfo.status)}}</label></p>
         </div>
         <div class="right-part">
+          <p>{{$t('public.credit')}} <label>{{nodeInfo.creditValue}}</label></p>
           <p>{{$t('public.deposit')}} <label>{{nodeInfo.deposits}}<span
-                  class="fCN">{{agentAsset.agentAsset.symbol}}</span></label></p>
+                  class="fCN"> {{agentAsset.agentAsset.symbol}}</span></label></p>
           <p>{{$t('consensusInfo.consensusInfo9')}} <label>{{nodeInfo.createTime}}</label></p>
-          <p>
+          <!--<p>
             {{$t('public.totalStake')}}
             <label>{{nodeInfo.totalDeposit}}<span class="fCN">{{agentAsset.agentAsset.symbol}}</span></label>
-          </p>
+          </p>-->
           <p>
             {{$t('consensusInfo.consensusInfo7')}}
-            <label>{{nodeInfo.totalReward}}<span class="fCN">{{addressInfo.symbol}}</span></label>
+            <label>{{nodeInfo.reward}}<span class="fCN"> {{agentAsset.agentAsset.symbol}}</span></label>
           </p>
           <p>
             {{$t('consensusInfo.consensusInfo10')}}
@@ -40,7 +39,7 @@
               </u>
             </label>
           </p>
-          <el-button class="fr" type="danger" @click="stopNode">{{$t('consensusInfo.consensusInfo5')}}</el-button>
+          <el-button class="fr" type="danger" @click="stopNode" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensusInfo.consensusInfo5')}}</el-button>
         </div>
       </div>
     </div>
@@ -51,7 +50,7 @@
         {{$t('public.total')}} {{pageTotal+' ' +$t('public.item') + $t('consensus.consensus18')}},
         {{$t('consensus.consensus19')+ ' '+nodeInfo.totalDeposit+' NVT'}},
         {{$t('consensus.consensus16')+ ' '+nodeInfo.totalReward+' NVT'}}
-        <el-button type="primary" class="fr" @click="additionDialog=true">{{$t('consensus.consensus20')}}</el-button>
+        <el-button type="primary" class="fr" @click="additionDialog=true" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensus.consensus20')}}</el-button>
       </div>
       <el-table :data="nodeDepositData" stripe border class="shadow1">
         <el-table-column width="20"></el-table-column>
@@ -64,6 +63,9 @@
         </el-table-column>
         <el-table-column prop="createTime" :label="$t('consensusList.consensusList1')">
         </el-table-column>
+        <el-table-column :label="$t('public.status')">
+          <template v-slot="scope">{{scope.row.type===1 ? $t('consensusInfo.consensusInfo13'):$t('consensusInfo.consensusInfo14')}}</template>
+        </el-table-column>
         <el-table-column :label="$t('public.operation')" align="center">
           <template slot-scope="scope">
             <label class="click tab_bn"
@@ -71,6 +73,17 @@
           </template>
         </el-table-column>
       </el-table>
+      <div class="pages">
+        <div class="page-total">
+          {{$t('public.display')}} {{pageIndex-1 === 0 ? 1 : (pageIndex-1) *pageSize}}-{{pageIndex*pageSize}}
+          {{$t('public.total')}} {{pageTotal}}
+        </div>
+        <el-pagination class="fr" background v-show="pageTotal>pageSize" @current-change="nodeDepositPages"
+                       :page-size="pageSize"
+                       layout=" prev, pager, next, jumper"
+                       :total="pageTotal">
+        </el-pagination>
+      </div>
       <el-dialog :title="$t('consensus.consensus20')" :visible.sync="additionDialog" width="38rem">
         <el-form :model="jionNodeForm" status-icon :rules="jionNodeRules" ref="jionNodeForm">
           <el-form-item :label="$t('consensusInfo.consensusInfo1')+': '" prop="amount">
@@ -78,7 +91,7 @@
             <el-input v-model="jionNodeForm.amount"></el-input>
           </el-form-item>
           <el-form-item :label="$t('public.fee')+': '">
-            <span class="fee">0.0052 NVT</span>
+            <span class="fee">0.001 NVT</span>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -86,61 +99,6 @@
           <el-button type="primary" @click="jionNodeSubmitForm('jionNodeForm')">{{$t('password.password3')}}</el-button>
         </div>
       </el-dialog>
-      <!--<div class="entrust w1200 bg-white" v-show="jionNode">
-        <div class="entrust_add w630">
-          <el-form :model="jionNodeForm" status-icon :rules="jionNodeRules" ref="jionNodeForm" @submit.native.prevent>
-            <el-form-item :label="$t('consensusInfo.consensusInfo1') + '('+agentAsset.agentAsset.symbol+')'"
-                          prop="amount">
-              <span class="balance font12 fr">{{$t('consensus.consensus2')}}：{{balanceInfo.balance/100000000}}</span>
-              <el-input v-model="jionNodeForm.amount">
-              </el-input>
-            </el-form-item>
-            <div class="font14">
-              {{$t('public.fee')}}: {{fee}} <span class="fCN">{{agentAsset.agentAsset.symbol}}</span>
-            </div>
-            <el-form-item class="form-next">
-              <el-button type="success" @click="jionNodeSubmitForm('jionNodeForm')">{{$t('password.password3')}}
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-      </div>
-      <div class="entrust_list w1200" v-show="!jionNode">
-        <div class="top_total font14">
-          {{$t('public.totalStake')}}：{{nodeInfo.totalDeposit}} <span
-                class="fCN">{{agentAsset.agentAsset.symbol}}</span>
-        </div>
-
-        <div class="top_ico">
-          <i class="el-icon-plus click" @click="showNodeList"></i>
-        </div>
-        <el-table :data="nodeDepositData" stripe border>
-          <el-table-column prop="blockHeight" :label="$t('public.height')" align="center">
-          </el-table-column>
-          <el-table-column prop="createTime" :label="$t('consensusList.consensusList1')" align="center">
-          </el-table-column>
-          <el-table-column prop="amount" :label="$t('public.amount') + '('+agentAsset.agentAsset.symbol+')'"
-                           align="center">
-          </el-table-column>
-          <el-table-column :label="$t('public.operation')" align="center">
-            <template slot-scope="scope">
-              <label class="click tab_bn"
-                     @click="cancelDeposit(scope.row)">{{$t('consensusInfo.consensusInfo0')}}</label>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div class="pages">
-          <div class="page-total">
-            {{$t('public.display')}} {{pageIndex-1 === 0 ? 1 : (pageIndex-1) *pageSize}}-{{pageIndex*pageSize}}
-            {{$t('public.total')}} {{pageTotal}}
-          </div>
-          <el-pagination class="fr" background v-show="pageTotal>pageSize" @current-change="nodeDepositPages"
-                         :page-size="pageSize"
-                         layout=" prev, pager, next, jumper"
-                         :total="pageTotal">
-          </el-pagination>
-        </div>
-      </div>-->
     </div>
 
     <Password ref="password" @passwordSubmit="passSubmit">
@@ -151,6 +109,7 @@
 <script>
   import moment from 'moment'
   import nuls from 'nuls-sdk-js'
+  import {MAIN_INFO} from '@/config.js'
   import {
     getNulsBalance,
     countFee,
@@ -205,7 +164,6 @@
         fee: 0.001,//手续费
         outInfo: '',//退出信息
         passwordType: 0,//输入密码后的提交类型 0:加入委托 1:退出委托 2:注销节点
-        jionNode: false,//是否显示加入共识
         nodeDepositData: [],//委托列表
         nodeDepositLoading: true,//委托类别加载动画
         pageIndex: 1, //页码
@@ -219,7 +177,7 @@
             {validator: checkAmount, trigger: ['blur', 'change']}
           ]
         },
-        prefix: '',//地址前缀
+        prefix: MAIN_INFO.prefix,//地址前缀
 
         txHexRandom: '', //web端提交txHex到后台的key
         signDataKeyRandom: '', // app端提交签名的key
@@ -227,15 +185,16 @@
 
       };
     },
+    computed: {
+      computeNodeType() {
+        return [
+          this.$t('nodeStatus.2'),
+          this.$t('nodeStatus.1'),
+          this.$t('nodeStatus.3'),
+        ]
+      }
+    },
     created() {
-      getPrefixByChainId(chainID()).then((response) => {
-        //console.log(response);
-        this.prefix = response
-      }).catch((err) => {
-        console.log(err);
-        this.prefix = '';
-      });
-
       this.addressInfo = addressInfo(1);
       setInterval(() => {
         this.addressInfo = addressInfo(1);
@@ -254,7 +213,16 @@
       BackBar
     },
     methods: {
-
+      //判断节点类型
+      judgeNodeType(bankNode, isConsensus) {
+        if (bankNode) {
+          return this.computeNodeType[0]
+        } else if (isConsensus) {
+          return this.computeNodeType[1]
+        } else {
+          return this.computeNodeType[2]
+        }
+      },
       /**
        * 根据hash获取节点详情信息
        * @param hash
@@ -267,7 +235,7 @@
               response.result.agentReward = divisionDecimals(response.result.agentReward);
               response.result.deposits = divisionDecimals(response.result.deposit);
               response.result.totalDeposit = divisionDecimals(response.result.totalDeposit);
-              response.result.totalReward = divisionDecimals(response.result.totalReward);
+              response.result.reward = divisionDecimals(response.result.reward);
               response.result.createTime = moment(getLocalTime(response.result.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
               this.nodeInfo = response.result;
             }
@@ -296,11 +264,6 @@
                 itme.txHash = superLong(itme.txHash, 10)
               }
               this.nodeDepositData = response.result.list;
-              if (response.result.totalCount === 0) {
-                this.jionNode = true
-              } else {
-                this.jionNode = false
-              }
               this.pageTotal = response.result.totalCount;
               this.nodeDepositLoading = false;
             } else {
@@ -321,13 +284,6 @@
         this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash);
       },
 
-      /**
-       * 显示加入共识
-       **/
-      showNodeList() {
-        this.jionNode = true;
-        this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.$route.query.hash);
-      },
 
       /**
        * 加入共识
@@ -450,6 +406,7 @@
       async passSubmit(password) {
         const pri = nuls.decrypteOfAES(this.addressInfo.aesPri, password);
         const newAddressInfo = nuls.importByKey(this.addressInfo.chainId, pri, password, this.prefix);
+        console.log(newAddressInfo,111,this.addressInfo)
         if (newAddressInfo.address === this.addressInfo.address) {
           let transferInfo = {
             fromAddress: this.addressInfo.address,
@@ -539,6 +496,8 @@
               let tAssemble = await nuls.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
               //console.log(tAssemble);
               let newFee = countFee(tAssemble, 1);
+              debugger
+              return
               //console.log(transferInfo.fee !== newFee);
               if (transferInfo.fee !== newFee) {
                 transferInfo.fee = newFee;

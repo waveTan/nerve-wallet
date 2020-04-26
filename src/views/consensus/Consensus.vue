@@ -3,21 +3,21 @@
     <div class="my-node shadow1" v-loading="myNodeLoading">
       <div class="head">
         <h3 class="fl">{{$t('consensus.consensus11')}}</h3>
-        <div class="node-info fl" v-if="myNodeData">
+        <div class="node-info fl" v-if="myNodeData.agentId">
           <ul>
             <li class="uppercase">ID: {{myNodeData.agentId}}</li>
             <li>{{$t('public.alias')}}: {{myNodeData.alias || '-'}}</li>
-            <li>{{$t('consensus.consensus12')}}: <!--{{myNodeData.type}}--> 虚拟银行</li>
+            <li>{{$t('consensus.consensus12')}}: {{judgeNodeType(myNodeData.bankNode, myNodeData.status)}}</li>
           </ul>
         </div>
-        <div class="to-node-detail click fCN fr" v-if="myNodeData"
+        <div class="to-node-detail click fCN fr" v-if="myNodeData.agentId"
              @click="toUrl('consensusInfo',myNodeData.txHash)">
           {{$t('consensus.consensus13')}}
         </div>
       </div>
       <div class="body">
-        <div class="exist-node" v-if="myNodeData">
-          <div>{{$t('consensus.consensus14')}}<p>{{myNodeData.deposit+' NVT'}}</p></div>
+        <div class="exist-node" v-if="myNodeData.agentId">
+          <div>{{$t('public.deposit')}}<p>{{myNodeData.deposit+' NVT'}}</p></div>
           <div>{{$t('consensus.consensus15')}}<p>{{myNodeData.ranking}}</p></div>
           <div>{{$t('consensus.consensus16')}}<p>{{myNodeData.reward}}</p></div>
           <div>{{$t('public.credit')}}<p>{{myNodeData.creditValue}}</p></div>
@@ -52,9 +52,9 @@
                  :class="item.status ===0 ? 'icondaigongshi fred' : 'icongongshizhong fCN'"></i>
             </h4>
             <ul class="bg-white click" @click="toUrl('consensusInfo',item.txHash)">
-              <li>{{$t('public.alias')}}<span>{{item.agentAlias}}</span></li>
-              <li>{{$t('consensus.consensus12')}}<span>{{'虚拟银行'}}</span></li>
-              <li>{{$t('public.totalStake')}}<span>{{item.deposit}}<font class="fCN"> NVT</font></span></li>
+              <li>{{$t('public.alias')}}<span>{{item.agentAlias || '-'}}</span></li>
+              <li>{{$t('consensus.consensus12')}}<span>{{judgeNodeType(item.bankNode, item.status)}}</span></li>
+              <li>{{$t('public.deposit')}}<span>{{item.deposit}}<font class="fCN"> NVT</font></span></li>
               <li>{{$t('public.credit')}}<span>{{item.creditValue}}</span></li>
             </ul>
           </div>
@@ -75,12 +75,16 @@
             </el-table-column>
             <el-table-column prop="creditValue" :label="$t('public.credit')" min-width="150"></el-table-column>
 
-            <el-table-column :label="$t('public.totalStake')+'('+symbol+')'" min-width="150" align="left">
+            <el-table-column :label="$t('public.deposit')+' (NVT)'" min-width="150" align="left">
               <template slot-scope="scope"><span class="cursor-p click uppercase"
                                                  @click="toUrl('consensusInfo',scope.row.txHash,'three')">{{ scope.row.deposit}}</span>
               </template>
             </el-table-column>
-            <el-table-column :label="$t('consensus.consensus12')" min-width="150" align="left"></el-table-column>
+            <el-table-column :label="$t('consensus.consensus12')" min-width="150" align="left">
+              <template slot-scope="scope">
+                <span>{{judgeNodeType(scope.row.bankNode, scope.row.status)}}</span>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </el-tab-pane>
@@ -100,25 +104,18 @@
         viewList: true,
         myNodeLoading: true,
         consensusActive: 'consensusFirst',
-        //节点信息
-        nodeCount: {agentCount: 0, totalCount: 0},
-        //nuls 信息
-        nulsCount: {consensusTotal: 0},
         //排序下拉框选择列表
         nodeTypeOptions: [
           {value: 0, label: '0'},
           {value: 1, label: '1'},
-          {value: 2, label: '2'},
-          {value: 3, label: '3'},
-          {value: 4, label: '4'},
+          {value: 2, label: '2'}
         ],
         nodeTypeRegion: 0,//节点类型，type=0时，返回所有交易
         //节点类型排序
         nodeStatusOptions: [
           {value: 0, label: '0'},
           {value: 1, label: '1'},
-          {value: 2, label: '2'},
-          {value: 3, label: '3'},
+          {value: 2, label: '2'}
         ],
         nodeStatusRegion: 0,
 
@@ -128,7 +125,6 @@
         addressInfo: [], //账户信息
         agentAsset: JSON.parse(sessionStorage.getItem('info')),//pocm合约单位等信息
         isRed: false,//地址是否有红牌
-        isNew: false,//账户是否已经创建了节点
         pageIndex: 1, //页码
         pageSize: 500, //每页条数
         pageTotal: 0,//总页数
@@ -147,8 +143,6 @@
     },
     mounted() {
       setTimeout(() => {
-        // this.getConsensusNodeCount();
-        // this.getCoinInfo();
         this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeTypeRegion);
         this.getConsensusInfoByAddress(this.pageIndex, this.pageSize, this.addressInfo.address);
         this.getAddressInfoByNode(this.addressInfo);
@@ -162,7 +156,6 @@
       //数据筛选
       searchData: function () {
         let search = this.searchValue;
-        //console.log(this.nodeList);
         if (search) {
           return this.allNodeData.filter(function (product) {
             return Object.keys(product).some(function (key) {
@@ -172,21 +165,37 @@
         }
         return this.allNodeData;
       },
+      computeNodeType() {
+        return [
+          this.$t('nodeStatus.2'),
+          this.$t('nodeStatus.1'),
+          this.$t('nodeStatus.3'),
+        ]
+      }
     },
     watch: {
       addressInfo(val, old) {
         if (val.address !== old.address && old.address) {
-          this.isNew = false;
+          this.myNodeData={}
+          this.myNodeLoading = true
           this.getPunishByAddress(this.addressInfo.address);
-          // this.getConsensusNodeCount();
-          // this.getCoinInfo();
-          this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeTypeRegion);
+          this.getAddressInfoByNode(this.addressInfo);
+          // this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeTypeRegion);
           this.getConsensusInfoByAddress(this.pageIndex, this.pageSize, this.addressInfo.address);
         }
       }
     },
     methods: {
-
+      //判断节点类型
+      judgeNodeType(bankNode, isConsensus) {
+        if (bankNode) {
+          return this.computeNodeType[0]
+        } else if (isConsensus) {
+          return this.computeNodeType[1]
+        } else {
+          return this.computeNodeType[2]
+        }
+      },
       /**
        * 查询创建地址是否有红牌
        * @param address
@@ -241,52 +250,6 @@
       },
 
       /**
-       * 获取共识数统计信息
-       **/
-      getConsensusNodeCount() {
-        this.$post('/', 'getConsensusNodeCount', [])
-          .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              this.nodeCount = response.result
-            } else {
-              this.nodeCount.agentCount = 0;
-              this.nodeCount.totalCount = 0;
-            }
-          })
-          .catch((error) => {
-            this.nodeCount.agentCount = 0;
-            this.nodeCount.totalCount = 0;
-            console.log("getConsensusNodeCount:" + error);
-          });
-      },
-
-      /**
-       * 获取共识委托量统计信息
-       **/
-      getCoinInfo() {
-        this.$post('/', 'getCoinInfo', [])
-          .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              this.nulsCount.circulation = divisionDecimals(response.result.circulation);
-              this.nulsCount.consensusTotal = divisionDecimals(response.result.consensusTotal);
-              this.nulsCount.total = divisionDecimals(response.result.total);
-            } else {
-              this.nulsCount.circulation = 0;
-              this.nulsCount.consensusTotal = 0;
-              this.nulsCount.total = 0;
-            }
-          })
-          .catch((error) => {
-            this.nulsCount.circulation = 0;
-            this.nulsCount.consensusTotal = 0;
-            this.nulsCount.total = 0;
-            console.log("getCoinInfo:" + error);
-          });
-      },
-
-      /**
        * 所有共识列表信息
        * @param pageIndex
        * @param pageSize,
@@ -312,11 +275,6 @@
                 //itme.agentReward = Number(divisionDecimals(itme.agentReward)).toFixed(3);
                 itme.totalDeposit = Number(divisionDecimals(itme.totalDeposit)).toFixed(3);
                 //itme.totalReward = Number(divisionDecimals(itme.totalReward)).toFixed(3);
-                if (itme.agentAddress === this.addressInfo.address) {
-                  this.isNew = true;//创建的节点
-                } else {
-                  this.isNew = false;
-                }
               }
               this.allNodeData = response.result.list;
               this.allNodeLoading = false;
@@ -372,13 +330,7 @@
             this.nodeTypeSort(this.allNodeData, 'creditValue');
             break;
           case 2:
-            this.nodeTypeSort(this.allNodeData, 'commissionRate');
-            break;
-          case 3:
-            this.nodeTypeSort(this.allNodeData, 'totalDeposit');
-            break;
-          case 4:
-            this.nodeTypeSort(this.allNodeData, 'bozhengjin');
+            this.nodeTypeSort(this.allNodeData, 'deposit');
             break;
           default:
             this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeStatusRegion)

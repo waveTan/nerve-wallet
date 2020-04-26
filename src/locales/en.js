@@ -572,9 +572,7 @@ const en = {
     "undefined": "",
     "0": "General",
     "1": "Credit",
-    "2": "Commission",
-    "3": "Staked amount",
-    "4": "Deposit"
+    "2": "Deposit"
   },
 
   "assetsType": {
@@ -593,9 +591,9 @@ const en = {
   "nodeStatus": {
     "undefined": "",
     "0": "All nodes",
-    "1": "General nodes",
-    "2": "Developer nodes",
-    "3": "Ambassador nodes"
+    "1": "Consensus nodes",
+    "2": "Virtual bank",
+    "3": "General nodes"
   },
 
   "lockType": {
