@@ -226,7 +226,7 @@ export async function broadcastTx(txHex) {
 export async function validateAndBroadcast(txHex) {
   return await post('/', 'validateTx', [txHex])
     .then((response) => {
-      //console.log(response);
+      console.log(response);
       if (response.hasOwnProperty("result")) {
         let newHash = response.result.value;
         return post('/', 'broadcastTx', [txHex])

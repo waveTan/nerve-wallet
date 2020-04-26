@@ -3,24 +3,24 @@
     <div class="my-node shadow1" v-loading="myNodeLoading">
       <div class="head">
         <h3 class="fl">{{$t('consensus.consensus11')}}</h3>
-        <div class="node-info fl" v-if="myNodeData.length">
+        <div class="node-info fl" v-if="myNodeData">
           <ul>
-            <li class="uppercase">ID: {{myNodeData[0].agentId}}</li>
-            <li>{{$t('public.alias')}}: {{myNodeData[0].alias || '-'}}</li>
-            <li>{{$t('consensus.consensus12')}}: {{myNodeData[0].type}}</li>
+            <li class="uppercase">ID: {{myNodeData.agentId}}</li>
+            <li>{{$t('public.alias')}}: {{myNodeData.alias || '-'}}</li>
+            <li>{{$t('consensus.consensus12')}}: <!--{{myNodeData.type}}--> 虚拟银行</li>
           </ul>
         </div>
-        <div class="to-node-detail click fCN fr" v-if="myNodeData.length"
-             @click="toUrl('consensusInfo',myNodeData[0].txHash)">
+        <div class="to-node-detail click fCN fr" v-if="myNodeData"
+             @click="toUrl('consensusInfo',myNodeData.txHash)">
           {{$t('consensus.consensus13')}}
         </div>
       </div>
       <div class="body">
-        <div class="exist-node" v-if="myNodeData.length">
-          <div>{{$t('consensus.consensus14')}}<p>{{myNodeData[0].totalDeposit+' NVT'}}</p></div>
-          <div>{{$t('consensus.consensus15')}}<p>{{myNodeData[0].rank}}</p></div>
-          <div>{{$t('consensus.consensus16')}}<p>{{myNodeData[0].totalReward}}</p></div>
-          <div>{{$t('public.credit')}}<p>{{myNodeData[0].creditValue}}</p></div>
+        <div class="exist-node" v-if="myNodeData">
+          <div>{{$t('consensus.consensus14')}}<p>{{myNodeData.deposit+' NVT'}}</p></div>
+          <div>{{$t('consensus.consensus15')}}<p>{{myNodeData.ranking}}</p></div>
+          <div>{{$t('consensus.consensus16')}}<p>{{myNodeData.reward}}</p></div>
+          <div>{{$t('public.credit')}}<p>{{myNodeData.creditValue}}</p></div>
         </div>
         <div class="create-node" v-else>
           <el-button type="primary" @click="toUrl('newConsensus')">{{$t('newConsensus.newConsensus0')}}</el-button>
@@ -54,7 +54,7 @@
             <ul class="bg-white click" @click="toUrl('consensusInfo',item.txHash)">
               <li>{{$t('public.alias')}}<span>{{item.agentAlias}}</span></li>
               <li>{{$t('consensus.consensus12')}}<span>{{'虚拟银行'}}</span></li>
-              <li>{{$t('public.totalStake')}}<span>{{item.totalDeposit}}<font class="fCN"> NVT</font></span></li>
+              <li>{{$t('public.totalStake')}}<span>{{item.deposit}}<font class="fCN"> NVT</font></span></li>
               <li>{{$t('public.credit')}}<span>{{item.creditValue}}</span></li>
             </ul>
           </div>
@@ -77,7 +77,7 @@
 
             <el-table-column :label="$t('public.totalStake')+'('+symbol+')'" min-width="150" align="left">
               <template slot-scope="scope"><span class="cursor-p click uppercase"
-                                                 @click="toUrl('consensusInfo',scope.row.txHash,'three')">{{ scope.row.totalDeposit}}</span>
+                                                 @click="toUrl('consensusInfo',scope.row.txHash,'three')">{{ scope.row.deposit}}</span>
               </template>
             </el-table-column>
             <el-table-column :label="$t('consensus.consensus12')" min-width="150" align="left"></el-table-column>
@@ -309,9 +309,9 @@
                 }
                 itme.bozhengjin = itme.deposit;
                 itme.deposit = Number(divisionDecimals(itme.deposit)).toFixed(3);
-                itme.agentReward = Number(divisionDecimals(itme.agentReward)).toFixed(3);
+                //itme.agentReward = Number(divisionDecimals(itme.agentReward)).toFixed(3);
                 itme.totalDeposit = Number(divisionDecimals(itme.totalDeposit)).toFixed(3);
-                itme.totalReward = Number(divisionDecimals(itme.totalReward)).toFixed(3);
+                //itme.totalReward = Number(divisionDecimals(itme.totalReward)).toFixed(3);
                 if (itme.agentAddress === this.addressInfo.address) {
                   this.isNew = true;//创建的节点
                 } else {
@@ -335,43 +335,16 @@
        * @param address
        **/
       getConsensusInfoByAddress(pageIndex, pageSize, address) {
-        this.$post('/', 'getAccountConsensus', [pageIndex, pageSize, address])
+        //this.$post('/', 'getAccountConsensus', [pageIndex, pageSize, address])
+        this.$post('/', 'getAccountConsensusNode', [address])
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
-              //循环获取节点列表判断是否有地址创建列表
-              let newAgentIdList = [];
-              for (let item of response.result.list) {
-                if (!this.addressInfo.collectList) {
-                  this.addressInfo.collectList = [];
-                }
-                if (this.addressInfo.collectList.includes(item.agentId)) {
-                  item.isCollect = true;
-                } else {
-                  item.isCollect = false;
-                }
-                newAgentIdList.push(item.agentId);
-                item.deposit = Number(divisionDecimals(item.deposit)).toFixed(3);
-                item.totalDeposit = Number(divisionDecimals(item.totalDeposit)).toFixed(3);
-                item.totalReward = Number(divisionDecimals(item.totalReward)).toFixed(3);
-                if (item.agentAddress === this.addressInfo.address) {
-                  item.isNew = true;//创建的节点
-                  this.isNew = true;
-                } else {
-                  item.isNew = false;
-                  this.isNew = false;
-                }
-              }
-              let setnNewAgentIdList = new Set(newAgentIdList);
-              let setCollectList = new Set(this.addressInfo.collectList);
-              // 差集
-              let difference = new Set([...setCollectList].filter(x => !setnNewAgentIdList.has(x)));
-              let newCollectList = [];
-              for (let items of difference) {
-                newCollectList.push(this.allNodeData.filter(item => item.agentId === items)[0])
-              }
+              response.result.deposit = Number(divisionDecimals(response.result.deposit)).toFixed(3);
+              response.result.totalDeposit = Number(divisionDecimals(response.result.totalDeposit)).toFixed(3);
+              response.result.totalReward = Number(divisionDecimals(response.result.totalReward)).toFixed(3);
               this.myNodeLoading = false;
-              this.myNodeData = [...response.result.list, ...newCollectList];
+              this.myNodeData = response.result
             }
           })
           .catch((error) => {

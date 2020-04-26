@@ -16,17 +16,29 @@
           <p>{{$t('public.rewardAddress')}} <label>{{nodeInfo.rewardAddress}}</label></p>
           <p>{{$t('public.packingAddress')}} <label>{{nodeInfo.packingAddress}}</label></p>
           <p>{{$t('consensus.consensus12')}} <label>{{nodeInfo.type}}</label></p>
-          <p>{{$t('consensusInfo.consensusInfo8')}} <label>{{nodeInfo.agentAlias ? nodeInfo.agentAlias :'--' }}</label></p>
+          <p>{{$t('consensusInfo.consensusInfo8')}} <label>{{nodeInfo.agentAlias ? nodeInfo.agentAlias :'--' }}</label>
+          </p>
           <p>{{$t('public.credit')}} <label>{{nodeInfo.creditValue}}</label></p>
         </div>
         <div class="right-part">
           <p>{{$t('public.deposit')}} <label>{{nodeInfo.deposits}}<span
-            class="fCN">{{agentAsset.agentAsset.symbol}}</span></label></p>
+                  class="fCN">{{agentAsset.agentAsset.symbol}}</span></label></p>
           <p>{{$t('consensusInfo.consensusInfo9')}} <label>{{nodeInfo.createTime}}</label></p>
-          <p>{{$t('public.totalStake')}} <label>{{nodeInfo.totalDeposit}}<span class="fCN">{{agentAsset.agentAsset.symbol}}</span></label></p>
-          <p>{{$t('consensusInfo.consensusInfo7')}} <label>{{nodeInfo.totalReward}}<span class="fCN">{{addressInfo.symbol}}</span></label></p>
-          <p>{{$t('consensusInfo.consensusInfo10')}} <label><u class="click td"
-                                                               @click="toUrl('consensusInfo',nodeInfo.txHash)">{{nodeInfo.yellowCardCount}}{{$t('consensusInfo.consensusInfo11')}}</u></label>
+          <p>
+            {{$t('public.totalStake')}}
+            <label>{{nodeInfo.totalDeposit}}<span class="fCN">{{agentAsset.agentAsset.symbol}}</span></label>
+          </p>
+          <p>
+            {{$t('consensusInfo.consensusInfo7')}}
+            <label>{{nodeInfo.totalReward}}<span class="fCN">{{addressInfo.symbol}}</span></label>
+          </p>
+          <p>
+            {{$t('consensusInfo.consensusInfo10')}}
+            <label>
+              <u class="click td" @click="toUrl('consensusInfo',nodeInfo.txHash)">
+                {{nodeInfo.yellowCardCount}}{{$t('consensusInfo.consensusInfo11')}}
+              </u>
+            </label>
           </p>
           <el-button class="fr" type="danger" @click="stopNode">{{$t('consensusInfo.consensusInfo5')}}</el-button>
         </div>
@@ -42,10 +54,10 @@
         <el-button type="primary" class="fr" @click="additionDialog=true">{{$t('consensus.consensus20')}}</el-button>
       </div>
       <el-table :data="nodeDepositData" stripe border class="shadow1">
-        <el-table-column  width="20"></el-table-column>
+        <el-table-column width="20"></el-table-column>
         <el-table-column prop="blockHeight" :label="$t('public.height')" width="120">
         </el-table-column>
-        <el-table-column prop="txHash"  label="TXID" ></el-table-column>
+        <el-table-column prop="txHash" label="TXID"></el-table-column>
         <el-table-column prop="amount" :label="$t('consensus.consensus14')">
         </el-table-column>
         <el-table-column prop="" :label="$t('consensus.consensus16')">
@@ -242,6 +254,7 @@
       BackBar
     },
     methods: {
+
       /**
        * 根据hash获取节点详情信息
        * @param hash
@@ -249,7 +262,7 @@
       getNodeInfoByHash(hash) {
         this.$post('/', 'getConsensusNode', [hash])
           .then((response) => {
-            //console.log(response);
+            console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.agentReward = divisionDecimals(response.result.agentReward);
               response.result.deposits = divisionDecimals(response.result.deposit);
@@ -280,7 +293,7 @@
                 itme.amount = divisionDecimals(itme.amount);
                 itme.fee = divisionDecimals(itme.fee);
                 itme.createTime = moment(getLocalTime(itme.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
-                itme.txHash = superLong(itme.txHash,10)
+                itme.txHash = superLong(itme.txHash, 10)
               }
               this.nodeDepositData = response.result.list;
               if (response.result.totalCount === 0) {
@@ -332,7 +345,7 @@
                 this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
                 return;
               }
-              let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom,this.addressInfo.address, assembleHex.data);
+              let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom, this.addressInfo.address, assembleHex.data);
               if (!commitDatas.success) {
                 this.$message({
                   message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
@@ -386,7 +399,7 @@
             this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
             return;
           }
-          let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom,this.addressInfo.address, assembleHex.data);
+          let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom, this.addressInfo.address, assembleHex.data);
           if (!commitDatas.success) {
             this.$message({
               message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
@@ -415,7 +428,7 @@
             this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
             return;
           }
-          let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom,this.addressInfo.address, assembleHex.data);
+          let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom, this.addressInfo.address, assembleHex.data);
           if (!commitDatas.success) {
             this.$message({
               message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
@@ -451,6 +464,7 @@
           let remark = '';
           if (this.passwordType === 0) { //加入共识
             inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 5);
+            console.log(inOrOutputs);
             let depositInfo = {
               address: this.addressInfo.address,
               agentHash: this.$route.query.hash,
@@ -706,13 +720,13 @@
         overflow: hidden;
         span {
           font-size: 14px;
-          &.resolve{
+          &.resolve {
             color: #4ade5f;
           }
         }
       }
       .body {
-        .left-part,.right-part {
+        .left-part, .right-part {
           float: left;
           width: 560px;
           p {
@@ -762,7 +776,7 @@
           bottom: 10px;
         }
       }
-      .el-table .el-table__header-wrapper{
+      .el-table .el-table__header-wrapper {
         border-radius: 5px 5px 0 0;
       }
       .el-dialog {
@@ -778,7 +792,7 @@
             margin-top: 7px;
           }
           .el-form-item__content {
-            .balance{
+            .balance {
               color: #606266;
               margin-top: 15px;
             }

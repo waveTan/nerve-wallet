@@ -162,10 +162,10 @@
         isRed: false,//创建地址是否有红牌惩罚
         //创建节点表单
         createrForm: {
-          rewardAddress: '',
-          blockAddress: '',
-          amount: '',
-          rate: '',
+          rewardAddress: 'TNVTdN9iC89WZuPwAhS1JkfLVeJhUwnP3sY5k',
+          blockAddress: 'TNVTdN9i9etqVyCHt8gRiLkq8qtD4yo5orzQZ',
+          amount: '20000',
+          rate: '20',
         },
         createrRules: {
           rewardAddress: [
