@@ -8,6 +8,7 @@ export default new Vuex.Store({
   state: {
     addressInfo: {},
     urlData: [],
+    accountList: []
   },
   mutations: {
     setAddressInfo(state, data) {
@@ -18,6 +19,9 @@ export default new Vuex.Store({
       let urlName = IS_DEV ? 'mainUrlData' :'TestUrlData';
       localStorage.setItem(urlName, JSON.stringify(data));
     },
+    setAccountList(state, data) {
+      state.accountList = data
+    }
   },
   getters: {
     getAddressInfo: state => state.addressInfo,

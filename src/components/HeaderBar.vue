@@ -62,8 +62,9 @@
 
 <script>
   import logo from '@/assets/img/logo.svg'
-  import {superLong, chainIdNumber, addressInfo, connectToExplorer} from '@/api/util'
+  import {superLong, chainIdNumber, addressInfo, connectToExplorer, divisionDecimals, Times, Plus, getCoinInfo} from '@/api/util'
   import {IS_DEV} from '@/config.js'
+  import defaultIcon from '@/assets/img/commonIcon.png'
 
   export default {
     data() {
@@ -75,10 +76,17 @@
         nodeServiceInfo: {},
         symbol: 'NVT', //symbol
         urlPath: '',//当前路径
+        addressInfo: [] //账户信息
       };
     },
     components: {},
     created() {
+      this.addressInfo = addressInfo(1);
+      this.getAccountList()
+      setInterval(() => {
+        this.addressInfo = addressInfo(1);
+      }, 500);
+
       let type = navigator.appName;
       let langs = '';
       if (type === "Netscape") {
@@ -114,10 +122,70 @@
     watch: {
       urlPath: function (val, oldVal) {
         console.log(val, oldVal);
+      },
+      addressInfo(val, old) {
+        if (val.address !== old.address && old.address) {
+          this.getAccountList()
+        }
       }
     },
     methods: {
-
+      //查询账户资产信息
+      async getAccountList() {
+        const ledgerList = await this.getLedgerList()
+        const crossList =  await this.getCrossList()
+        let accountList = [...ledgerList, ...crossList]
+        sessionStorage.setItem('allAssetsList', JSON.stringify(accountList))
+        this.$store.commit('setAccountList', accountList)
+      },
+      async getLedgerList(){
+        let res = []
+        try {
+          const result = await this.$post('/', 'getAccountLedgerList', [this.addressInfo.address])
+          if (result.result) {
+            result.result.map(async item=>{
+              const coinInfo = await getCoinInfo(item.symbol)
+              item.icon = item.icon || defaultIcon
+              item.usdPrice = coinInfo.usdPrice
+              item.name = item.symbol;
+              item.number = divisionDecimals(item.totalBalance, item.decimals);
+              item.valuation = Number(Times(item.number, item.usdPrice));
+              item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
+              item.usdLocking = Number(Times(item.locking, item.usdPrice));
+              item.available = divisionDecimals(item.balance, item.decimals);
+              item.usdAvailable = Number(Times(item.available, item.usdPrice));
+              res.push({...item})
+            })
+          }
+        } catch (e) {
+          console.error('获取本链资产失败')
+        }
+        return res
+      },
+      async getCrossList() {
+        let res = []
+        try {
+          const result = await this.$post('/', 'getAccountCrossLedgerList', [this.addressInfo.address])
+          if (result.result) {
+            result.result.map(async item=>{
+              const coinInfo = await getCoinInfo(item.symbol)
+              item.icon = item.icon || defaultIcon
+              item.usdPrice = coinInfo.usdPrice
+              item.name = item.symbol;
+              item.number = divisionDecimals(item.totalBalance, item.decimals);
+              item.valuation = Number(Times(item.number, item.usdPrice));
+              item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
+              item.usdLocking = Number(Times(item.locking, item.usdPrice));
+              item.available = divisionDecimals(item.balance, item.decimals);
+              item.usdAvailable = Number(Times(item.available, item.usdPrice));
+              res.push({...item})
+            })
+          }
+        } catch (e) {
+          console.error('获取跨链资产失败')
+        }
+        return res
+      },
       /**
        * 菜单导航
        * @param key

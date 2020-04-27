@@ -3,6 +3,7 @@ import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
 import {explorerUrl, IS_DEV,MAIN_INFO} from '@/config.js'
 import openner from "./opener-web";
+import {post} from './https'
 
 /**
  * 10的N 次方
@@ -440,4 +441,54 @@ export function htmlRestore(str) {
   s = s.replace(/&#39;/g, "\'");
   s = s.replace(/&quot;/g, "\"");
   return s;
+}
+
+//转千分位
+export function toThousands(num = 0) {
+  const N = num.toString().split('.')
+  const int  = N[0]
+  const float = N[1] ? '.'+N[1] : ''
+  return int.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,') + float;
+}
+
+//获取币种配置
+export async function getSymbolBaseInfo() {
+  if (!sessionStorage.getItem('coinInfo')) {
+    try {
+      const res = await post('/', 'getSymbolBaseInfo', [])
+      const coins = {}
+      res.result.map(v=>{
+        if (v.symbol === 'NULS') console.log(v,'--nuls')
+        if (v.symbol === 'ETH') console.log(v,'--ETH')
+        if (v.symbol === 'BTC') console.log(v,'--BTC')
+        if (v.symbol === 'USD') console.log(v,'--USD')
+        if (!coins[v.symbol]) {
+          coins[v.symbol] = v
+        } else {
+          //同名的以level等级低的为准
+          if (coins[v.symbol].level > v.level) {
+            coins[v.symbol] = v
+          }
+        }
+      })
+      sessionStorage.setItem('coinInfo', JSON.stringify(coins))
+    } catch (e) {
+      console.error('获取币种信息失败'+e)
+    }
+  }
+}
+
+export async function getCoinInfo(symbol) {
+  const coinInfo = JSON.parse(sessionStorage.getItem('coinInfo'))
+  if (!coinInfo[symbol]) {
+    await getSymbolBaseInfo()
+    console.log(132132)
+    const coinInfo = JSON.parse(sessionStorage.getItem('coinInfo'))
+    if (!coinInfo[symbol]) {
+      console.error(symbol + '没有对应的币种信息')
+      return {}
+    }
+    return coinInfo[symbol]
+  }
+  return coinInfo[symbol]
 }

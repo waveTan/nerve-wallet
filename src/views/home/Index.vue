@@ -24,22 +24,17 @@
     <div class="footer cb w1200">
       <div class="titles">
         <h4 class="fl">{{$t('tab.tab34')}}</h4>
-        <div class="fr">
-          <el-autocomplete v-model="searchValue" :placeholder="$t('tips.tips22')"
-                           :fetch-suggestions="querySearchAsync"
-                           @select="handleSelect">
-            <i class="el-icon-search" slot="suffix"></i>
-            <template slot-scope="{ item }">
-              <div class="name">{{ item.symbol }}</div>
-            </template>
-          </el-autocomplete>
-        </div>
       </div>
       <div class="cb">
-        <el-table :data="ledgerData" border class="tabs">
+        <el-table :data="$store.state.accountList" border class="tabs">
           <el-table-column label="" width="30">
           </el-table-column>
-          <el-table-column prop="currency" :label="$t('tab.tab35')" width="100">
+          <!--<el-table-column prop="currency" :label="$t('tab.tab35')" width="100">
+          </el-table-column>-->
+          <el-table-column :label="$t('tab.tab35')" width="65">
+            <template slot-scope="scope">
+              <img :src="scope.row.icon" alt="" class="coin-img">
+            </template>
           </el-table-column>
           <el-table-column prop="name" :label="$t('tab.tab36')" width="100">
           </el-table-column>
@@ -79,165 +74,59 @@
     data() {
       return {
         addressInfo: {},//默认账户信息
-        myAssetsInfo: {
-          total: 0,
-          available: 0,
-          locking: 0,
-        },//我的资产信息
         allAssetsList: [], //所有币种列表（搜索框用）
-        searchValue: '', //搜索框内容
         ledgerData: [],//币种列表
-        chartData: [], //环形图数据
         homeLoading: true,//加载动画
+        myAssetsInfo: {},
+        chartData: []
       };
     },
     created() {
       this.addressInfo = addressInfo(1);
-      this.symbolReport();
     },
     mounted() {
       setTimeout(() => {
-        //console.log(this.addressInfo);
         if (!this.addressInfo) {
           this.$router.push({
             name: 'newAddress',
           })
         }
       }, 500)
-      //this.getAccountList(this.addressInfo.address, 1);
     },
     components: {
       PieChart,
     },
-    watch: {},
+    watch: {
+      '$store.state.accountList': {
+        // deep: true,
+        immediate: true,
+        handler: function() {
+          this.homeLoading = true
+          const assetsInfo = this.$store.state.accountList
+          const myAssetsInfo = {total:0,available:0,locking:0}
+          const chartData = []
+          const total = assetsInfo.reduce((cur,next)=>{
+            return Number(Plus(cur, next.valuation))
+          },0)
+          assetsInfo.forEach(item => {
+            myAssetsInfo.total = Number(Plus(myAssetsInfo.total, item.valuation));
+            myAssetsInfo.available = Number(Plus(myAssetsInfo.available, item.usdAvailable));
+            myAssetsInfo.locking = Number(Plus(myAssetsInfo.locking, item.usdLocking));
+            chartData.push({
+              key: item.symbol,
+              value: item.valuation,
+              rate: Number(Division(item.valuation, total)) * 100 + '%'
+            })
+          })
+          this.myAssetsInfo = myAssetsInfo
+          this.chartData = chartData
+          this.homeLoading = false
+        }
+      }
+    },
+    computed: {
+    },
     methods: {
-
-      /**
-       * @disc: 获取资产信息
-       * @params: address
-       * @params: type 1：返回资产不为零的
-       * @date: 2020-04-08 14:01
-       * @author: Wave
-       */
-      async symbolReport() {
-        let url = JSON.parse(localStorage.getItem('url'));
-        const params = {
-          "jsonrpc": "2.0",
-          "method": "getSymbolBaseInfo",
-          "params": [2],
-          "id": Math.floor(Math.random() * 1000)
-        };
-        try {
-          let res = await axios.post(url.urls, params);
-          //console.log(res);
-
-          this.allAssetsList = res.data.result;
-          sessionStorage.setItem('allAssetsList', JSON.stringify(this.allAssetsList));
-          this.getAccountList(this.addressInfo.address, 1);
-
-          /*if (res.data.result.length === 0) {
-            console.log(res.data.result)
-          }else {
-            this.allAssetsList = res.data.result;
-            sessionStorage.setItem('allAssetsList', JSON.stringify(this.allAssetsList));
-            this.getAccountList(this.addressInfo.address, 1);
-          }*/
-        } catch (err) {
-          console.log(err)
-        }
-      },
-
-      /**
-       * @disc: 搜索
-       * @params: queryString
-       * @params: cb
-       * @date: 2020-04-08 10:26
-       * @author: Wave
-       */
-      querySearchAsync(queryString, cb) {
-        let restaurants = this.allAssetsList;
-        let results = queryString ? restaurants.filter(this.createStateFilter(queryString)) : restaurants;
-        // 调用 callback 返回建议列表的数据
-        cb(results);
-      },
-
-      /**
-       * @disc: 数据筛选
-       * @params: queryString 筛选字段
-       * @date: 2020-04-08 15:04
-       * @author: Wave
-       */
-      createStateFilter(queryString) {
-        return (state) => {
-          return (state.symbol.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
-        };
-      },
-
-      /**
-       * @disc: 搜索框选中的币种
-       * @params: item
-       * @date: 2020-04-08 15:05
-       * @author: Wave
-       */
-      handleSelect(item) {
-        console.log(item);
-        this.searchValue = item.symbol;
-      },
-
-      /**
-       * @disc: 获取链内资产列表
-       * @params: address
-       * @params: type 1：返回资产不为零的
-       * @date: 2020-04-08 14:01
-       * @author: Wave
-       */
-      async getAccountList(address, type) {
-        let url = JSON.parse(localStorage.getItem('url'));
-        const params = {
-          "jsonrpc": "2.0",
-          "method": "getAccountLedgerList",
-          "params": [4, address, type],
-          "id": Math.floor(Math.random() * 1000)
-        };
-        //console.log(params);
-        try {
-          let res = await axios.post(url.urls, params);
-          //console.log(res);
-          if (res.data.hasOwnProperty('result')) {
-            for (let item of res.data.result) {
-              //console.log(item);
-              let assetsInfo = this.allAssetsList.filter(k => k.chainId === item.chainId);
-              item.usdPrice = assetsInfo[0].usdPrice;
-              item.currency = assetsInfo[0].icon;
-              item.name = item.symbol;
-              item.number = divisionDecimals(item.totalBalance, item.decimals);
-              item.valuation = Number(Times(item.number, item.usdPrice));
-              item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
-              item.usdLocking = Number(Times(item.locking, item.usdPrice));
-              item.available = divisionDecimals(item.balance, item.decimals);
-              item.usdAvailable = Number(Times(item.available, item.usdPrice));
-
-              //我的资产数据
-              this.myAssetsInfo.total = Number(Plus(this.myAssetsInfo.total, item.valuation));
-              this.myAssetsInfo.available = Number(Plus(this.myAssetsInfo.available, item.usdAvailable));
-              this.myAssetsInfo.locking = Number(Plus(this.myAssetsInfo.locking, item.usdLocking));
-            }
-            this.ledgerData = res.data.result;
-
-            //环形图数据
-            for (let item of this.ledgerData) {
-              item.key = item.symbol;
-              item.value = item.valuation;
-              item.rate = Number(Division(item.valuation, this.myAssetsInfo.total)) * 100;
-            }
-            this.chartData = this.ledgerData;
-            this.homeLoading = false;
-          }
-        } catch (err) {
-          console.log(err);
-        }
-      },
-
       /**
        * @disc: 链内转账
        * @params: row 选择币种信息
@@ -367,6 +256,9 @@
       }
       .tabs {
         margin: 20px 0 0 0;
+        .coin-img {
+          width: 28px;
+        }
         .el-table__header-wrapper {
           .has-gutter {
             th {

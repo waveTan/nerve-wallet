@@ -1,29 +1,35 @@
 <template>
-  <ve-pie
-          height="100%"
-          class="pie-chart"
-          :data="chartData"
-          :extend="chartExtends"
-          :loading="loading"
-          :after-set-option-once="getChart"
-  ></ve-pie>
+  <div class="pie-chart clear" v-loading="loading">
+    <ve-pie
+      height="100%"
+      :data="chartData"
+      :extend="chartExtends"
+      :after-set-option-once="getChart"
+    ></ve-pie>
+    <div class="chart-legend">
+      <div class="legend-item scroll" v-for="(item,index) in data" :key="item.key">
+        <i class="legend-circle" :style="{backgroundColor: color[index]}"></i>
+        <span class="legend-symbol">{{item.key}}</span>
+        <span>${{item.value | toThousands}}</span>
+        <span>{{item.rate}}</span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
   import _ from 'lodash'
-  import {Division} from '@/api/util'
-
+  import {toThousands} from "../api/util";
   /*const data = [
-    {key: 'NVT', value: 1, rate: 0.1},
-    {key: 'NULS', value: 2, rate: 0.2},
-    {key: 'BTC', value: 3, rate: 0.3},
-    {key: 'ETH', value: 3, rate: 0.4},
-    {key: 'BCH', value: 5, rate: 0.5}
+    {key:'NVT',value:1,rate: 0.1},
+    {key:'NULS',value:2,rate: 0.2},
+    {key:'BTC',value:3,rate: 0.3},
+    {key:'ETH',value:3,rate: 0.4},
+    {key:'BCH',value:5,rate: 0.5}
   ];*/
-
   export default {
     data() {
-      this.newData = [...this.data];
+      this.color = ['#759bf5','#76e9a7','#f3a83c','#9f95f0','#67d1fe']
       return {
         chartData: {
           columns: ['key', 'value'],
@@ -35,7 +41,8 @@
     },
     props: {
       data: {
-        type: Array
+        type: Array,
+        default: ()=>[]
       },
       loading: {
         type: Boolean,
@@ -49,62 +56,36 @@
       }
     },
     watch: {
-      data() {
-        this.newData = [];
-        this.data.map(v => {
-          let rate = '0%';
-          if (Number(this.total)) {
-            rate = Division(v.value * 100, this.total).toFixed(2) + '%'
-          }
-          this.newData.push({
-            key: v.key,
-            value: v.value,
-            rate
-          })
-        });
+      data(val) {
+        console.log(val, '====val')
+        val.forEach(v=>{
+          v.value = v.value.toFixed(2)
+        })
         this.chartData = {
           columns: ['key', 'value'],
-          rows: this.newData
+          rows: val
         }
       }
     },
     computed: {},
     mounted() {
       const defaultExtend = {
-        color: ['#759bf5', '#76e9a7', '#f3a83c', '#9f95f0', '#67d1fe'],
+        color: this.color,
         legend: {
-          orient: 'vertical',
-          left: '40%',
-          top: 40,
-          icon: 'circle',
-          itemWidth: 8,
-          formatter: (name) => {
-            const item = this.newData.filter(v => v.key === name)[0];
-            if (!item) return '';
-            return `{name|${name}}{value|$${item.value}}{rate|${item.rate}}`
-          },
-          textStyle: {
-            rich: {
-              name: {
-                fontSize: 14,
-                color: '#4f5b78',
-                padding: [0, 0, 0, 20],
-                width: 80
-              },
-              value: {
-                fontSize: 16,
-                color: '#8794b1',
-                width: 90
-              },
-              rate: {
-                fontSize: 16,
-                color: '#8794b1'
-              },
-            }
+          show: false,
+        },
+        tooltip: {
+          position: 'top',
+          formatter: (item) => {
+            return `<div class="pie-chart-tooltip">
+                      <i style="background-color: ${this.color[item.dataIndex]}"></i>
+                        ${item.name}: $${toThousands(item.value)} (${item.percent}%)
+                  </div>`
           }
+          // formatter: '{b}: ${c} ({d}%)'
         },
         series: {
-          legendHoverLink: false,
+          type: 'pie',
           label: {
             normal: {
               show: false,
@@ -119,8 +100,8 @@
               formatter: '{d}%'
             }
           },
-          center: ['17%', '50%'],
-          radius: ['50%', '70%'],
+          center: ['45%', '50%'],
+          radius: ['45%', '70%'],
           itemStyle: {
             normal: {
               borderWidth: 3,
@@ -128,8 +109,8 @@
             },
           }
         }
-      };
-      this.chartExtends = _.merge({}, defaultExtend, this.extends);
+      }
+      this.chartExtends = _.merge({},defaultExtend,this.extends);
     },
     methods: {
       getChart(charts) {
@@ -161,5 +142,58 @@
 <style lang="less">
   .pie-chart {
     height: 100%;
+    .ve-pie {
+      float: left;
+      width: 40% !important;
+    }
+    .chart-legend {
+      float: left;
+      width: 60%;
+      padding-right: 10px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      .legend-item {
+        width: 100%;
+        white-space: nowrap;
+        overflow: auto;
+      }
+      .legend-circle {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin-right: 5px;
+        margin-bottom: 1px;
+        border-radius: 50%;
+      }
+      span {
+        display: inline-block;
+        color: #8794b1;
+        font-size: 16px;
+        &.legend-symbol {
+          color: #4f5b78;
+          font-size: 14px;
+          width: 50px;
+          margin-right: 10px;
+          &+span {
+            margin-right: 20px;
+            /*min-width: 80px;*/
+          }
+        }
+      }
+    }
+  }
+  .pie-chart-tooltip {
+    background-color: transparent;
+    color: #fff;
+    line-height: 20px;
+    i{
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 2px;
+    }
   }
 </style>

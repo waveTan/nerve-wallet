@@ -59,16 +59,16 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
   let newNonce = balanceInfo.nonce;
   let newoutputAmount = transferInfo.amount;
   let newLockTime = 0;
-  if (type === 4) {
+  if (type === 4) {//创建节点
     newLockTime = -1;
-  } else if (type === 5) {
+  } else if (type === 5) { //加入共识
     newLockTime = -1;
-  } else if (type === 6) {
+  } else if (type === 6) { //退出共识
     newAmount = transferInfo.amount;
     newLocked = -1;
     newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
     newoutputAmount = transferInfo.amount - transferInfo.fee;
-  } else if (type === 9) {
+  } else if (type === 9) { //注销节点
     newAmount = transferInfo.amount;
     newLocked = -1;
     newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
