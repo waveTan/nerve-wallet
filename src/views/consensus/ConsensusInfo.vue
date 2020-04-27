@@ -5,10 +5,10 @@
         <BackBar :backTitle="$t('nav.consensus')"></BackBar>
       </div>
     </div>
-    <div class="node-info shadow1">
+    <div class="node-info shadow1" v-loading="nodeInfoLoading">
       <div class="head">
         <h3 class="fCN fl uppercase">ID: {{nodeInfo.agentId}}</h3>
-        <span :class="['fr',nodeInfo.status===0?'resolve':'fred']">{{nodeInfo.status===0?$t('consensus.consensus21'):$t('consensus.consensus22')}}</span>
+        <span :class="['fr',nodeInfo.status===1?'resolve':'fred']">{{nodeInfo.status===1?$t('consensus.consensus21'):$t('consensus.consensus22')}}</span>
       </div>
       <div class="body clear">
         <div class="left-part">
@@ -48,8 +48,8 @@
     <div v-loading="nodeDepositLoading" class="entrust-list">
       <div class="head">
         {{$t('public.total')}} {{pageTotal+' ' +$t('public.item') + $t('consensus.consensus18')}},
-        {{$t('consensus.consensus19')+ ' '+nodeInfo.totalDeposit+' NVT'}},
-        {{$t('consensus.consensus16')+ ' '+nodeInfo.totalReward+' NVT'}}
+        {{$t('consensus.consensus19')+ ' '+nodeInfo.deposits+ ' '+ agentAsset.agentAsset.symbol}},
+        {{$t('consensus.consensus16')+ ' '+nodeInfo.reward+ ' '+ agentAsset.agentAsset.symbol}}
         <el-button type="primary" class="fr" @click="additionDialog=true" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensus.consensus20')}}</el-button>
       </div>
       <el-table :data="nodeDepositData" stripe border class="shadow1">
@@ -109,7 +109,6 @@
 <script>
   import moment from 'moment'
   import nuls from 'nuls-sdk-js'
-  import {MAIN_INFO} from '@/config.js'
   import {
     getNulsBalance,
     countFee,
@@ -177,12 +176,12 @@
             {validator: checkAmount, trigger: ['blur', 'change']}
           ]
         },
-        prefix: MAIN_INFO.prefix,//地址前缀
+        prefix: '',//地址前缀
 
         txHexRandom: '', //web端提交txHex到后台的key
         signDataKeyRandom: '', // app端提交签名的key
         additionDialog: false,
-
+        nodeInfoLoading: true
       };
     },
     computed: {
@@ -195,6 +194,13 @@
       }
     },
     created() {
+      getPrefixByChainId(chainID()).then((response) => {
+        //console.log(response);
+        this.prefix = response
+      }).catch((err) => {
+        console.log(err);
+        this.prefix = '';
+      });
       this.addressInfo = addressInfo(1);
       setInterval(() => {
         this.addressInfo = addressInfo(1);
@@ -228,8 +234,10 @@
        * @param hash
        **/
       getNodeInfoByHash(hash) {
+        this.nodeInfoLoading = true
         this.$post('/', 'getConsensusNode', [hash])
           .then((response) => {
+            this.nodeInfoLoading = false
             console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.agentReward = divisionDecimals(response.result.agentReward);

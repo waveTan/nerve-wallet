@@ -85,7 +85,6 @@
 
 <script>
   import nuls from 'nuls-sdk-js'
-  import {MAIN_INFO} from '@/config.js'
   import {
     getNulsBalance,
     inputsOrOutputs,
@@ -183,12 +182,19 @@
           ],
         },
         newConsensusVisible: false,//创建节点确认弹框
-        prefix: MAIN_INFO.prefix,//地址前缀
+        prefix: '',//地址前缀
         getNewConsensusRandomString: '',
         sendNewConsensusRandomString: '',
       };
     },
     created() {
+      getPrefixByChainId(chainID()).then((response) => {
+        //console.log(response);
+        this.prefix = response
+      }).catch((err) => {
+        console.log(err);
+        this.prefix = '';
+      });
       this.addressInfo = addressInfo(1);
       setInterval(() => {
         this.addressInfo = addressInfo(1);
