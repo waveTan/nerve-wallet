@@ -62,7 +62,7 @@
 
 <script>
   import logo from '@/assets/img/logo.svg'
-  import {superLong, chainIdNumber, addressInfo, connectToExplorer, divisionDecimals, Times, Plus, getCoinInfo} from '@/api/util'
+  import {superLong, chainIdNumber, addressInfo, connectToExplorer, divisionDecimals, Times, Plus, getSymbolInfo} from '@/api/util'
   import {IS_DEV} from '@/config.js'
   import defaultIcon from '@/assets/img/commonIcon.png'
 
@@ -145,8 +145,8 @@
         try {
           const result = await this.$post('/', 'getAccountLedgerList', [this.addressInfo.address])
           if (result.result) {
-            result.result.map(async item=>{
-              const coinInfo = await getCoinInfo(item.symbol)
+            await Promise.all(result.result.map(async item=>{
+              const coinInfo = await getSymbolInfo(item.assetId, item.chainId)
               item.icon = item.icon || defaultIcon
               item.usdPrice = coinInfo.usdPrice || 0
               item.name = item.symbol;
@@ -157,7 +157,7 @@
               item.available = divisionDecimals(item.balance, item.decimals);
               item.usdAvailable = Number(Times(item.available, item.usdPrice));
               res.push({...item})
-            })
+            }))
           }
         } catch (e) {
           console.error('获取本链资产失败')
@@ -170,8 +170,8 @@
         try {
           const result = await this.$post('/', 'getAccountCrossLedgerList', [this.addressInfo.address])
           if (result.result) {
-            result.result.map(async item=>{
-              const coinInfo = await getCoinInfo(item.symbol)
+            await Promise.all(result.result.map(async item=>{
+              const coinInfo = await getSymbolInfo(item.assetId, item.chainId)
               item.icon = item.icon || defaultIcon
               item.usdPrice = coinInfo.usdPrice
               item.name = item.symbol;
@@ -182,7 +182,7 @@
               item.available = divisionDecimals(item.balance, item.decimals);
               item.usdAvailable = Number(Times(item.available, item.usdPrice));
               res.push({...item})
-            })
+            }))
           }
         } catch (e) {
           console.error('获取跨链资产失败')

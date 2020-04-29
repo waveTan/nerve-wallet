@@ -448,43 +448,23 @@ export function toThousands(num = 0) {
 }
 
 //获取币种配置
-export async function getSymbolBaseInfo() {
-  if (!sessionStorage.getItem('coinInfo')) {
-    try {
-      const res = await post('http://192.168.1.141:17003/jsonrpc', 'getSymbolBaseInfo', [])
-      const coins = {}
-      res.result.map(v=>{
-        if (v.symbol === 'NULS') console.log(v,'--nuls')
-        if (v.symbol === 'ETH') console.log(v,'--ETH')
-        if (v.symbol === 'BTC') console.log(v,'--BTC')
-        if (v.symbol === 'USD') console.log(v,'--USD')
-        if (!coins[v.symbol]) {
-          coins[v.symbol] = v
-        } else {
-          //同名的以level等级低的为准
-          if (coins[v.symbol].level > v.level) {
-            coins[v.symbol] = v
-          }
-        }
-      })
-      sessionStorage.setItem('coinInfo', JSON.stringify(coins))
-    } catch (e) {
-      console.error('获取币种信息失败'+e)
-    }
-  }
-}
-
-export async function getCoinInfo(symbol) {
-  const coinInfo = JSON.parse(sessionStorage.getItem('coinInfo'))
-  if (!coinInfo[symbol]) {
-    await getSymbolBaseInfo()
-    console.log(132132)
-    const coinInfo = JSON.parse(sessionStorage.getItem('coinInfo'))
-    if (!coinInfo[symbol]) {
-      console.error(symbol + '没有对应的币种信息')
-      return {}
-    }
+export async function getSymbolInfo(assetId, chainId) {
+  if (!assetId || !chainId) return
+  const symbol = chainId + '-' + assetId
+  let coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {}
+  if ( coinInfo[symbol]) {
     return coinInfo[symbol]
   }
-  return coinInfo[symbol]
+  try {
+    const res = await post('/', 'getSymbolInfo', [assetId, chainId])
+    if (res.result.symbol) {
+      const symbol = chainId + '-' + assetId
+      const coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {}
+      coinInfo[symbol] = res.result
+      sessionStorage.setItem('coinInfo', JSON.stringify(coinInfo))
+    }
+    return res.result || {}
+  } catch (e) {
+    console.error('获取币种信息失败'+chainId+'-'+assetId)
+  }
 }

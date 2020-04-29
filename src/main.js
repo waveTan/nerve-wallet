@@ -5,7 +5,6 @@ import store from './store'
 import VePie from 'v-charts/lib/pie.common'
 import i18n from './i18n'
 import {post} from './api/https'
-import {getSymbolBaseInfo} from './api/util'
 import {toThousands} from "./api/util";
 
 Vue.config.devtools = process.env.NODE_ENV === 'development'
@@ -16,14 +15,10 @@ Vue.filter('toThousands', toThousands)
 Vue.prototype.$post = post;
 Vue.component(VePie.name, VePie);
 
-async function getInfoBeforeMount() {
-  await getSymbolBaseInfo()
-  new Vue({
-    router,
-    store,
-    i18n,
-    render: h => h(App)
-  }).$mount('#app');
-}
-getInfoBeforeMount()
+new Vue({
+  router,
+  store,
+  i18n,
+  render: h => h(App)
+}).$mount('#app');
 
