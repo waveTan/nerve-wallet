@@ -23,14 +23,14 @@
     "less-loader": "^4.1.0",
     "log4js": "^4.5.1",
     "moment": "^2.24.0",
-    "nuls-sdk-js": "^2.3.8",
     "qrcodejs2": "^0.0.2",
     "shelljs": "^0.8.3",
     "v-charts": "^1.19.0",
     "vue": "^2.6.6",
     "vue-i18n": "^8.0.0",
     "vue-router": "^3.0.1",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "nerve-sdk-js": "file:./nerve-sdk-js"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.5.0",

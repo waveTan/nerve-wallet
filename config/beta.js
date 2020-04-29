@@ -10,7 +10,8 @@ export const API_BURNING_ADDRESS_PUB = '0000000000000000000000000000000000000000
 //ChainId和资产ID
 export const MAIN_INFO = IS_DEV ? {chainId: 4, assetId: 1, prefix: 'NVT'} : {chainId: 4, assetId: 1, prefix: 'TNVT'}
 //正式、测试网络的api
-export let API_URL = '/api';
+const url = localStorage.hasOwnProperty("url") && localStorage.getItem('url') !== 'undefined' ? JSON.parse(localStorage.getItem("url")).urls : '/api';
+export let API_URL = url
 setInterval(() => {
   API_URL = localStorage.hasOwnProperty("url") && localStorage.getItem('url') !== 'undefined' ? JSON.parse(localStorage.getItem("url")).urls : '/api';
 }, 500);
@@ -64,4 +65,4 @@ export const explorerData = [
   },
 ];
 //默认浏览器地址（跳转地址）
-export const explorerUrl = IS_DEV ? 'http://explorer.nervedex.com/' : 'http://explorer.nervedex.com/';
+export const explorerUrl = IS_DEV ? 'http://explorer.nervedex.com/' : 'http://192.168.1.53:8080/';

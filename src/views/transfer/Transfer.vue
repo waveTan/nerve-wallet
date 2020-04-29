@@ -13,7 +13,7 @@
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('transfer.transfer1')" prop="toAddress">
-          <el-input v-model="transferForm.toAddress"></el-input>
+          <el-input v-model.trim="transferForm.toAddress"></el-input>
         </el-form-item>
         <div style="width: 630px;height: 30px"></div>
         <div class="fr font12" style="padding: 8px 0 0 0">{{$t('public.usableBalance')}}: {{balanceInfo.balances}}</div>
@@ -23,7 +23,7 @@
         <el-form-item :label="$t('transfer.transfer4')" prop="remarks">
           <el-input type="textarea" v-model="transferForm.remarks"></el-input>
         </el-form-item>
-        <div class="fee font14 mb_20">{{$t('public.fee')}}: {{transferForm.fee}} NULS</div>
+        <div class="fee font14 mb_20">{{$t('public.fee')}}: {{transferForm.fee}} {{prefix}}</div>
         <el-form-item class="btn-next">
           <el-button type="primary" @click="submitTransferForm('transferForm')">{{$t('public.next')}}</el-button>
         </el-form-item>
@@ -52,8 +52,8 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
-  import sdk from 'nuls-sdk-js/lib/api/sdk'
+  import nerve from 'nerve-sdk-js'
+  import sdk from 'nerve-sdk-js/lib/api/sdk'
   import {getNulsBalance, validateAndBroadcast, getBaseAssetInfo} from '@/api/requestData'
   import {MAIN_INFO} from '@/config.js'
   import {
@@ -230,7 +230,7 @@
         let inOrOutputs = await this.inputsOrOutputs(transferInfo);
         //console.log(inOrOutputs);
         //交易组装
-        let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 2);
+        let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 2);
         //获取hash
         let hash = await tAssemble.getHash();
         //console.log(hash);
@@ -257,7 +257,7 @@
           this.transferForm.toAddress = '';
           this.transferForm.amount = '';
           this.transferForm.remarks = '';
-
+          this.toUrl("txList");
         }
       },
 

@@ -81,7 +81,7 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import QRCode from 'qrcodejs2'
   import {
     chainID,
@@ -378,7 +378,7 @@
       keyImport(formName) {
         this.$refs[formName].validate(async (valid) => {
           if (valid) {
-            const newAddressInfo = nuls.importByKey(chainID(), this.importForm.keys, this.importForm.pass, this.prefix);
+            const newAddressInfo = nerve.importByKey(chainID(), this.importForm.keys, this.importForm.pass, this.prefix);
             let keyAddressInfo = defaultAddressInfo;
             keyAddressInfo.address = newAddressInfo.address;
             keyAddressInfo.aesPri = newAddressInfo.aesPri;
@@ -400,7 +400,7 @@
       newAddressSubmitForm(formName) {
         this.$refs[formName].validate(async (valid) => {
           if (valid) {
-            this.newAddressInfo = nuls.newAddress(chainID(), this.newAddressForm.pass, this.prefix);
+            this.newAddressInfo = nerve.newAddress(chainID(), this.newAddressForm.pass, this.prefix);
             let newAddressInfos = defaultAddressInfo;
             newAddressInfos.address = this.newAddressInfo.address;
             newAddressInfos.aesPri = this.newAddressInfo.aesPri;

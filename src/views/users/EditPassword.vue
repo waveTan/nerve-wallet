@@ -33,7 +33,7 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import BackBar from '@/components/BackBar'
   import {addressInfo, chainIdNumber,chainID} from '@/api/util'
   import {getPrefixByChainId} from '@/api/requestData'
@@ -129,10 +129,10 @@
         }
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            const pri = nuls.decrypteOfAES(oldAddressInfo.aesPri, this.passwordForm.oldPass);
-            const newAddressInfo = nuls.importByKey(chainID(), pri, this.passwordForm.oldPass,this.prefix);
+            const pri = nerve.decrypteOfAES(oldAddressInfo.aesPri, this.passwordForm.oldPass);
+            const newAddressInfo = nerve.importByKey(chainID(), pri, this.passwordForm.oldPass,this.prefix);
             if (newAddressInfo.address === address) {
-              const importAddressInfo = nuls.importByKey(chainID(), pri, this.passwordForm.newPass,this.prefix);
+              const importAddressInfo = nerve.importByKey(chainID(), pri, this.passwordForm.newPass,this.prefix);
               oldAddressInfo.aesPri = importAddressInfo.aesPri;
               oldAddressInfo.pub = importAddressInfo.pub;
               let addressList = addressInfo(0);

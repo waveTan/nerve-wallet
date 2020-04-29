@@ -532,7 +532,27 @@ const en = {
     "23": "Contract cancellation node",
     "24": "Verifier Change",
     "25": "Verifier initialization",
-    "26": "Token cross chain transfer"
+    "26": "Token cross-chain",
+    "27": "Asset registration",
+    "28": "Add deposit",
+    "29": "Cancel deposit",
+    "30": "Input price",
+    "31": "Final input price",
+    "228": "Create pair",
+    "229": "Order",
+    "230": "Cancel order",
+    "231": "Executed",
+    "232": "Modify pair",
+    "40": "Confirm virtual banking changes",
+    "41": "Virtual banking changes",
+    "42": "Deposit into the chain",
+    "43": "Withdraw",
+    "44": "Confirm withdraw",
+    "45": "Initiate proposal",
+    "46": "Voting proposal",
+    "47": "异构链交易手续费补贴",
+    "48": "异构链合约资产注册",
+    "49": "虚拟银行初始化异构链",
   },
 
   "budgetType": {
@@ -729,6 +749,8 @@ const en = {
     "consensusInfo10": "Node penalty",
     "consensusInfo11": "Yellow card",
     "consensusInfo12": "The creator of a node needs to collect a certain percentage of consensus block reward, namely commission, from the client of the node. For example, if the total consensus reward of a client is 10 and the commission ratio is set to 10%, the founder charges 10*10%=1 commission, and the client actually receives the consensus reward.",
+    "consensusInfo13": "Create node",
+    "consensusInfo14": "Add deposit",
   },
 
   "nodeService": {

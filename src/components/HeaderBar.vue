@@ -75,7 +75,6 @@
         lang: 'cn', //语言选择
         nodeServiceInfo: {},
         symbol: 'NVT', //symbol
-        urlPath: '',//当前路径
         addressInfo: [] //账户信息
       };
     },
@@ -106,10 +105,10 @@
     },
     mounted() {
       setInterval(() => {
-        this.urlPath = this.$route.path;
-        //console.log(this.urlPath);
         this.symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol : 'NVT';
-        document.title = this.symbol + " Wallet";
+        if (this.symbol !== 'TNVT' && this.symbol !== 'NVT') {
+          document.title = this.symbol + " Wallet";
+        }
         this.getAddressList();
         if (sessionStorage.hasOwnProperty('info')) {
           this.nodeServiceInfo = JSON.parse(sessionStorage.getItem('info'));
@@ -120,13 +119,15 @@
       }, 500)
     },
     watch: {
-      urlPath: function (val, oldVal) {
-        console.log(val, oldVal);
-      },
-      addressInfo(val, old) {
-        if (val.address !== old.address && old.address) {
+      addressInfo: {
+        // immediate: true,
+        deep: true,
+        handler: function(val, old) {
+          if (val.address !== old.address && old.address) {
           this.getAccountList()
+          }
         }
+
       }
     },
     methods: {
@@ -138,6 +139,7 @@
         sessionStorage.setItem('allAssetsList', JSON.stringify(accountList))
         this.$store.commit('setAccountList', accountList)
       },
+      //查询当前账户本链资产
       async getLedgerList(){
         let res = []
         try {
@@ -146,7 +148,7 @@
             result.result.map(async item=>{
               const coinInfo = await getCoinInfo(item.symbol)
               item.icon = item.icon || defaultIcon
-              item.usdPrice = coinInfo.usdPrice
+              item.usdPrice = coinInfo.usdPrice || 0
               item.name = item.symbol;
               item.number = divisionDecimals(item.totalBalance, item.decimals);
               item.valuation = Number(Times(item.number, item.usdPrice));
@@ -162,6 +164,7 @@
         }
         return res
       },
+      //查询当前账户跨链资产
       async getCrossList() {
         let res = []
         try {

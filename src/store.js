@@ -8,7 +8,7 @@ export default new Vuex.Store({
   state: {
     addressInfo: {},
     urlData: [],
-    accountList: []
+    accountList: sessionStorage.getItem('accountList') ? JSON.parse(sessionStorage.getItem('accountList')) : []
   },
   mutations: {
     setAddressInfo(state, data) {
@@ -21,6 +21,7 @@ export default new Vuex.Store({
     },
     setAccountList(state, data) {
       state.accountList = data
+      sessionStorage.setItem('accountList', JSON.stringify(data))
     }
   },
   getters: {

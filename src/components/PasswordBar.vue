@@ -42,7 +42,7 @@
 
 <script>
   import QRCode from 'qrcodejs2'
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import {connectToExplorer} from '@/api/util.js'
   import {validateAndBroadcast, getScanAutograph} from '@/api/requestData'
 
@@ -130,7 +130,7 @@
         let scanAutographInfo = await getScanAutograph(randomString);
         //console.log(scanAutographInfo);
         if (scanAutographInfo.success && scanAutographInfo.data.pubkey) {
-          setAliasHex.signatures = await nuls.appSplicingPub(scanAutographInfo.data.signData, scanAutographInfo.data.pubkey);
+          setAliasHex.signatures = await nerve.appSplicingPub(scanAutographInfo.data.signData, scanAutographInfo.data.pubkey);
           let txhex = setAliasHex.txSerialize().toString("hex");
           //console.log(txhex);
           let broadcastInfo = await validateAndBroadcast(txhex);

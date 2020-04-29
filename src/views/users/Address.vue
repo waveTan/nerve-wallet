@@ -85,7 +85,7 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import Password from '@/components/PasswordBar'
   import {divisionDecimals, chainIdNumber, addressInfo, chainID, Plus} from '@/api/util'
   import {getPrefixByChainId} from '@/api/requestData'
@@ -156,7 +156,7 @@
                   addressInfo.totalReward = divisionDecimals(response.result.totalReward);
                   addressInfo.total = divisionDecimals(response.result.totalBalance);
                   addressInfo.tokens = [];
-                  addressInfo.chainId = nuls.verifyAddress(item.address).chainId;
+                  addressInfo.chainId = nerve.verifyAddress(item.address).chainId;
                 }
               }
               localStorage.setItem(chainIdNumber(), JSON.stringify(this.addressList))
@@ -271,8 +271,8 @@
        **/
       passSubmit(password) {
         let newAddressInfo = addressInfo(0);
-        const pri = nuls.decrypteOfAES(this.selectAddressInfo.aesPri, password);
-        const deleteAddressInfo = nuls.importByKey(this.selectAddressInfo.chainId, pri, password, this.prefix);
+        const pri = nerve.decrypteOfAES(this.selectAddressInfo.aesPri, password);
+        const deleteAddressInfo = nerve.importByKey(this.selectAddressInfo.chainId, pri, password, this.prefix);
         if (this.selectAddressInfo.address === deleteAddressInfo.address) {
           newAddressInfo.splice(newAddressInfo.findIndex(item => item.address === this.selectAddressInfo.address), 1);
           if (this.selectAddressInfo.selection && newAddressInfo.length !== 0) {

@@ -16,7 +16,7 @@
           </div>
         </div>
       </div>
-      <div class="right fr">
+      <div class="right fr shadow">
         <PieChart :data="chartData" :total="myAssetsInfo.total">
         </PieChart>
       </div>
@@ -31,7 +31,7 @@
           </el-table-column>
           <!--<el-table-column prop="currency" :label="$t('tab.tab35')" width="100">
           </el-table-column>-->
-          <el-table-column :label="$t('tab.tab35')" width="65">
+          <el-table-column :label="$t('tab.tab35')" width="80">
             <template slot-scope="scope">
               <img :src="scope.row.icon" alt="" class="coin-img">
             </template>
@@ -42,7 +42,7 @@
           </el-table-column>
           <el-table-column :label="$t('tab.tab38')" width="170">
             <template slot-scope="scope">
-              ${{scope.row.valuation}}
+              ${{scope.row.valuation | toThousands}}
             </template>
           </el-table-column>
           <el-table-column prop="locking" :label="$t('tab.tab3')" width="170">
@@ -102,25 +102,27 @@
         immediate: true,
         handler: function() {
           this.homeLoading = true
-          const assetsInfo = this.$store.state.accountList
-          const myAssetsInfo = {total:0,available:0,locking:0}
-          const chartData = []
-          const total = assetsInfo.reduce((cur,next)=>{
-            return Number(Plus(cur, next.valuation))
-          },0)
-          assetsInfo.forEach(item => {
-            myAssetsInfo.total = Number(Plus(myAssetsInfo.total, item.valuation));
-            myAssetsInfo.available = Number(Plus(myAssetsInfo.available, item.usdAvailable));
-            myAssetsInfo.locking = Number(Plus(myAssetsInfo.locking, item.usdLocking));
-            chartData.push({
-              key: item.symbol,
-              value: item.valuation,
-              rate: Number(Division(item.valuation, total)) * 100 + '%'
+          setTimeout(()=>{
+            const assetsInfo = this.$store.state.accountList
+            const myAssetsInfo = {total:0,available:0,locking:0}
+            const chartData = []
+            const total = assetsInfo.reduce((cur,next)=>{
+              return Number(Plus(cur, next.valuation))
+            },0)
+            assetsInfo.forEach(item => {
+              myAssetsInfo.total = Number(Plus(myAssetsInfo.total, item.valuation));
+              myAssetsInfo.available = Number(Plus(myAssetsInfo.available, item.usdAvailable));
+              myAssetsInfo.locking = Number(Plus(myAssetsInfo.locking, item.usdLocking));
+              chartData.push({
+                key: item.symbol,
+                value: item.valuation,
+                rate: total ? Number(Division(item.valuation, total)) * 100 + '%' : '0%'
+              })
             })
-          })
-          this.myAssetsInfo = myAssetsInfo
-          this.chartData = chartData
-          this.homeLoading = false
+            this.myAssetsInfo = myAssetsInfo
+            this.chartData = chartData
+            this.homeLoading = false
+          },200)
         }
       }
     },

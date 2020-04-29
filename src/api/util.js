@@ -1,4 +1,4 @@
-import nuls from 'nuls-sdk-js'
+import nerve from 'nerve-sdk-js'
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
 import {explorerUrl, IS_DEV,MAIN_INFO} from '@/config.js'
@@ -99,12 +99,12 @@ export function divisionDecimals(nu, decimals) {
  * @author: Wave
  */
 export function passwordVerification(accountInfo, password, prefix) {
-  const pri = nuls.decrypteOfAES(accountInfo.aesPri, password);
+  const pri = nerve.decrypteOfAES(accountInfo.aesPri, password);
   if (!prefix && sessionStorage.hasOwnProperty('info')) {
     prefix = JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol
   }
-  const newAddressInfo = nuls.importByKey(chainID(), pri, password, prefix);
-  if (newAddressInfo.address === accountInfo.address || nuls.addressEquals(accountInfo.address, newAddressInfo.address)) {
+  const newAddressInfo = nerve.importByKey(chainID(), pri, password, prefix);
+  if (newAddressInfo.address === accountInfo.address || nerve.addressEquals(accountInfo.address, newAddressInfo.address)) {
     return {success: true, pri: pri, pub: accountInfo.pub, aesPri: accountInfo.aesPri, address: newAddressInfo.address};
   } else {
     return {success: false};
@@ -284,12 +284,8 @@ export function connectToExplorer(name, parameter) {
   } else if (name === 'nuls') {
     newUrl = parameter
   }
-  //console.log(newUrl);
-  let symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol : 'NULS';
-  if (symbol === 'NULS') {
-    //console.log(newUrl);
-    openner(newUrl);
-  }
+  openner(newUrl);
+
 }
 
 //地址必须参数列表
@@ -455,7 +451,7 @@ export function toThousands(num = 0) {
 export async function getSymbolBaseInfo() {
   if (!sessionStorage.getItem('coinInfo')) {
     try {
-      const res = await post('/', 'getSymbolBaseInfo', [])
+      const res = await post('http://192.168.1.141:17003/jsonrpc', 'getSymbolBaseInfo', [])
       const coins = {}
       res.result.map(v=>{
         if (v.symbol === 'NULS') console.log(v,'--nuls')

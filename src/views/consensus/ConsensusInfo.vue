@@ -47,21 +47,25 @@
 
     <div v-loading="nodeDepositLoading" class="entrust-list">
       <div class="head">
-        {{$t('public.total')}} {{pageTotal+' ' +$t('public.item') + $t('consensus.consensus18')}},
+        {{$t('public.total')}} {{pageTotal+' ' +$t('public.item') + ' ' +$t('consensus.consensus18')}},
         {{$t('consensus.consensus19')+ ' '+nodeInfo.deposits+ ' '+ agentAsset.agentAsset.symbol}},
         {{$t('consensus.consensus16')+ ' '+nodeInfo.reward+ ' '+ agentAsset.agentAsset.symbol}}
         <el-button type="primary" class="fr" @click="additionDialog=true" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensus.consensus20')}}</el-button>
       </div>
       <el-table :data="nodeDepositData" stripe border class="shadow1">
-        <el-table-column width="20"></el-table-column>
+        <el-table-column width="30"></el-table-column>
         <el-table-column prop="blockHeight" :label="$t('public.height')" width="120">
         </el-table-column>
-        <el-table-column prop="txHash" label="TXID"></el-table-column>
-        <el-table-column prop="amount" :label="$t('consensus.consensus14')">
+        <el-table-column label="TXID" min-width="120">
+          <template slot-scope="scope">
+            <span class="click " @click="toUrl('transferInfo',scope.row.txHash)">{{scope.row.txHashs}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="amount" :label="$t('public.deposit')" min-width="70">
         </el-table-column>
         <el-table-column prop="" :label="$t('consensus.consensus16')">
         </el-table-column>
-        <el-table-column prop="createTime" :label="$t('consensusList.consensusList1')">
+        <el-table-column prop="createTime" :label="$t('public.time')" min-width="90">
         </el-table-column>
         <el-table-column :label="$t('public.status')">
           <template v-slot="scope">{{scope.row.type===1 ? $t('consensusInfo.consensusInfo13'):$t('consensusInfo.consensusInfo14')}}</template>
@@ -96,7 +100,7 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="additionDialog = false">{{$t('password.password2')}}</el-button>
-          <el-button type="primary" @click="jionNodeSubmitForm('jionNodeForm')">{{$t('password.password3')}}</el-button>
+          <el-button type="primary" @click="joinNodeSubmitForm('jionNodeForm')">{{$t('password.password3')}}</el-button>
         </div>
       </el-dialog>
     </div>
@@ -108,7 +112,7 @@
 
 <script>
   import moment from 'moment'
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import {
     getNulsBalance,
     countFee,
@@ -269,7 +273,7 @@
                 itme.amount = divisionDecimals(itme.amount);
                 itme.fee = divisionDecimals(itme.fee);
                 itme.createTime = moment(getLocalTime(itme.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
-                itme.txHash = superLong(itme.txHash, 10)
+                itme.txHashs = superLong(itme.txHash, 10)
               }
               this.nodeDepositData = response.result.list;
               this.pageTotal = response.result.totalCount;
@@ -293,11 +297,8 @@
       },
 
 
-      /**
-       * 加入共识
-       * @param formName
-       **/
-      jionNodeSubmitForm(formName) {
+      //追加保证金
+      joinNodeSubmitForm(formName) {
         this.$refs[formName].validate(async (valid) => {
           if (valid) {
             this.passwordType = 0;
@@ -412,8 +413,8 @@
        * @param password
        **/
       async passSubmit(password) {
-        const pri = nuls.decrypteOfAES(this.addressInfo.aesPri, password);
-        const newAddressInfo = nuls.importByKey(this.addressInfo.chainId, pri, password, this.prefix);
+        const pri = nerve.decrypteOfAES(this.addressInfo.aesPri, password);
+        const newAddressInfo = nerve.importByKey(this.addressInfo.chainId, pri, password, this.prefix);
         console.log(newAddressInfo,111,this.addressInfo)
         if (newAddressInfo.address === this.addressInfo.address) {
           let transferInfo = {
@@ -433,22 +434,22 @@
             let depositInfo = {
               address: this.addressInfo.address,
               agentHash: this.$route.query.hash,
-              deposit: Number(Times(this.jionNodeForm.amount, 100000000))
+              amount: Number(Times(this.jionNodeForm.amount, 100000000))
             };
             if (!inOrOutputs.success) {
               this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
               return;
             }
-            let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 5, depositInfo);
-            txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+            let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 28, depositInfo);
+            txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
           } else if (this.passwordType === 1) { //退出共识
             transferInfo.amount = Number(Times(this.outInfo.amount, 100000000));
             transferInfo.depositHash = this.outInfo.txHash;
             inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 6);
             //console.log(inOrOutputs);
             if (inOrOutputs.success) {
-              let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 6, this.outInfo.txHash);
-              txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+              let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 6, this.outInfo.txHash);
+              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
             } else {
               this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
             }
@@ -501,18 +502,16 @@
               newOutputs[0].lockTime = newOutputs[0].lockTime + 86400 * 3;
               /* console.log(newInputs);
                console.log(newOutputs);*/
-              let tAssemble = await nuls.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
+              let tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
               //console.log(tAssemble);
               let newFee = countFee(tAssemble, 1);
-              debugger
-              return
               //console.log(transferInfo.fee !== newFee);
               if (transferInfo.fee !== newFee) {
                 transferInfo.fee = newFee;
                 newOutputs[0].amount = Number(Minus(this.nodeInfo.deposit, newFee).toString());
-                tAssemble = await nuls.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
+                tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
               }
-              txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
             }
             else {
               this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
@@ -566,7 +565,7 @@
             this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 3000});
             return {success: false};
           }
-          tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 5, depositInfo);
+          tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 5, depositInfo);
           return {success: true, data: tAssemble}
         } else if (this.passwordType === 1) { //退出共识
           transferInfo.amount = Number(Times(this.outInfo.amount, 100000000));
@@ -577,7 +576,7 @@
             this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 3000});
             return {success: false};
           }
-          tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 6, this.outInfo.txHash);
+          tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 6, this.outInfo.txHash);
           return {success: true, data: tAssemble}
         } else if (this.passwordType === 2) { //注销节点
           transferInfo.amount = this.nodeInfo.deposit;
@@ -631,14 +630,14 @@
           });
           newOutputs.unshift(inOrOutputs.data.outputs[0]);
           newOutputs[0].lockTime = newOutputs[0].lockTime + 86400 * 3;
-          tAssemble = await nuls.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
+          tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
           //console.log(tAssemble);
           let newFee = countFee(tAssemble, 1);
           //console.log(transferInfo.fee !== newFee);
           if (transferInfo.fee !== newFee) {
             transferInfo.fee = newFee;
             newOutputs[0].amount = Number(Minus(this.nodeInfo.deposit, newFee).toString());
-            tAssemble = await nuls.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
+            tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
           }
           return {success: true, data: tAssemble}
         } else {

@@ -21,7 +21,7 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import axios from 'axios'
   import {chainID, chainIdNumber, addressInfo, divisionDecimals} from '@/api/util'
 
@@ -130,7 +130,7 @@
                       item.lastReward = 0;
                     }
                     item.tokens = [];
-                    item.chainId = nuls.verifyAddress(item.address).chainId;
+                    item.chainId = nerve.verifyAddress(item.address).chainId;
                   }
                 }
                 localStorage.setItem(chainIdNumber(), JSON.stringify(addressList));

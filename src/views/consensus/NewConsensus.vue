@@ -27,10 +27,10 @@
           <el-input v-model.trim="createrForm.amount">
           </el-input>
         </el-form-item>
-        <el-form-item :label="$t('public.commission') + '(%)'" prop="rate">
+        <!--<el-form-item :label="$t('public.commission') + '(%)'" prop="rate">
           <el-input v-model.trim="createrForm.rate">
           </el-input>
-        </el-form-item>
+        </el-form-item>-->
         <div class="font14">
           <el-tooltip placement="top">
             <div slot="content">{{$t('transfer.transfer5')}}</div>
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import {
     getNulsBalance,
     inputsOrOutputs,
@@ -101,7 +101,7 @@
       let checkRewardAddress = (rule, value, callback) => {
         let patrn = {};
         if (value && value.length > 5) {
-          patrn = nuls.verifyAddress(value);
+          patrn = nerve.verifyAddress(value);
         }
         if (!value) {
           return callback(new Error(this.$t('newConsensus.newConsensus2')));
@@ -115,7 +115,7 @@
       let checkBlockAddress = (rule, value, callback) => {
         let patrn = {};
         if (value && value.length > 5) {
-          patrn = nuls.verifyAddress(value);
+          patrn = nerve.verifyAddress(value);
         }
         if (!value) {
           return callback(new Error(this.$t('newConsensus.newConsensus3')));
@@ -165,7 +165,7 @@
           rewardAddress: 'TNVTdN9i9Gg6E89Jwcayrgvc62oq1WXwxunCW',
           blockAddress: 'TNVTdN9i7NWX9x916BADpHNS2o88iVuf1EKNx',
           amount: '20000',
-          rate: '20',
+          // rate: '20',
         },
         createrRules: {
           rewardAddress: [
@@ -177,9 +177,9 @@
           amount: [
             {validator: checkAmount, trigger: ['blur', 'change']}
           ],
-          rate: [
+          /*rate: [
             {validator: checkRate, trigger: ['blur', 'change']}
-          ],
+          ],*/
         },
         newConsensusVisible: false,//创建节点确认弹框
         prefix: '',//地址前缀
@@ -310,10 +310,10 @@
           return;
         }
 
-        const pri = nuls.decrypteOfAES(this.addressInfo.aesPri, password);
-        const newAddressInfo = nuls.importByKey(this.addressInfo.chainId, pri, password, this.prefix);
+        const pri = nerve.decrypteOfAES(this.addressInfo.aesPri, password);
+        const newAddressInfo = nerve.importByKey(this.addressInfo.chainId, pri, password, this.prefix);
         if (newAddressInfo.address === this.addressInfo.address) {
-          let txhex = await nuls.transactionSerialize(pri, this.addressInfo.pub, tAssemble.data);
+          let txhex = await nerve.transactionSerialize(pri, this.addressInfo.pub, tAssemble.data);
           //console.log(txhex);
           //验证并广播交易
           await validateAndBroadcast(txhex).then((response) => {
@@ -360,10 +360,10 @@
           agentAddress: this.addressInfo.address,
           packingAddress: this.createrForm.blockAddress,
           rewardAddress: this.createrForm.rewardAddress,
-          commissionRate: Number(this.createrForm.rate),
+          // commissionRate: Number(this.createrForm.rate),
           deposit: Number(Times(this.createrForm.amount, 100000000).toString())
         };
-        let data = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 4, agent);
+        let data = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 4, agent);
         console.log(data);
         return {
           success: true,

@@ -49,7 +49,7 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import {chainIdNumber, addressInfo} from '@/api/util'
 
   export default {
@@ -63,7 +63,7 @@
         }
       };
       let validateAddress = (rule, value, callback) => {
-        let verify =  nuls.verifyAddress(value);
+        let verify =  nerve.verifyAddress(value);
         if (!value) {
           return callback(new Error(this.$t('tab.tab17')));
         } else if (this.isAdd === 0 && this.isAddressExist(value)) {

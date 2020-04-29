@@ -57,7 +57,6 @@
     },
     watch: {
       data(val) {
-        console.log(val, '====val')
         val.forEach(v=>{
           v.value = v.value.toFixed(2)
         })

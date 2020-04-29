@@ -36,7 +36,7 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  import nerve from 'nerve-sdk-js'
   import {inputsOrOutputs, validateAndBroadcast, getPrefixByChainId, commitData} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
   import BackBar from '@/components/BackBar'
@@ -178,11 +178,11 @@
        * @param password
        **/
       async passSubmit(password) {
-        const pri = nuls.decrypteOfAES(this.addressInfo.aesPri, password);
-        const newAddressInfo = nuls.importByKey(chainID(), pri, password, this.prefix);
+        const pri = nerve.decrypteOfAES(this.addressInfo.aesPri, password);
+        const newAddressInfo = nerve.importByKey(chainID(), pri, password, this.prefix);
         if (newAddressInfo.address === this.addressInfo.address) {
           //根据公钥获取地址
-          let burningAddress = nuls.getAddressByPub(chainID(), 1, config.API_BURNING_ADDRESS_PUB, this.prefix);
+          let burningAddress = nerve.getAddressByPub(chainID(), 1, config.API_BURNING_ADDRESS_PUB, this.prefix);
           //console.log(burningAddress);
           let transferInfo = {
             fromAddress: this.addressInfo.address,
@@ -197,8 +197,8 @@
             fromAddress: this.addressInfo.address,
             alias: this.aliasForm.alias
           };
-          let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 3, aliasInfo);
-          let txhex = await nuls.transactionSerialize(nuls.decrypteOfAES(this.addressInfo.aesPri, password), this.addressInfo.pub, tAssemble);
+          let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 3, aliasInfo);
+          let txhex = await nerve.transactionSerialize(nerve.decrypteOfAES(this.addressInfo.aesPri, password), this.addressInfo.pub, tAssemble);
           //console.log(txhex);
           //验证并广播交易
           await validateAndBroadcast(txhex).then((response) => {
@@ -224,7 +224,7 @@
        */
       async setAliasAssemble() {
         //根据燃烧地址公钥获取地址
-        let burningAddress = nuls.getAddressByPub(chainID(), 1, config.API_BURNING_ADDRESS_PUB, this.prefix);
+        let burningAddress = nerve.getAddressByPub(chainID(), 1, config.API_BURNING_ADDRESS_PUB, this.prefix);
         //console.log(burningAddress);
         let transferInfo = {
           fromAddress: this.addressInfo.address,
@@ -239,7 +239,7 @@
           fromAddress: this.addressInfo.address,
           alias: this.aliasForm.alias
         };
-        return await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 3, aliasInfo);
+        return await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 3, aliasInfo);
       },
 
       /**
