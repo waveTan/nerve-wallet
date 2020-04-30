@@ -45,7 +45,7 @@
              <el-menu-item index="cn">中文</el-menu-item>
              <el-menu-item index="en">English</el-menu-item>
            </el-submenu>-->
-          <el-submenu index="more" v-show="symbol ==='NULS'">
+          <el-submenu index="more">
             <template slot="title"><i class="el-icon-more"></i></template>
             <el-menu-item index="official">{{$t('tab.tab21')}}</el-menu-item>
             <el-menu-item index="explorer">{{$t('tab.tab22')}}</el-menu-item>
@@ -62,7 +62,7 @@
 
 <script>
   import logo from '@/assets/img/logo.svg'
-  import {superLong, chainIdNumber, addressInfo, connectToExplorer, divisionDecimals, Times, Plus, getSymbolInfo} from '@/api/util'
+  import {superLong, connectToExplorer, divisionDecimals, Times, Plus, getSymbolInfo} from '@/api/util'
   import {IS_DEV} from '@/config.js'
   import defaultIcon from '@/assets/img/commonIcon.png'
 
@@ -73,34 +73,31 @@
         navActive: '/',//菜单选中
         addressList: [], //地址列表
         lang: 'cn', //语言选择
-        nodeServiceInfo: {},
         symbol: 'NVT', //symbol
-        addressInfo: [] //账户信息
+        addressInfo: this.$store.getters.getSelectAddress //账户信息
       };
     },
     components: {},
+    watch: {
+      '$store.getters.getSelectAddress': {
+        // immediate: true,
+        // deep: true,
+        handler: function(val, old) {
+          if (val.address !== old.address && old.address) {
+            this.addressInfo = this.$store.getters.getSelectAddress
+            this.getAccountList()
+          }
+        }
+      },
+      '$store.state.addressInfo': {
+        handler: function() {
+          this.getAddressList()
+        }
+      }
+    },
     created() {
-      this.addressInfo = addressInfo(1);
       this.getAccountList()
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
-
-      let type = navigator.appName;
-      let langs = '';
-      if (type === "Netscape") {
-        langs = navigator.language;//获取浏览器配置语言，支持非IE浏览器
-      } else {
-        langs = navigator.userLanguage;//获取浏览器配置语言，支持IE5+ == navigator.systemLanguage
-      }
-      let lang = langs.substr(0, 2);//获取浏览器配置语言前两位
-      if (lang === "zh") {
-        this.lang = 'cn';
-      } else {
-        this.lang = 'en';
-      }
-      this.$i18n.locale = this.lang;
-
+      this.setLang()
       this.getAddressList();
     },
     mounted() {
@@ -109,34 +106,32 @@
         if (this.symbol !== 'TNVT' && this.symbol !== 'NVT') {
           document.title = this.symbol + " Wallet";
         }
-        this.getAddressList();
-        if (sessionStorage.hasOwnProperty('info')) {
-          this.nodeServiceInfo = JSON.parse(sessionStorage.getItem('info'));
-        } else {
-          this.nodeServiceInfo.isRunCrossChain = false;
-          this.nodeServiceInfo.isRunSmartContract = false;
-        }
       }, 500)
     },
-    watch: {
-      addressInfo: {
-        // immediate: true,
-        deep: true,
-        handler: function(val, old) {
-          if (val.address !== old.address && old.address) {
-          this.getAccountList()
-          }
-        }
-
-      }
-    },
     methods: {
+      setLang() {
+        let type = navigator.appName;
+        let langs = '';
+        if (type === "Netscape") {
+          langs = navigator.language;//获取浏览器配置语言，支持非IE浏览器
+        } else {
+          langs = navigator.userLanguage;//获取浏览器配置语言，支持IE5+ == navigator.systemLanguage
+        }
+        let lang = langs.substr(0, 2);//获取浏览器配置语言前两位
+        if (lang === "zh") {
+          this.lang = 'cn';
+        } else {
+          this.lang = 'en';
+        }
+        this.$i18n.locale = this.lang;
+      },
       //查询账户资产信息
       async getAccountList() {
+        this.$store.commit('homeLoading', true)
         const ledgerList = await this.getLedgerList()
         const crossList =  await this.getCrossList()
         let accountList = [...ledgerList, ...crossList]
-        sessionStorage.setItem('allAssetsList', JSON.stringify(accountList))
+        this.$store.commit('homeLoading', false)
         this.$store.commit('setAccountList', accountList)
       },
       //查询当前账户本链资产
@@ -145,7 +140,7 @@
         try {
           const result = await this.$post('/', 'getAccountLedgerList', [this.addressInfo.address])
           if (result.result) {
-            await Promise.all(result.result.map(async item=>{
+            for(let item of result.result) {
               const coinInfo = await getSymbolInfo(item.assetId, item.chainId)
               item.icon = item.icon || defaultIcon
               item.usdPrice = coinInfo.usdPrice || 0
@@ -157,7 +152,7 @@
               item.available = divisionDecimals(item.balance, item.decimals);
               item.usdAvailable = Number(Times(item.available, item.usdPrice));
               res.push({...item})
-            }))
+            }
           }
         } catch (e) {
           console.error('获取本链资产失败')
@@ -170,7 +165,7 @@
         try {
           const result = await this.$post('/', 'getAccountCrossLedgerList', [this.addressInfo.address])
           if (result.result) {
-            await Promise.all(result.result.map(async item=>{
+            for(let item of result.result) {
               const coinInfo = await getSymbolInfo(item.assetId, item.chainId)
               item.icon = item.icon || defaultIcon
               item.usdPrice = coinInfo.usdPrice
@@ -182,7 +177,7 @@
               item.available = divisionDecimals(item.balance, item.decimals);
               item.usdAvailable = Number(Times(item.available, item.usdPrice));
               res.push({...item})
-            }))
+            }
           }
         } catch (e) {
           console.error('获取跨链资产失败')
@@ -207,7 +202,7 @@
                 item.selection = true;
               }
             }
-            localStorage.setItem(chainIdNumber(), JSON.stringify(this.addressList));
+            this.$store.commit('setAddressInfo', this.addressList)
           } else if (keyPath[0] === "set") {
             this.$router.push({
               name: keyPath[1]
@@ -215,9 +210,9 @@
           } else if (keyPath[0] === "more") {
             let newUrl = '';
             if (keyPath[1] === 'official') {
-              newUrl = 'https://nuls.io/'
+              newUrl = 'http://nerve.network/'
             } else if (keyPath[1] === 'explorer') {
-              newUrl = IS_DEV ? 'https://nulscan.io/' : 'http://beta.nulscan.io/'
+              newUrl = IS_DEV ? 'https://nervecan.nervedex.com/' : 'http://beta.nervecan.nervedex.com/'
             } else if (keyPath[1] === 'docs') {
               newUrl = 'https://docs.nuls.io/'
             }
@@ -252,7 +247,8 @@
        * 获取账户列表
        */
       getAddressList() {
-        this.addressList = addressInfo(0);
+        console.log(123465)
+        this.addressList = this.$store.state.addressInfo
         if (this.addressList) {
           for (let item  of this.addressList) {
             item.addresss = superLong(item.address, 8);

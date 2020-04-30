@@ -1,6 +1,6 @@
 <template>
-  <div class="txlist bg-gray">
-    <div class="bg-white">
+  <div class="txlist">
+    <div>
       <div class="w1200">
         <BackBar :backTitle="$t('nav.wallet')"></BackBar>
         <h3 class="title">{{$t('home.home2')}}</h3>
@@ -14,12 +14,11 @@
             <el-option v-for="item in assetsOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
-
-          <el-select :value="$t('type.'+typeValue)" @change="channgeType">
+         <!-- <el-select :value="$t('type.'+typeValue)" @change="channgeType">
             <el-option v-for="item in typeOptions" :key="item.value" :label="$t('type.'+item.value)"
                        :value="item.value">
             </el-option>
-          </el-select>
+          </el-select>-->
           <el-select :value="$t('budgetType.'+inAndOutValue)" @change="channgeInAndOut" :disabled="types !==2"
                      v-if="false">
             <el-option v-for="item in inAndOutOptions" :key="item.value" :label="$t('budgetType.'+item.value)"
@@ -30,6 +29,7 @@
                      @change="changeHide"
                      v-show="false">
           </el-switch>
+          <SelectBar size="small" v-model="typeValue" @change="channgeType"></SelectBar>
         </div>
         <el-table :data="txListData" stripe border>
           <el-table-column prop="symbol" :label="$t('tab.tab0')" align="center" width="100">
@@ -77,8 +77,9 @@
 
 <script>
   import moment from 'moment'
-  import {divisionDecimals, getLocalTime, superLong, addressInfo} from '@/api/util'
+  import {divisionDecimals, getLocalTime, superLong} from '@/api/util'
   import BackBar from '@/components/BackBar'
+  import SelectBar from "@/components/SelectBar";
 
   export default {
     data() {
@@ -89,55 +90,6 @@
           {value: '2', label: '2'}
         ], //资产类型
         assetsValue: "0",
-        typeOptions: [
-          {value: '0', label: '0'},
-          {value: '1', label: '1'},
-          {value: '2', label: '2'},
-          {value: '3', label: '3'},
-          {value: '4', label: '4'},
-          {value: '5', label: '5'},
-          {value: '6', label: '6'},
-          {value: '7', label: '7'},
-          {value: '8', label: '8'},
-          {value: '9', label: '9'},
-          {value: '10', label: '10'},
-          {value: '11', label: '11'},
-          {value: '12', label: '12'},
-          {value: '13', label: '13'},
-          {value: '14', label: '14'},
-          {value: '15', label: '15'},
-          {value: '16', label: '16'},
-          {value: '17', label: '17'},
-          {value: '18', label: '18'},
-          {value: '19', label: '19'},
-          {value: '20', label: '20'},
-          {value: '21', label: '21'},
-          {value: '22', label: '22'},
-          {value: '23', label: '23'},
-          {value: '24', label: '24'},
-          {value: '25', label: '25'},
-          {value: '26', label: '26'},
-          {value: '27', label: '27'},
-          {value: '28', label: '28'},
-          {value: '29', label: '29'},
-          {value: '30', label: '30'},
-          {value: '31', label: '31'},
-          {value: '228', label: '228'},
-          {value: '229', label: '229'},
-          {value: '230', label: '230'},
-          {value: '231', label: '231'},
-          {value: '232', label: '232'},
-          {value: '40', label: '40'},
-          {value: '41', label: '41'},
-          {value: '42', label: '42'},
-          {value: '43', label: '43'},
-          {value: '44', label: '44'},
-          {value: '45', label: '45'},
-          {value: '46', label: '46'},
-          {value: '47', label: '47'},
-          {value: '48', label: '48'},
-          {value: '49', label: '49'},
-        ], //交易类型
         typeValue: '0',
         inAndOutOptions: [
           {value: '0', label: '0'},
@@ -150,32 +102,31 @@
         pageIndex: 1, //页码
         pageSize: 10, //每页条数
         pageTotal: 0,//总页数
-        addressInfo: [], //账户信息
+        addressInfo: this.$store.getters.getSelectAddress, //账户信息
         types: 0,//类型
         isHide: true,//隐藏共识奖励
         txListSetInterval: null,//定时器
       };
     },
     created() {
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
     },
     watch: {
-      addressInfo(val, old) {
-        if (val.address !== old.address && old.address) {
-          this.getTxlistByAddress(this.pageIndex, this.pageSize, this.addressInfo.address, this.types);
+      '$store.getters.getSelectAddress': {
+        // immediate: true,
+        // deep: true,
+        handler: function(val, old) {
+          if (val.address !== old.address) {
+            this.addressInfo = this.$store.getters.getSelectAddress
+            this.getTxlistByAddress()
+          }
         }
       }
     },
     mounted() {
-      setTimeout(() => {
-        this.getTxlistByAddress(this.pageIndex, this.pageSize, this.addressInfo.address, this.types);
-      }, 600);
+      this.getTxlistByAddress();
       //10秒循环一次数据
       this.txListSetInterval = setInterval(() => {
-        this.getTxlistByAddress(this.pageIndex, this.pageSize, this.addressInfo.address, this.types);
+        this.getTxlistByAddress();
       }, 10000);
     },
     //离开当前页面后执行
@@ -183,7 +134,8 @@
       clearInterval(this.txListSetInterval);
     },
     components: {
-      BackBar
+      BackBar,
+      SelectBar
     },
     methods: {
 
@@ -194,8 +146,10 @@
        * @param address
        * @param type
        **/
-      getTxlistByAddress(pageSize, pageRows, address, type) {
-        this.$post('/', 'getAccountTxs', [pageSize, pageRows, address, type, -1, -1])
+      getTxlistByAddress() {
+        this.txListDataLoading = true;
+        const params = [this.pageIndex, this.pageSize, this.addressInfo.address, this.types, -1, -1]
+        this.$post('/', 'getAccountTxs', params)
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
@@ -235,7 +189,7 @@
       channgeType(e) {
         this.types = Number(e);
         this.typeValue = Number(e);
-        this.getTxlistByAddress(this.pageIndex, this.pageSize, this.addressInfo.address, this.types);
+        this.getTxlistByAddress();
       },
 
       /**
@@ -253,7 +207,7 @@
       changeHide(e) {
         this.isHide = e;
         this.pageIndex = 1;
-        this.getTxlistByAddress(this.pageIndex, this.pageSize, this.addressInfo.address, this.types)
+        this.getTxlistByAddress()
       },
 
       /**
@@ -262,8 +216,7 @@
        **/
       txListPages(val) {
         this.pageIndex = val;
-        this.txListDataLoading = true;
-        this.getTxlistByAddress(this.pageIndex, this.pageSize, this.addressInfo.address, this.types)
+        this.getTxlistByAddress()
       },
 
       /**

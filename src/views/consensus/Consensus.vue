@@ -94,7 +94,7 @@
 
 <script>
   import SelectBar from '@/components/SelectBar';
-  import {divisionDecimals, copys, addressInfo, chainIdNumber} from '@/api/util'
+  import {divisionDecimals, copys} from '@/api/util'
 
   export default {
     name: 'consensus',
@@ -122,35 +122,23 @@
         searchValue: '',//搜索框
         allNodeData: [],//所有节点信息
         allNodeLoading: true,//所有节点信息加载动画
-        addressInfo: [], //账户信息
+        addressInfo: this.$store.getters.getSelectAddress, //账户信息
         agentAsset: JSON.parse(sessionStorage.getItem('info')),//pocm合约单位等信息
         isRed: false,//地址是否有红牌
         pageIndex: 1, //页码
         pageSize: 500, //每页条数
         pageTotal: 0,//总页数
         myNodeData: [],//我的节点信息
-        setInterval: null,//定时器变量
       };
     },
     components: {
       SelectBar
     },
     created() {
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
     },
     mounted() {
-      setTimeout(() => {
-        this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeTypeRegion);
-        this.getConsensusInfoByAddress(this.pageIndex, this.pageSize, this.addressInfo.address);
-        this.getAddressInfoByNode(this.addressInfo);
-        this.getPunishByAddress(this.addressInfo.address);
-      }, 600);
-    },
-    destroyed() {
-      clearInterval(this.setInterval);
+      this.getSelectAddressInfo()
+      this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeTypeRegion);
     },
     computed: {
       //数据筛选
@@ -174,18 +162,25 @@
       }
     },
     watch: {
-      addressInfo(val, old) {
-        if (val.address !== old.address && old.address) {
-          this.myNodeData={}
-          this.myNodeLoading = true
-          this.getPunishByAddress(this.addressInfo.address);
-          this.getAddressInfoByNode(this.addressInfo);
-          // this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeTypeRegion);
-          this.getConsensusInfoByAddress(this.pageIndex, this.pageSize, this.addressInfo.address);
+      '$store.getters.getSelectAddress': {
+        // immediate: true,
+        // deep: true,
+        handler: function(val, old) {
+          if (val.address !== old.address) {
+            this.addressInfo = this.$store.getters.getSelectAddress
+            this.getSelectAddressInfo()
+          }
         }
-      }
+      },
     },
     methods: {
+      getSelectAddressInfo() {
+        this.myNodeData={}
+        this.myNodeLoading = true
+        this.getConsensusInfoByAddress(this.pageIndex, this.pageSize, this.addressInfo.address);
+        this.getAddressInfoByNode(this.addressInfo);
+        this.getPunishByAddress(this.addressInfo.address);
+      },
       //判断节点类型
       judgeNodeType(bankNode, isConsensus) {
         if (bankNode) {
@@ -223,7 +218,7 @@
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
-              let newAddressInfo = addressInfo(0);
+              let newAddressInfo = [...this.$store.state.addressInfo];
               for (let item of newAddressInfo) {
                 if (item.address === addressInfos.address) {
                   newAddressInfo.alias = response.result.alias;
@@ -241,7 +236,7 @@
                 }
               }
               //newAddressInfo =
-              localStorage.setItem(chainIdNumber(), JSON.stringify(newAddressInfo));
+              this.$store.commit('setAddressInfo', newAddressInfo)
             }
           })
           .catch((error) => {
@@ -261,15 +256,7 @@
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
-              if (!this.addressInfo.collectList) {
-                this.addressInfo.collectList = [];
-              }
               for (let itme of response.result.list) {
-                if (this.addressInfo.collectList.includes(itme.agentId)) {
-                  itme.isCollect = true;
-                } else {
-                  itme.isCollect = false;
-                }
                 itme.bozhengjin = itme.deposit;
                 itme.deposit = Number(divisionDecimals(itme.deposit)).toFixed(3);
                 //itme.agentReward = Number(divisionDecimals(itme.agentReward)).toFixed(3);
@@ -293,7 +280,6 @@
        * @param address
        **/
       getConsensusInfoByAddress(pageIndex, pageSize, address) {
-        //this.$post('/', 'getAccountConsensus', [pageIndex, pageSize, address])
         this.$post('/', 'getAccountConsensusNode', [address])
           .then((response) => {
             //console.log(response);

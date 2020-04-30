@@ -1,6 +1,6 @@
 <template>
-  <div class="transfer_info bg-gray" v-loading="txInfoLoading">
-    <div class="bg-white">
+  <div class="transfer_info" v-loading="txInfoLoading">
+    <div>
       <div class="w1200">
         <BackBar :backTitle="$t('home.home2')"></BackBar>
         <h3 class="title">{{hash}}
@@ -347,7 +347,7 @@
         span {
           display: block;
           width: 46%;
-          line-height: 20px;
+          line-height: 12px;
           float: left;
           padding-left: 40px;
         }

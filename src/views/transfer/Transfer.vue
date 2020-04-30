@@ -1,6 +1,6 @@
 <template>
-  <div class="transfer bg-gray">
-    <div class="w1200 bg-white">
+  <div class="transfer">
+    <div class="w1200">
       <div class="title">{{$t('home.home3')}}</div>
       <el-form :model="transferForm" :rules="transferRules" ref="transferForm" class="w630 transfer_form">
         <el-form-item :label="$t('transfer.transfer0')" prop="fromAddress">
@@ -61,7 +61,6 @@
     divisionDecimals,
     timesDecimals,
     Minus,
-    addressInfo,
     passwordVerification,
     htmlEncode
   } from '@/api/util'
@@ -132,8 +131,8 @@
       };
     },
     created() {
-      this.assetList = sessionStorage.hasOwnProperty('allAssetsList') ? JSON.parse(sessionStorage.getItem('allAssetsList')) : [];
-      this.addressInfo = addressInfo(1);
+      this.assetList = this.$store.state.accountList
+      this.addressInfo = this.$store.getters.getSelectAddress
       this.transferForm.fromAddress = this.addressInfo.address;
     },
     mounted() {

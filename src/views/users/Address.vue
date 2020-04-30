@@ -1,5 +1,5 @@
 <template>
-  <div class="address bg-gray">
+  <div class="address" v-loading="loading">
     <h3 class="title">{{$t('address.address0')}}</h3>
 
     <div class="w1200 mt_20">
@@ -93,11 +93,12 @@
   export default {
     data() {
       return {
-        addressList: [],//地址列表
+        addressList: this.$store.state.addressInfo,//地址列表
         selectAddressInfo: '', //操作的地址信息
         remarkDialog: false,//备注弹框
         remarkInfo: '',//备注信息
         prefix: '',//地址前缀
+        loading: true
       };
     },
     components: {
@@ -112,33 +113,27 @@
       });
     },
     mounted() {
-      setTimeout(() => {
-        this.getAddressList();
-        this.getAddressLists(this.addressList);
-      }, 200);
+      this.getAddressLists(this.addressList);
     },
     methods: {
-
       /**
-       * 获取账户列表
-       */
-      getAddressList() {
-        this.addressList = addressInfo(0);
-        for (let item in this.addressList) {
-          this.addressList[item].total = Number(Plus(Number(this.addressList[item].balance), Number(this.addressList[item].consensusLock)));
-          if (this.addressList[item].total.toString() === 'NaN') {
-            this.addressList[item].total = 0
-          }
-        }
+       * 循环获取账户余额及别名
+       * @param addressList
+       **/
+      async getAddressLists(addressList) {
         //如果没有账户跳转到创建地址界面
         if (this.addressList.length === 0) {
           this.$router.push({
             name: "newAddress",
             query: {'address': ''}
           })
+          return
         }
+        for (let item of addressList) {
+          await this.getAddressInfoByNode(item)
+        }
+        this.loading = false
       },
-
       /**
        * 获取地址网络信息
        * @param addressInfo
@@ -159,7 +154,7 @@
                   addressInfo.chainId = nerve.verifyAddress(item.address).chainId;
                 }
               }
-              localStorage.setItem(chainIdNumber(), JSON.stringify(this.addressList))
+              this.$store.commit('setAddressInfo', this.addressList)
             }
           })
           .catch((error) => {
@@ -167,17 +162,6 @@
           });
       },
 
-      /**
-       * 循环获取账户余额及别名
-       * @param addressList
-       **/
-      getAddressLists(addressList) {
-        for (let item of addressList) {
-          setTimeout(() => {
-            this.getAddressInfoByNode(item);
-          }, 500);
-        }
-      },
 
       /**
        * 设置别名
@@ -207,7 +191,7 @@
         this.selectAddressInfo = rowInfo;
         this.$router.push({
           name: "backupsAddress",
-          query: {'backAddressInfo': rowInfo}
+          query: {'backAddressInfo': rowInfo.address}
         })
       },
 
@@ -217,13 +201,12 @@
        **/
       deleteAddress(rowInfo) {
         if (!rowInfo.aesPri) {
-          let newAddressInfo = addressInfo(0);
+          let newAddressInfo = [...this.$store.state.accountList];
           newAddressInfo.splice(newAddressInfo.findIndex(item => item.address === rowInfo.address), 1);
           if (this.selectAddressInfo.selection && newAddressInfo.length !== 0) {
             newAddressInfo[0].selection = true;
           }
-          localStorage.setItem(chainIdNumber(), JSON.stringify(newAddressInfo));
-          this.getAddressList();
+          this.$store.commit('setAddressInfo', newAddressInfo)
           return;
         }
         this.$confirm(this.$t('tab.tab29'), this.$t('tab.tab32'), {
@@ -259,7 +242,7 @@
             item.selection = true;
           }
         }
-        localStorage.setItem(chainIdNumber(), JSON.stringify(this.addressList));
+        this.$store.commit('setAddressInfo', this.addressList)
         this.$router.push({
           name: 'home',
         })
@@ -270,7 +253,7 @@
        * @param password
        **/
       passSubmit(password) {
-        let newAddressInfo = addressInfo(0);
+        let newAddressInfo = this.addressList;
         const pri = nerve.decrypteOfAES(this.selectAddressInfo.aesPri, password);
         const deleteAddressInfo = nerve.importByKey(this.selectAddressInfo.chainId, pri, password, this.prefix);
         if (this.selectAddressInfo.address === deleteAddressInfo.address) {
@@ -278,8 +261,7 @@
           if (this.selectAddressInfo.selection && newAddressInfo.length !== 0) {
             newAddressInfo[0].selection = true;
           }
-          localStorage.setItem(chainIdNumber(), JSON.stringify(newAddressInfo));
-          this.getAddressList();
+          this.$store.commit('setAddressInfo', newAddressInfo)
         } else {
           this.$message({message: this.$t('address.address13'), type: 'error', duration: 1000});
         }
@@ -299,14 +281,14 @@
        * 账户备注提交
        */
       addRemark() {
-        let newAddressInfo = addressInfo(0);
+        let newAddressInfo = [...this.$store.state.accountList]
         for (let item of newAddressInfo) {
           if (item.address === this.selectAddressInfo.address) {
             this.selectAddressInfo.remark = this.remarkInfo;
             item.remark = this.remarkInfo;
           }
         }
-        localStorage.setItem(chainIdNumber(), JSON.stringify(newAddressInfo));
+        this.$store.commit('setAddressInfo', newAddressInfo)
         this.remarkDialog = false;
         this.selectAddressInfo = '';
       },

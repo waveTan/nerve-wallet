@@ -58,7 +58,7 @@
     watch: {
       data(val) {
         val.forEach(v=>{
-          v.value = v.value.toFixed(2)
+          v.value = Number(v.value).toFixed(2)
         })
         this.chartData = {
           columns: ['key', 'value'],

@@ -1,5 +1,5 @@
 <template>
-  <div class="contact bg-gray">
+  <div class="contact">
     <h3 class="title">{{$t('tab.tab12')}}</h3>
     <div class="w1200 mt_20">
       <div class="top_ico">
@@ -14,7 +14,7 @@
         </el-table-column>
         <el-table-column :label="$t('address.address5')" align="center" width="350">
           <template slot-scope="scope">
-            <label class="click tab_bn" @click="addOrEditContact(scope.row)">{{ $t('tab.tab13')}}</label>
+            <label class="click tab_bn" @click="addOrEditContact(scope.row, scope.$index)">{{ $t('tab.tab13')}}</label>
             <span class="tab_line">|</span>
             <label class="click tab_bn" @click="deleteContact(scope.row)">{{ $t('tab.tab14')}}</label>
           </template>
@@ -50,7 +50,6 @@
 
 <script>
   import nerve from 'nerve-sdk-js'
-  import {chainIdNumber, addressInfo} from '@/api/util'
 
   export default {
     data() {
@@ -93,8 +92,18 @@
           ]
         },
         isAdd: 0,//添加或编辑 0:添加，1:编辑 2:删除
-
       };
+    },
+    watch: {
+      '$store.getters.getSelectAddress': {
+        // immediate: true,
+        // deep: true,
+        handler: function(val, old) {
+          if (val.address !== old.address) {
+            this.getContactList()
+          }
+        }
+      },
     },
     created() {
       this.getContactList();
@@ -103,7 +112,6 @@
 
     },
     methods: {
-
       /**
        * 判断地址是否已经存在
        * @param address
@@ -121,8 +129,8 @@
        * 获取联系人列表
        */
       getContactList() {
-        let defaultAddressInfo = addressInfo(1);
-        this.contactList = defaultAddressInfo.hasOwnProperty('contactList') ? defaultAddressInfo.contactList : [];
+        this.defaultAddressInfo = {...this.$store.getters.getSelectAddress}
+        this.contactList = this.defaultAddressInfo.contactList || [];
       },
 
       /**
@@ -139,10 +147,11 @@
        *  编辑账户备注弹框
        * @param rowInfo
        */
-      addOrEditContact(rowInfo) {
+      addOrEditContact(rowInfo, index) {
         this.contactDialog = true;
         if (rowInfo) {
-          this.contacForm = rowInfo;
+          this.contacForm = {...rowInfo};
+          this.editIndex = index
           this.isAdd = 1;
         } else {
           this.isAdd = 0;
@@ -171,49 +180,46 @@
        * 联系人表单提交
        **/
       submitForm(formName) {
-        let that = this;
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            that.addOrEditMethod();
-            setTimeout(() => {
-              this.contacForm.alias = '';
-              this.resetForm(formName);
-            }, 200)
+            this.addOrEditMethod();
+            this.resetData()
+            this.contactDialog = false;
           } else {
             return false;
           }
         });
       },
-      resetForm(formName) {
-        this.$refs[formName].resetFields();
+      resetData() {
+        this.getContactList();
+        this.contacForm = {
+          name: '',
+          address: '',
+          alias: '',
+        }
       },
 
       /**
        * 添加或编辑方法
        **/
       addOrEditMethod() {
-        let newArr = [];
-        newArr.push(this.contacForm);
         let newContacList = [];
         if (this.isAdd === 0) {
-          newContacList = [...this.contactList, ...newArr]
+          newContacList = [...this.contactList, {...this.contacForm}]
+        } else if (this.isAdd === 1) {
+          this.contactList.splice(this.editIndex, 1, {...this.contacForm});
+          newContacList = [...this.contactList];
         } else {
           newContacList = [...this.contactList];
         }
-        //console.log(newContacList);
-        let defaultAddressInfo = addressInfo(1);
-        let defaultAddressList = addressInfo(0);
-        for (let item of defaultAddressList) {
-          if (item.address === defaultAddressInfo.address) {
+        let addressInfo = [...this.$store.state.addressInfo]
+        for (let item of addressInfo) {
+          if (item.address === this.defaultAddressInfo.address) {
             item.contactList = [];
             item.contactList = [...newContacList];
           }
         }
-        localStorage.setItem(chainIdNumber(), JSON.stringify(defaultAddressList));
-        setTimeout(() => {
-          this.contactDialog = false;
-          this.getContactList();
-        }, 500);
+        this.$store.commit('setAddressInfo', addressInfo)
       },
 
       /**

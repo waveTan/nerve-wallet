@@ -1,7 +1,6 @@
 <template>
-  <div class="import-address bg-gray">
-    <div class="bg-white"></div>
-    <div style="">
+  <div class="import-address">
+    <div>
       <el-tabs v-model="activeName" @tab-click="handleClick" class="new_import w1200">
         <el-tab-pane :label="$t('importAddress.importAddress2')" name="keystoreImport" :disabled="resetAddress !=='0'">
           <div class="tc upload_keystore">
@@ -326,7 +325,8 @@
               newAssetsList.locking = 0;
               newAssetsList.balance = 0;
             }
-            localStorageByAddressInfo(newAssetsList);
+            const addressList = localStorageByAddressInfo(newAssetsList);
+            this.$store.commit('setAddressInfo', addressList)
             this.toUrl('address')
           })
       },
@@ -362,7 +362,8 @@
           keystoreAddressInfo.address = isPassword.address;
           keystoreAddressInfo.aesPri = isPassword.aesPri;
           keystoreAddressInfo.pub = isPassword.pub;
-          localStorageByAddressInfo(keystoreAddressInfo);
+          const addressList = localStorageByAddressInfo(keystoreAddressInfo);
+          this.$store.commit('setAddressInfo', addressList)
           this.toUrl('address')
         } else {
           this.$message({message: this.$t('address.address13'), type: 'error', duration: 3000});
@@ -383,7 +384,8 @@
             keyAddressInfo.address = newAddressInfo.address;
             keyAddressInfo.aesPri = newAddressInfo.aesPri;
             keyAddressInfo.pub = newAddressInfo.pub;
-            localStorageByAddressInfo(keyAddressInfo);
+            const addressList = localStorageByAddressInfo(keyAddressInfo);
+            this.$store.commit('setAddressInfo', addressList)
             this.toUrl('address')
           } else {
             return false;
@@ -405,7 +407,8 @@
             newAddressInfos.address = this.newAddressInfo.address;
             newAddressInfos.aesPri = this.newAddressInfo.aesPri;
             newAddressInfos.pub = this.newAddressInfo.pub;
-            localStorageByAddressInfo(newAddressInfos);
+            const addressList = localStorageByAddressInfo(newAddressInfos);
+            this.$store.commit('setAddressInfo', addressList)
             this.$router.push({
               name: "backupsAddress",
               query: {'backAddressInfo': newAddressInfos}
@@ -437,11 +440,8 @@
 
 <style lang="less">
   .import-address {
-    .bg-white {
-      height: 130px;
-    }
     .new_import {
-      margin: -90px auto 100px;
+      margin: 40px auto 100px;
       .el-tabs__header {
         margin: 0;
         .el-tabs__nav-wrap {

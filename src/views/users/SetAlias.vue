@@ -1,6 +1,6 @@
 <template>
-  <div class="new_address bg-gray">
-    <div class="bg-white">
+  <div class="new_address">
+    <div>
       <div class="w1200">
         <BackBar :backTitle="$t('address.address0')"></BackBar>
         <h3 class="title">{{$t('setAlias.setAlias0')}}</h3>
@@ -41,7 +41,7 @@
   import Password from '@/components/PasswordBar'
   import BackBar from '@/components/BackBar'
   import * as config from '@/config.js'
-  import {addressInfo, chainID, getRamNumber} from '@/api/util'
+  import {chainID, getRamNumber} from '@/api/util'
 
   export default {
     data() {
@@ -81,25 +81,14 @@
         this.prefix = '';
       });
 
-      for (let item of addressInfo(0)) {
+      for (let item of this.$store.state.addressInfo) {
         if (item.address === this.$route.query.address) {
           this.addressInfo = item;
-          //console.log(this.addressInfo)
         }
       }
-
     },
     mounted() {
-      setTimeout(() => {
-        this.getNulsBalance(chainID(), 1, this.$route.query.address);
-      }, 600);
-    },
-    watch: {
-      addressInfo(val, old) {
-        if (val.address !== old.address && old.address) {
-          this.transferForm.fromAddress = this.addressInfo.address
-        }
-      }
+      this.getNulsBalance(chainID(), 1, this.$route.query.address);
     },
     components: {
       Password,
@@ -115,32 +104,26 @@
         this.$refs[formName].validate(async (valid) => {
           if (valid) {
             if (this.balanceInfo.balance > 100100000) {
-              let address = this.$route.query.address;
-              let addressList = addressInfo(0);
-              for (let item of addressList) {
-                if (item.address === address) {
-                  if (item.aesPri === '') {
-                    this.getSetAliasRandomString = await getRamNumber(16);
-                    this.sendSetAliasRandomString = await getRamNumber(16);
-                    let setAliasHex = await this.setAliasAssemble();
-                    if (!setAliasHex.success) {
-                      this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
-                      return;
-                    }
-                    let commitDatas = await commitData(this.getSetAliasRandomString, this.sendSetAliasRandomString, item.address, setAliasHex.data);
-                    if (!commitDatas.success) {
-                      this.$message({
-                        message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
-                        type: 'error',
-                        duration: 3000
-                      });
-                      return;
-                    }
-                    this.$refs.password.showScan(commitDatas.data.txInfo, commitDatas.data.assembleHex);
-                  } else {
-                    this.$refs.password.showPassword(true);
-                  }
+              if (this.addressInfo.aesPri === '') {
+                this.getSetAliasRandomString = await getRamNumber(16);
+                this.sendSetAliasRandomString = await getRamNumber(16);
+                let setAliasHex = await this.setAliasAssemble();
+                if (!setAliasHex.success) {
+                  this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
+                  return;
                 }
+                let commitDatas = await commitData(this.getSetAliasRandomString, this.sendSetAliasRandomString, item.address, setAliasHex.data);
+                if (!commitDatas.success) {
+                  this.$message({
+                    message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
+                    type: 'error',
+                    duration: 3000
+                  });
+                  return;
+                }
+                this.$refs.password.showScan(commitDatas.data.txInfo, commitDatas.data.assembleHex);
+              } else {
+                this.$refs.password.showPassword(true);
               }
             } else {
               this.$message({message: this.$t('newConsensus.newConsensus7'), type: 'error', duration: 1000});
@@ -181,23 +164,7 @@
         const pri = nerve.decrypteOfAES(this.addressInfo.aesPri, password);
         const newAddressInfo = nerve.importByKey(chainID(), pri, password, this.prefix);
         if (newAddressInfo.address === this.addressInfo.address) {
-          //根据公钥获取地址
-          let burningAddress = nerve.getAddressByPub(chainID(), 1, config.API_BURNING_ADDRESS_PUB, this.prefix);
-          //console.log(burningAddress);
-          let transferInfo = {
-            fromAddress: this.addressInfo.address,
-            toAddress: burningAddress,
-            assetsChainId: chainID(),
-            assetsId: 1,
-            amount: 100000000,
-            fee: 100000
-          };
-          let inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 3);
-          let aliasInfo = {
-            fromAddress: this.addressInfo.address,
-            alias: this.aliasForm.alias
-          };
-          let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 3, aliasInfo);
+          let tAssemble = await this.setAliasAssemble();
           let txhex = await nerve.transactionSerialize(nerve.decrypteOfAES(this.addressInfo.aesPri, password), this.addressInfo.pub, tAssemble);
           //console.log(txhex);
           //验证并广播交易

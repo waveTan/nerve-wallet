@@ -1,6 +1,6 @@
 <template>
-  <div class="set bg-gray">
-    <div class="bg-white">
+  <div class="set">
+    <div>
       <div class="w1200">
         <h3 class="title">
           {{$t('public.about')}}

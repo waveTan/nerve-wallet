@@ -1,5 +1,5 @@
 <template>
-  <div class="home" v-loading="homeLoading">
+  <div class="home" v-loading="$store.state.homeLoading">
     <div class="top w1200">
       <div class="left fl shadow">
         <h4>{{$t('tab.tab33')}}</h4>
@@ -66,32 +66,25 @@
 </template>
 
 <script>
-  import axios from 'axios'
-  import {divisionDecimals, Plus, Times, Division, addressInfo, connectToExplorer} from '@/api/util'
+  import {Plus, Division, connectToExplorer} from '@/api/util'
   import PieChart from '@/components/PieChart'
 
   export default {
     data() {
       return {
-        addressInfo: {},//默认账户信息
-        allAssetsList: [], //所有币种列表（搜索框用）
-        ledgerData: [],//币种列表
-        homeLoading: true,//加载动画
+        addressInfo: this.$store.getters.getSelectAddress,//默认账户信息
         myAssetsInfo: {},
         chartData: []
       };
     },
     created() {
-      this.addressInfo = addressInfo(1);
+      if (!this.addressInfo) {
+        this.$router.push({
+          name: 'newAddress',
+        })
+      }
     },
     mounted() {
-      setTimeout(() => {
-        if (!this.addressInfo) {
-          this.$router.push({
-            name: 'newAddress',
-          })
-        }
-      }, 500)
     },
     components: {
       PieChart,
@@ -101,34 +94,33 @@
         // deep: true,
         immediate: true,
         handler: function() {
-          this.homeLoading = true
-          setTimeout(()=>{
-            const assetsInfo = this.$store.state.accountList
-            const myAssetsInfo = {total:0,available:0,locking:0}
-            const chartData = []
-            const total = assetsInfo.reduce((cur,next)=>{
-              return Number(Plus(cur, next.valuation))
-            },0)
-            assetsInfo.forEach(item => {
-              myAssetsInfo.total = Number(Plus(myAssetsInfo.total, item.valuation));
-              myAssetsInfo.available = Number(Plus(myAssetsInfo.available, item.usdAvailable));
-              myAssetsInfo.locking = Number(Plus(myAssetsInfo.locking, item.usdLocking));
-              chartData.push({
-                key: item.symbol,
-                value: item.valuation,
-                rate: total ? Number(Division(item.valuation, total)) * 100 + '%' : '0%'
-              })
-            })
-            this.myAssetsInfo = myAssetsInfo
-            this.chartData = chartData
-            this.homeLoading = false
-          },200)
+          this.init()
         }
       }
     },
     computed: {
     },
     methods: {
+      init() {
+        const assetsInfo = this.$store.state.accountList
+        const myAssetsInfo = {total:0,available:0,locking:0}
+        const chartData = []
+        const total = assetsInfo.reduce((cur,next)=>{
+          return Number(Plus(cur, next.valuation))
+        },0)
+        assetsInfo.forEach(item => {
+          myAssetsInfo.total = Number(Plus(myAssetsInfo.total, item.valuation));
+          myAssetsInfo.available = Number(Plus(myAssetsInfo.available, item.usdAvailable));
+          myAssetsInfo.locking = Number(Plus(myAssetsInfo.locking, item.usdLocking));
+          chartData.push({
+            key: item.symbol,
+            value: item.valuation,
+            rate: total ? (Number(Division(item.valuation, total)) * 100).toFixed(2) + '%' : '0%'
+          })
+        })
+        this.myAssetsInfo = myAssetsInfo
+        this.chartData = chartData
+      },
       /**
        * @disc: 链内转账
        * @params: row 选择币种信息
@@ -200,7 +192,6 @@
   @import "../../assets/css/style";
 
   .home {
-    background-color: #fafcfe;
     .top {
       .left {
         width: 580px;

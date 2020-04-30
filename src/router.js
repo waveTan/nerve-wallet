@@ -56,11 +56,11 @@ export default new Router({
       name: 'newConsensus',
       component: resolve => require(['@/views/consensus/NewConsensus.vue'], resolve)
     },
-    {
+    /*{
       path: '/consensus/consensusList',
       name: 'consensusList',
       component: resolve => require(['@/views/consensus/ConsensusList.vue'], resolve)
-    },
+    },*/
     {
       path: '/address',
       name: 'address',

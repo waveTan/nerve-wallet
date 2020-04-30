@@ -1,6 +1,6 @@
 <template>
-  <div class="new_address bg-gray">
-    <div class="bg-white">
+  <div class="new_address">
+    <div>
       <div class="w1200">
         <BackBar :backTitle="$t('address.address0')"></BackBar>
         <h3 class="title">{{$t('editPassword.editPassword0')}}: {{this.$route.query.address}}</h3>
@@ -77,8 +77,8 @@
           callback();
         }
       };
+      this.addressInfo = this.$store.state.addressInfo //默认账户信息
       return {
-        addressInfo: {},//默认账户信息
         passwordForm: {
           oldPass: '',
           newPass: '',
@@ -122,7 +122,7 @@
       submitPasswordForm(formName) {
         let address = this.$route.query.address;
         let oldAddressInfo = {};
-        for (let item of addressInfo(0)) {
+        for (let item of this.addressInfo) {
           if (item.address === address) {
             oldAddressInfo = item
           }
@@ -135,13 +135,13 @@
               const importAddressInfo = nerve.importByKey(chainID(), pri, this.passwordForm.newPass,this.prefix);
               oldAddressInfo.aesPri = importAddressInfo.aesPri;
               oldAddressInfo.pub = importAddressInfo.pub;
-              let addressList = addressInfo(0);
+              let addressList = this.addressInfo;
               for (let item of addressList) {
                 if (item.address === oldAddressInfo.address) {
                   item.aesPri = oldAddressInfo.aesPri
                 }
               }
-              localStorage.setItem(chainIdNumber(), JSON.stringify(addressList));
+              this.$store.commit('setAddressInfo', addressList)
               this.$message({message: this.$t('editPassword.editPassword12'), type: 'success', duration: 1000});
               this.toUrl("address");
             } else {

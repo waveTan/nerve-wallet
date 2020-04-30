@@ -1,7 +1,7 @@
 <template>
-  <div class="new_consensus bg-gray">
+  <div class="new_consensus ">
 
-    <div class="bg-white">
+    <div class="">
       <div class="w1200">
         <BackBar :backTitle="$t('nav.consensus')"></BackBar>
         <h3 class="title">{{$t('newConsensus.newConsensus0')}}</h3>
@@ -92,7 +92,7 @@
     getPrefixByChainId,
     commitData
   } from '@/api/requestData'
-  import {Times, addressInfo, chainID, getRamNumber} from '@/api/util'
+  import {Times, chainID, getRamNumber} from '@/api/util'
   import Password from '@/components/PasswordBar'
   import BackBar from '@/components/BackBar'
 
@@ -143,29 +143,16 @@
           callback();
         }
       };
-      let checkRate = (rule, value, callback) => {
-        let res = /^([1]?\d{1,2})$/;
-        if (!value) {
-          return callback(new Error(this.$t('newConsensus.newConsensus9')));
-        } else if (!res.exec(value)) {
-          callback(new Error(this.$t('newConsensus.newConsensus10')));
-        } else if (value < 10 || value > 100) {
-          callback(new Error(this.$t('newConsensus.newConsensus11')));
-        } else {
-          callback();
-        }
-      };
       return {
-        addressInfo: {},//账户信息
+        addressInfo: this.$store.getters.getSelectAddress,//账户信息
         balanceInfo: {},//账户余额信息
         agentAsset: JSON.parse(sessionStorage.getItem('info')),//pocm合约单位等信息
         isRed: false,//创建地址是否有红牌惩罚
         //创建节点表单
         createrForm: {
-          rewardAddress: 'TNVTdN9i9Gg6E89Jwcayrgvc62oq1WXwxunCW',
-          blockAddress: 'TNVTdN9i7NWX9x916BADpHNS2o88iVuf1EKNx',
-          amount: '20000',
-          // rate: '20',
+          rewardAddress: '',
+          blockAddress: '',
+          amount: '',
         },
         createrRules: {
           rewardAddress: [
@@ -177,15 +164,24 @@
           amount: [
             {validator: checkAmount, trigger: ['blur', 'change']}
           ],
-          /*rate: [
-            {validator: checkRate, trigger: ['blur', 'change']}
-          ],*/
         },
         newConsensusVisible: false,//创建节点确认弹框
         prefix: '',//地址前缀
         getNewConsensusRandomString: '',
         sendNewConsensusRandomString: '',
       };
+    },
+    watch: {
+      '$store.getters.getSelectAddress': {
+        // immediate: true,
+        // deep: true,
+        handler: function(val, old) {
+          if (val.address !== old.address) {
+            this.addressInfo = this.$store.getters.getSelectAddress
+            this.getSelectAddressInfo()
+          }
+        }
+      },
     },
     created() {
       getPrefixByChainId(chainID()).then((response) => {
@@ -195,33 +191,19 @@
         console.log(err);
         this.prefix = '';
       });
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
+      this.getSelectAddressInfo()
     },
     mounted() {
-      setTimeout(() => {
-        this.getPunishByAddress(this.addressInfo.address);
-        this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
-      }, 600);
-    },
-    watch: {
-      addressInfo(val, old) {
-        if (val) {
-          if (val.address !== old.address && old.address) {
-            this.getPunishByAddress(this.addressInfo.address);
-            this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
-          }
-        }
-      }
     },
     components: {
       Password,
       BackBar,
     },
     methods: {
-
+      getSelectAddressInfo() {
+        this.getPunishByAddress(this.addressInfo.address);
+        this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
+      },
       /**
        * 创建节点提交
        * @param formName

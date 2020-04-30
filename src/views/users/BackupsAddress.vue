@@ -1,6 +1,6 @@
 <template>
-  <div class="new_address bg-gray">
-    <div class="bg-white">
+  <div class="new_address">
+    <div class="">
       <div class="w1200">
         <BackBar :backTitle="$t('address.address0')"></BackBar>
         <h3 class="title">
@@ -81,7 +81,8 @@
         console.log(err);
         this.prefix = '';
       });
-      this.newAddressInfo = this.$route.query.backAddressInfo;
+      this.getAddressInfo(this.$route.query.backAddressInfo)
+
     },
     mounted() {
     },
@@ -90,7 +91,11 @@
       BackBar
     },
     methods: {
-
+      getAddressInfo(address) {
+        if (!address) return
+        const infos = [...this.$store.state.addressInfo]
+        this.newAddressInfo = infos.filter(v=> v.address === address)[0] || {}
+      },
       /**
        * 备份keystore
        **/

@@ -1,6 +1,6 @@
 <template>
-  <div class="frozen_list bg-gray">
-    <div class="bg-white">
+  <div class="frozen_list">
+    <div>
       <div class="w1200">
         <BackBar :backTitle="$t('nav.wallet')"></BackBar>
         <h3 class="title">{{$t('frozenList.frozenList0')}}</h3>
@@ -50,7 +50,7 @@
 
 <script>
   import moment from 'moment'
-  import {timesDecimals, getLocalTime, superLong, addressInfo} from '@/api/util'
+  import {timesDecimals, getLocalTime, superLong} from '@/api/util'
   import BackBar from '@/components/BackBar'
 
   export default {
@@ -60,20 +60,28 @@
         pageIndex: 1, //页码
         pageSize: 10, //每页条数
         pageTotal: 0,//总页数
-        addressInfo: [], //账户信息
+        addressInfo: this.$store.getters.getSelectAddress, //账户信息
 
       };
     },
+    watch: {
+      '$store.getters.getSelectAddress': {
+        // immediate: true,
+        // deep: true,
+        handler: function(val, old) {
+          if (val.address !== old.address) {
+            this.addressInfo = this.$store.getters.getSelectAddress
+            this.getTxListByAddress();
+          }
+        }
+      },
+    },
     created() {
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
+      if (this.$route.query.accountInfo) {
+        this.getTxListByAddress();
+      }
     },
     mounted() {
-      if (this.$route.query.accountInfo) {
-        this.getTxListByAddress(this.$route.query.accountInfo.chainId, this.$route.query.accountInfo.assetId, this.addressInfo.address, this.pageIndex, this.pageSize);
-      }
     },
     components: {
       BackBar
@@ -88,8 +96,9 @@
        * @param pageIndex
        * @param pageSize
        **/
-      getTxListByAddress(chainId, assetId, address, pageIndex, pageSize) {
-        this.$post('/', 'getAccountFreezes', [chainId, assetId,address, pageIndex, pageSize])
+      getTxListByAddress() {
+        const params = [this.$route.query.accountInfo.chainId, this.$route.query.accountInfo.assetId, this.addressInfo.address, this.pageIndex, this.pageSize]
+        this.$post('/', 'getAccountFreezes', params)
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
@@ -125,7 +134,7 @@
        */
       frozenListPages(val) {
         this.pageIndex = val;
-        this.getTxListByAddress(this.$route.query.accountInfo.chainId, this.$route.query.accountInfo.assetId, this.addressInfo.address, this.pageIndex, this.pageSize);
+        this.getTxListByAddress();
       },
 
       /**

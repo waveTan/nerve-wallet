@@ -127,7 +127,6 @@
     getLocalTime,
     Minus,
     Times,
-    addressInfo,
     connectToExplorer,
     chainID,
     getRamNumber,
@@ -160,7 +159,7 @@
       };
 
       return {
-        addressInfo: {},//账户信息
+        addressInfo: this.$store.getters.getSelectAddress,//账户信息
         balanceInfo: {},//余额信息
         agentAsset: JSON.parse(sessionStorage.getItem('info')),//pocm合约单位等信息
         nodeInfo: {},//节点详情
@@ -181,12 +180,26 @@
           ]
         },
         prefix: '',//地址前缀
-
         txHexRandom: '', //web端提交txHex到后台的key
         signDataKeyRandom: '', // app端提交签名的key
         additionDialog: false,
         nodeInfoLoading: true
       };
+    },
+    components: {
+      Password,
+      BackBar
+    },
+    watch: {
+      '$store.getters.getSelectAddress': {
+        handler: function(val, old) {
+          if (val.address !== old.address) {
+            this.addressInfo = this.$store.getters.getSelectAddress
+            this.jionNodeForm.amount = '';
+            this.getSelectAddressInfo()
+          }
+        }
+      }
     },
     computed: {
       computeNodeType() {
@@ -205,24 +218,16 @@
         console.log(err);
         this.prefix = '';
       });
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
+      this.getSelectAddressInfo()
+      this.getNodeInfoByHash(this.$route.query.hash);
     },
     mounted() {
-      setTimeout(() => {
-        this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
-        this.getNodeInfoByHash(this.$route.query.hash);
-        this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash)
-      }, 600);
-
-    },
-    components: {
-      Password,
-      BackBar
     },
     methods: {
+      getSelectAddressInfo() {
+        this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
+        this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash)
+      },
       //判断节点类型
       judgeNodeType(bankNode, isConsensus) {
         if (bankNode) {
@@ -265,6 +270,7 @@
        * @param hash
        **/
       getNodeDepositByHash(pageIndex, pageSize, address, hash) {
+        this.nodeDepositLoading = true;
         this.$post('/', 'getAccountDeposit', [pageIndex, pageSize, address, hash])
           .then((response) => {
             //console.log(response);
@@ -653,18 +659,6 @@
       toUrl(name, parameter) {
         connectToExplorer(name, parameter);
       },
-    },
-    watch: {
-      addressInfo(val, old) {
-        if (val) {
-          if (val.address !== old.address && old.address) {
-            this.nodeDepositLoading = true;
-            this.jionNodeForm.amount = '';
-            this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
-            this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash)
-          }
-        }
-      }
     }
   }
 </script>

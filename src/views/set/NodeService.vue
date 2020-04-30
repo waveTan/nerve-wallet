@@ -1,8 +1,8 @@
 <template>
-  <div class="node_service bg-gray" v-loading="loading" :element-loading-text="$t('nodeService.nodeService0')">
+  <div class="node_service" v-loading="loading" :element-loading-text="$t('nodeService.nodeService0')">
     <h3 class="title">{{$t('nodeService.nodeService1')}}</h3>
 
-    <div class="w1200 mt_20" v-loading="nodeServiceLoading">
+    <div class="w1200 mt_20">
       <div class="top_ico">
         <i class="el-icon-plus click" @click="addNodeService"></i>
       </div>
@@ -29,7 +29,7 @@
           <template slot-scope="scope">
             <span @click="editState(scope.$index)">
               <i class="iconfont clicks"
-                 :class="scope.row.selection ? 'iconziyuan fCN' : 'iconduankailianjie flan'"></i>
+                 :class="scope.row.selection ? 'iconziyuan lan' : 'iconduankailianjie flan'"></i>
             </span>
           </template>
         </el-table-column>
@@ -116,10 +116,9 @@
         }
       };
       return {
-        loading: false,//切换时加载动画
+        loading: true,//切换时加载动画
         urlName: IS_DEV ? 'mainUrlData' : 'TestUrlData',//服务节点名称
-        nodeServiceData: [],//节点列表
-        nodeServiceLoading: false,//节点列表加载动画
+        nodeServiceData: this.$store.state.urlData,//节点列表
         nodeServiceDialog: false,//服务地址弹框
         nodeServiceDialogLoading: false,//服务地址弹框加载动画
         //添加、编辑表单
@@ -141,37 +140,29 @@
           state: 0,
           result: {}
         },//测试连接提示信息
-        editIndex: 10000, //编辑ID
       };
     },
 
     created() {
-      this.loading = true;
-      setTimeout(() => {
-        this.nodeServiceData = this.$store.getters.getUrlData;
-        let newInfo = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')) : '';
-        if (newInfo) {
-          let newUrlsList = ['https://wallet.nuls.io/public', 'https://public1.nuls.io', 'https://public1.nuls.io', 'https://beta.wallet.nuls.io/api', 'http://beta.public1.nuls.io/', 'http://beta.public2.nuls.io/'];
-          let newUrlData = this.$store.getters.getUrlData;
-          if (newInfo.defaultAsset.symbol !== 'NULS') {
-            for (let item of newUrlsList) {
-              if (newUrlData.findIndex(o => o.urls === item) !== -1) {
-                newUrlData.splice(newUrlData.findIndex(o => o.urls === item), 1);
-              }
+      let newInfo = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')) : '';
+      if (!newInfo) {
+        let newUrlsList = ['https://wallet.nuls.io/public', 'https://public1.nuls.io', 'https://public1.nuls.io', 'https://beta.wallet.nuls.io/api', 'http://beta.public1.nuls.io/', 'http://beta.public2.nuls.io/'];
+        let newUrlData = this.$store.state.urlData
+        //主网不是nuls则去除nuls相关服务节点
+        if (newInfo.defaultAsset.symbol !== 'NULS') {
+          for (let item of newUrlsList) {
+            if (newUrlData.findIndex(o => o.urls === item) !== -1) {
+              newUrlData.splice(newUrlData.findIndex(o => o.urls === item), 1);
             }
-            this.nodeServiceData = newUrlData;
           }
-        } else {
-          this.nodeServiceData = this.$store.getters.getUrlData;
+          this.nodeServiceData = newUrlData;
         }
-      }, 500);
+      } else {
+        this.nodeServiceData = this.$store.state.urlData
+      }
     },
     mounted() {
-      setTimeout(() => {
-        this.getDelay();
-        /*this.symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol : 'NULS';
-        document.title = this.symbol + " wallet";*/
-      }, 500);
+      this.getDelay();
     },
     methods: {
 
@@ -203,79 +194,58 @@
        * 获取延迟毫秒
        **/
       async getDelay() {
-        let newData = [];
-        for (let item of this.nodeServiceData) {
+        const newData = this.nodeServiceData
+        for (let item of newData) {
           item.delay = 300000;
-          newData.push(item);
+          await this.getChainInfo(item)
         }
-        this.nodeServiceData = newData;
-        this.nodeServiceLoading = false;
-        this.$store.commit('setUrlData', this.nodeServiceData);
-        this.getDelays();
-      },
-
-      async getDelays() {
-        let newData = [];
-        for (let item of this.nodeServiceData) {
-          let startTime = (new Date()).valueOf();
-          let endTime = 0;
-          const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": Math.floor(Math.random() * 1000)};
-          await axios.post(item.urls, params)
-            .then(function (response) {
-              //console.log(response);
-              if (response.data.hasOwnProperty("result")) {
-                endTime = (new Date()).valueOf();
-                item.delay = endTime - startTime;
-                item.chainId = response.data.result.chainId;
-                item.chainName = response.data.result.chainName;
-              } else {
-                item.delay = 100000;
-                item.selection = false;
-                item.state = 0;
-              }
-            })
-            .catch(function (error) {
-              item.delay = 200000;
-              item.selection = false;
-              item.state = 0;
-              console.log(error);
-            });
-          newData.push(item);
-        }
-        this.nodeServiceData = newData;
-        this.nodeServiceLoading = false;
         this.loading = false;
         //没有选中的连接默认选中一个
-        let selectionUrl = newData.filter(item => item.selection);
+        this.setDefaultConnect(newData)
+        this.$store.commit('setUrlData', newData);
+      },
+      //获取每个节点链ID、延迟等信息
+      async getChainInfo(item) {
+        let startTime = (new Date()).valueOf();
+        let endTime = 0;
+        const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": Math.floor(Math.random() * 1000)};
+        await axios.post(item.urls, params)
+          .then(function (response) {
+            //console.log(response);
+            if (response.data.hasOwnProperty("result")) {
+              endTime = (new Date()).valueOf();
+              item.delay = endTime - startTime;
+              item.chainId = response.data.result.chainId;
+              item.chainName = response.data.result.chainName;
+            } else {
+              item.delay = 100000;
+              item.selection = false;
+              item.state = 0;
+            }
+          })
+          .catch(function (error) {
+            item.delay = 200000;
+            item.selection = false;
+            item.state = 0;
+            console.log(error);
+          });
+      },
+
+      setDefaultConnect(nodes) {
+        let selectionUrl = nodes.filter(item => item.selection);
         if (selectionUrl.length === 0) {
-          let minNumber = Math.min.apply(Math, newData.map((o) => o.delay));
+          let minNumber = Math.min.apply(Math, nodes.map((o) => o.delay));
           if (minNumber !== 200000) {
-            let minIndex = newData.map((o) => o.delay).findIndex((n) => n === minNumber);
-            for (let item in newData) {
+            let minIndex = nodes.map((o) => o.delay).findIndex((n) => n === minNumber);
+            for (let item in nodes) {
               if (Number(item) === minIndex) {
-                newData[minIndex].selection = true;
+                nodes[minIndex].selection = true;
               }
             }
           } else {
             this.$message({message: this.$t('public.checkNetwork'), type: 'error', duration: 3000});
           }
         }
-        this.$store.commit('setUrlData', this.nodeServiceData);
-      },
-
-      /**
-       * 获取链ID
-       *@param url
-       */
-      async getChainInfo(url) {
-        const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": Math.floor(Math.random() * 1000)};
-        await axios.post(url, params)
-          .then((response) => {
-            return response;
-          })
-          .catch((error) => {
-            console.log("getChainInfo:" + error)
-          })
       },
 
       /**
@@ -293,24 +263,25 @@
               "params": [],
               "id": Math.floor(Math.random() * 1000)
             };
+            let startTime = (new Date()).valueOf();
+            let endTime = 0;
             axios.post(this.nodeServiceForm.urls, params)
               .then(function (response) {
                 //console.log(response.data);
                 if (response.data.hasOwnProperty("result")) {
+                  endTime = (new Date()).valueOf();
+                  that.testInfo.delay = endTime - startTime;
                   that.testInfo.state = 1;
                   that.testInfo.result = response.data.result;
-                  that.nodeServiceDialogLoading = false;
                 } else {
                   that.testInfo.state = 200000;
                   that.testInfo.result = response.data;
-                  that.nodeServiceDialogLoading = false;
                 }
+                that.nodeServiceDialogLoading = false;
               })
               .catch(function (error) {
-                console.log(that.testInfo.success);
                 that.testInfo.state = 300000;
                 that.testInfo.result = error;
-                console.log("getBestBlockHeader:" + error);
                 that.nodeServiceDialogLoading = false;
               });
           } else {
@@ -339,7 +310,7 @@
             let newNodeInfo = {
               name: this.nodeServiceForm.name,
               urls: this.nodeServiceForm.urls,
-              delay: '',
+              delay: this.testInfo.delay,
               selection: false,
               isDelete: true,
               chainId: this.testInfo.result.chainId,
@@ -349,21 +320,16 @@
             };
             //立即使用
             if (this.nodeServiceForm.resource) {
-              for (let itme in this.nodeServiceData) {
-                if (this.nodeServiceData[itme].selection) {
-                  this.nodeServiceData[itme].selection = false
+              for (let item in this.nodeServiceData) {
+                if (this.nodeServiceData[item].selection) {
+                  this.nodeServiceData[item].selection = false
                 }
               }
               newNodeInfo.selection = true;
             }
-            if (this.editIndex !== 10000) {
-              this.nodeServiceData[this.editIndex] = newNodeInfo;
-              this.$store.commit('setUrlData', this.nodeServiceData);
-            } else {
-              this.nodeServiceData.push(newNodeInfo);
-              this.$store.commit('setUrlData', this.nodeServiceData);
-            }
-            this.getDelay();
+            this.nodeServiceData.push(newNodeInfo);
+            this.$store.commit('setUrlData', this.nodeServiceData);
+            // this.getDelay();
             this.nodeServiceDialog = false;
             this.$refs[formName].resetFields();
           } else {
@@ -397,7 +363,6 @@
        * @param index
        **/
       edit(index) {
-        this.editIndex = index;
         this.nodeServiceForm = this.nodeServiceData[index];
         this.nodeServiceDialog = true;
       },
@@ -413,8 +378,10 @@
           type: 'warning'
         }).then(() => {
           this.$message({type: 'success', message: this.$t('nodeService.nodeService22')});
-          this.nodeServiceData.splice(index, 1);
-          this.getDelays();
+          const deletedNode = this.nodeServiceData.splice(index, 1);
+          if (deletedNode[0].selection) {
+            this.setDefaultConnect(this.nodeServiceData)
+          }
           this.$store.commit('setUrlData', this.nodeServiceData);
         }).catch(() => {
         });
@@ -438,6 +405,9 @@
   @import "./../../assets/css/style";
 
   .node_service {
+    .lan {
+      color: #7db46d
+    }
     .el-dialog__wrapper {
       .el-dialog__body {
         padding-bottom: 50px;

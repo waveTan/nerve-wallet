@@ -104,7 +104,7 @@ export function passwordVerification(accountInfo, password, prefix) {
     prefix = JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol
   }
   const newAddressInfo = nerve.importByKey(chainID(), pri, password, prefix);
-  if (newAddressInfo.address === accountInfo.address || nerve.addressEquals(accountInfo.address, newAddressInfo.address)) {
+  if (newAddressInfo.address === accountInfo.address) {
     return {success: true, pri: pri, pub: accountInfo.pub, aesPri: accountInfo.aesPri, address: newAddressInfo.address};
   } else {
     return {success: false};
@@ -300,7 +300,7 @@ export const defaultAddressInfo = {
   consensusLock: 0,//锁定金额
   totalReward: 0,//总奖励
   tokens: [],//代币列表
-  contractList: [],//合约列表（收藏的合约）
+  contactList: [],//合约列表（收藏的合约）
 };
 
 //地址信息写入localStorage
@@ -308,7 +308,8 @@ export function localStorageByAddressInfo(newAddressInfo) {
   let addressList = [];
   let newAddressList = [];
   newAddressList.push(newAddressInfo);
-  let newArr = addressInfo(0);
+  const chainNumber = 'chainId' + chainID();
+  let newArr = localStorage.hasOwnProperty(chainNumber) ? JSON.parse(localStorage.getItem(chainNumber)) : [];
   if (newArr.length !== 0) {
     let ifAddress = false;
     for (let item of newArr) {
@@ -331,7 +332,7 @@ export function localStorageByAddressInfo(newAddressInfo) {
     addressList.push(newAddressInfo);
   }
   //console.log(addressList);
-  localStorage.setItem(chainIdNumber(), JSON.stringify(addressList));
+  return addressList
 }
 
 /**

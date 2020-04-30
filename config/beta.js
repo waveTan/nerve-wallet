@@ -8,14 +8,15 @@ export const IS_DEV = process.env.NODE_ENV === 'production';
 //燃烧地址的公钥
 export const API_BURNING_ADDRESS_PUB = '000000000000000000000000000000000000000000000000000000000000000000';
 //ChainId和资产ID
-export const MAIN_INFO = IS_DEV ? {chainId: 4, assetId: 1, prefix: 'NVT'} : {chainId: 4, assetId: 1, prefix: 'TNVT'}
+export const MAIN_INFO = IS_DEV ? {chainId: 3, assetId: 1, prefix: 'NVT'} : {chainId: 4, assetId: 1, prefix: 'TNVT'}
 //正式、测试网络的api
 const url = localStorage.hasOwnProperty("url") && localStorage.getItem('url') !== 'undefined' ? JSON.parse(localStorage.getItem("url")).urls : '/api';
-export let API_URL = url
-setInterval(() => {
-  API_URL = localStorage.hasOwnProperty("url") && localStorage.getItem('url') !== 'undefined' ? JSON.parse(localStorage.getItem("url")).urls : '/api';
-}, 500);
-//请求最迟时间
+let API_URL = url
+function changeApiUrl(url) {
+  API_URL = url
+}
+export {API_URL, changeApiUrl}
+//请求延迟时间
 export const API_TIME = IS_DEV ? '8000' : '8000';
 //默认节点服务列表
 export const explorerData = [

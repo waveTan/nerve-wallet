@@ -5,7 +5,7 @@
         <div class="left fl">
           <p class="fl">
             {{$t('bottom.serviceNode')}}:
-            <u class="click" @click="toUrl('nodeService')">{{serviceUrls.urls}}</u>
+            <u class="click" @click="toUrl('nodeService')">{{$store.getters.getCurrentUrlData.urls}}</u>
           </p>
         </div>
         <div class="right fr">
@@ -23,28 +23,18 @@
 <script>
   import nerve from 'nerve-sdk-js'
   import axios from 'axios'
-  import {chainID, chainIdNumber, addressInfo, divisionDecimals} from '@/api/util'
+  import {chainID, divisionDecimals} from '@/api/util'
 
   export default {
     name: "bottom-bar",
     data() {
       return {
-        serviceUrls: {},//服务节点信息
         heightInfo: [],//高度信息
         failedNu: 0,//失败请次数
       }
     },
     created() {
-      this.serviceUrls = {};
-      let newUrlData = this.$store.getters.getUrlData;
-      this.serviceUrls = newUrlData.filter(item => item.selection)[0];
-      localStorage.setItem('url', JSON.stringify(this.serviceUrls));
       this.getHeaderInfo();
-      setInterval(() => {
-        let newUrlData = this.$store.getters.getUrlData;
-        this.serviceUrls = newUrlData.filter(item => item.selection)[0];
-        localStorage.setItem('url', JSON.stringify(this.serviceUrls));
-      }, 500);
     },
     mounted() {
       setInterval(() => {
@@ -53,6 +43,7 @@
       }, 10000);
     },
     watch: {
+      //监控高度，五次高度变化异常则提示切换节点
       heightInfo(val) {
         if (this.$route.path !== '/nodeService' && this.failedNu !== 5) {
           if (val.localHeight === 0 && val.networkHeight === 0) {
@@ -83,15 +74,12 @@
        * 获取主网最新高度和本地高度
        */
       getHeaderInfo() {
-        const url = localStorage.hasOwnProperty("url") && localStorage.getItem('url') !== 'undefined' ? JSON.parse(localStorage.getItem('url')).urls : 'http://192.168.1.40:18003/';
+        const url = this.$store.getters.getCurrentUrlData.urls
         const params = {
           "jsonrpc": "2.0", "method": "getInfo", "params": [chainID()], "id": Math.floor(Math.random() * 1000)
         };
-        //console.log(url);
-        //console.log(params);
         axios.post(url, params)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty("result")) {
               this.heightInfo = response.data.result;
               sessionStorage.setItem("info", JSON.stringify(response.data.result))
@@ -108,11 +96,11 @@
       },
 
       /**
-       * 获取地址网络信息
+       * 更新当前选择地址网络信息
        **/
       async getAddressInfo() {
-        let addressInfos = addressInfo(1);
-        let addressList = addressInfo(0);
+        let addressInfos = this.$store.getters.getSelectAddress
+        let addressList = this.$store.state.addressInfo
         if (addressInfos) {
           await this.$post('/', 'getAccount', [addressInfos.address], 'BottomBar')
             .then((response) => {
@@ -133,8 +121,7 @@
                     item.chainId = nerve.verifyAddress(item.address).chainId;
                   }
                 }
-                localStorage.setItem(chainIdNumber(), JSON.stringify(addressList));
-                //this.$store.commit('setAddressInfo', addressList);
+                this.$store.commit('setAddressInfo', addressList)
               }
             })
         }
@@ -145,7 +132,6 @@
        * @param name
        */
       toUrl(name) {
-        //console.log(name)
         this.$router.push({
           name: name
         })
