@@ -117,7 +117,7 @@
       };
       return {
         loading: true,//切换时加载动画
-        urlName: IS_DEV ? 'mainUrlData' : 'TestUrlData',//服务节点名称
+        urlName: IS_DEV ? 'TestUrlData' : 'mainUrlData',//服务节点名称
         nodeServiceData: this.$store.state.urlData,//节点列表
         nodeServiceDialog: false,//服务地址弹框
         nodeServiceDialogLoading: false,//服务地址弹框加载动画
@@ -145,7 +145,7 @@
 
     created() {
       let newInfo = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')) : '';
-      if (!newInfo) {
+      if (newInfo) {
         let newUrlsList = ['https://wallet.nuls.io/public', 'https://public1.nuls.io', 'https://public1.nuls.io', 'https://beta.wallet.nuls.io/api', 'http://beta.public1.nuls.io/', 'http://beta.public2.nuls.io/'];
         let newUrlData = this.$store.state.urlData
         //主网不是nuls则去除nuls相关服务节点
@@ -184,6 +184,7 @@
             this.nodeServiceData[index].selection = true;
             this.$store.commit('setUrlData', this.nodeServiceData);
             setTimeout(() => {
+              this.$store.dispatch('getAccountList')
               this.loading = false;
             }, 2000);
           }
@@ -201,8 +202,13 @@
         }
         this.loading = false;
         //没有选中的连接默认选中一个
-        this.setDefaultConnect(newData)
+        const hasDefaultConnect = this.setDefaultConnect(newData)
         this.$store.commit('setUrlData', newData);
+        if (!hasDefaultConnect) {
+          setTimeout(()=>{
+            this.$store.dispatch('getAccountList')
+          },500)
+        }
       },
       //获取每个节点链ID、延迟等信息
       async getChainInfo(item) {
@@ -232,6 +238,7 @@
       },
 
       setDefaultConnect(nodes) {
+        let hasConnect = true
         let selectionUrl = nodes.filter(item => item.selection);
         if (selectionUrl.length === 0) {
           let minNumber = Math.min.apply(Math, nodes.map((o) => o.delay));
@@ -240,12 +247,14 @@
             for (let item in nodes) {
               if (Number(item) === minIndex) {
                 nodes[minIndex].selection = true;
+                hasConnect =  false
               }
             }
           } else {
             this.$message({message: this.$t('public.checkNetwork'), type: 'error', duration: 3000});
           }
         }
+        return hasConnect
       },
 
       /**
@@ -329,6 +338,11 @@
             }
             this.nodeServiceData.push(newNodeInfo);
             this.$store.commit('setUrlData', this.nodeServiceData);
+            if (this.nodeServiceForm.resource) {
+              setTimeout(()=>{
+                this.$store.dispatch('getAccountList')
+              },500)
+            }
             // this.getDelay();
             this.nodeServiceDialog = false;
             this.$refs[formName].resetFields();

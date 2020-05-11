@@ -116,9 +116,9 @@ export function passwordVerification(accountInfo, password, prefix) {
  * @returns {number}
  */
 export function chainID() {
-  if (localStorage.hasOwnProperty('url') && localStorage.getItem('url') !== 'undefined') {
-    let newUrl = JSON.parse(localStorage.getItem('url'));
-    return newUrl.chainId
+  const url = JSON.parse(localStorage.getItem('url'))
+  if (url && url.urls) {
+    return url.chainId
   } else {
     return MAIN_INFO.chainId;
   }

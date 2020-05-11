@@ -6,7 +6,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
 
-  publicPath: process.env.NODE_ENV === 'production' ? 'dist/' : '/',
+  // publicPath: process.env.NODE_ENV === 'production' ? 'dist/' : '/',
 
   pluginOptions: {
     i18n: {
@@ -33,6 +33,7 @@ module.exports = {
       'vuex': 'Vuex',
       'moment': 'moment',
       'element-ui': 'ELEMENT',
+      'echarts': 'echarts',
     }
   },
 

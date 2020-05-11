@@ -26,7 +26,7 @@
         <h4 class="fl">{{$t('tab.tab34')}}</h4>
       </div>
       <div class="cb">
-        <el-table :data="$store.state.accountList" border class="tabs">
+        <el-table :data="$store.state.accountList" stripe class="tabs">
           <el-table-column label="" width="30">
           </el-table-column>
           <!--<el-table-column prop="currency" :label="$t('tab.tab35')" width="100">
@@ -72,16 +72,17 @@
   export default {
     data() {
       return {
-        addressInfo: this.$store.getters.getSelectAddress,//默认账户信息
         myAssetsInfo: {},
         chartData: []
       };
     },
-    created() {
-      if (!this.addressInfo) {
+    async created() {
+      if (!this.$store.state.addressInfo.length) {
         this.$router.push({
           name: 'newAddress',
         })
+      } else {
+        await this.$store.dispatch('getAccountList')
       }
     },
     mounted() {
@@ -92,7 +93,7 @@
     watch: {
       '$store.state.accountList': {
         // deep: true,
-        immediate: true,
+        // immediate: true,
         handler: function() {
           this.init()
         }

@@ -50,31 +50,26 @@
         {{$t('public.total')}} {{pageTotal+' ' +$t('public.item') + ' ' +$t('consensus.consensus18')}},
         {{$t('consensus.consensus19')+ ' '+nodeInfo.deposits+ ' '+ agentAsset.agentAsset.symbol}},
         {{$t('consensus.consensus16')+ ' '+nodeInfo.reward+ ' '+ agentAsset.agentAsset.symbol}}
-        <el-button type="primary" class="fr" @click="additionDialog=true" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensus.consensus20')}}</el-button>
+        <el-button type="danger" class="fr" @click="quit" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensusInfo.consensusInfo0')}}</el-button>
+        <el-button type="primary" class="fr" @click="addition" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensus.consensus20')}}</el-button>
       </div>
       <el-table :data="nodeDepositData" stripe border class="shadow1">
         <el-table-column width="30"></el-table-column>
         <el-table-column prop="blockHeight" :label="$t('public.height')" width="120">
         </el-table-column>
-        <el-table-column label="TXID" min-width="120">
+        <el-table-column label="TXID" min-width="90">
           <template slot-scope="scope">
             <span class="click " @click="toUrl('transferInfo',scope.row.txHash)">{{scope.row.txHashs}}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="amount" :label="$t('public.deposit')" min-width="70">
+        <el-table-column prop="amount" :label="$t('public.deposit')+' ('+prefix+')'" min-width="70">
         </el-table-column>
-        <el-table-column prop="" :label="$t('consensus.consensus16')">
+        <el-table-column prop="" :label="$t('consensus.consensus16')+' ('+prefix+')'" min-width="80">
         </el-table-column>
         <el-table-column prop="createTime" :label="$t('public.time')" min-width="90">
         </el-table-column>
-        <el-table-column :label="$t('public.status')">
+        <el-table-column :label="$t('public.status')" min-width="60">
           <template v-slot="scope">{{scope.row.type===1 ? $t('consensusInfo.consensusInfo13'):$t('consensusInfo.consensusInfo14')}}</template>
-        </el-table-column>
-        <el-table-column :label="$t('public.operation')" align="center">
-          <template slot-scope="scope">
-            <label class="click tab_bn"
-                   @click="cancelDeposit(scope.row)">{{$t('consensusInfo.consensusInfo0')}}</label>
-          </template>
         </el-table-column>
       </el-table>
       <div class="pages">
@@ -88,10 +83,10 @@
                        :total="pageTotal">
         </el-pagination>
       </div>
-      <el-dialog :title="$t('consensus.consensus20')" :visible.sync="additionDialog" width="38rem">
+      <el-dialog class="form-dialog" :title="operateType===1?$t('consensus.consensus20'):$t('consensusInfo.consensusInfo0')" :visible.sync="additionDialog" width="38rem">
         <el-form :model="jionNodeForm" status-icon :rules="jionNodeRules" ref="jionNodeForm">
-          <el-form-item :label="$t('consensusInfo.consensusInfo1')+': '" prop="amount">
-            <span class="balance font12 fr">{{$t('consensus.consensus2')}}：{{balanceInfo.balance/100000000}}</span>
+          <el-form-item :label="operateType===1?$t('consensusInfo.consensusInfo1'):$t('consensusInfo.consensusInfo15')+': '" prop="amount">
+            <span class="balance font12 fr" v-if="operateType===1">{{$t('consensus.consensus2')}}：{{balanceInfo.balance/100000000}}</span>
             <el-input v-model="jionNodeForm.amount"></el-input>
           </el-form-item>
           <el-form-item :label="$t('public.fee')+': '">
@@ -100,7 +95,7 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="additionDialog = false">{{$t('password.password2')}}</el-button>
-          <el-button type="primary" @click="joinNodeSubmitForm('jionNodeForm')">{{$t('password.password3')}}</el-button>
+          <el-button type="primary" @click="handleSubmit('jionNodeForm')">{{$t('password.password3')}}</el-button>
         </div>
       </el-dialog>
     </div>
@@ -120,7 +115,7 @@
     validateAndBroadcast,
     agentDeposistList,
     getPrefixByChainId,
-    commitData
+    getReduceDepositList
   } from '@/api/requestData'
   import {
     timesDecimals,
@@ -129,7 +124,6 @@
     Times,
     connectToExplorer,
     chainID,
-    getRamNumber,
     superLong,
     divisionDecimals
   } from '@/api/util'
@@ -143,19 +137,32 @@
         let balance = Number(Minus(this.balanceInfo.balance, Number(Times(value, 100000000))));
         let re = /^\d+(?=\.{0,1}\d+$|$)/;
         let res = /^\d{1,8}(\.\d{1,8})?$/;
-        if (!value) {
-          return callback(new Error(this.$t('consensusInfo.consensusInfo2')));
-        } else if (!re.exec(value) || !res.exec(value)) {
-          callback(new Error(this.$t('consensusInfo.consensusInfo3')))
-        } else if (value < 2000) {
-          return callback(new Error(this.$t('consensusInfo.consensusInfo43')));
-        } else if (value > usable) {
-          return callback(new Error(this.$t('consensusInfo.consensusInfo41') + usable + this.$t('consensusInfo.consensusInfo42')));
-        } else if (balance < 0.001) {
-          return callback(new Error(this.$t('transfer.transfer131') + Number(Minus(Number(timesDecimals(this.balanceInfo.balance)), 0.001))));
+        if (this.operateType === 1) {
+          if (!value) {
+            return callback(new Error(this.$t('consensusInfo.consensusInfo2')));
+          } else if (!re.exec(value) || !res.exec(value)) {
+            callback(new Error(this.$t('consensusInfo.consensusInfo3')))
+          } else if (value < 2000) {
+            return callback(new Error(this.$t('consensusInfo.consensusInfo43')));
+          } else if (value > usable) {
+            return callback(new Error(this.$t('consensusInfo.consensusInfo41') + usable + this.$t('consensusInfo.consensusInfo42')));
+          } else if (balance < 0.001) {
+            return callback(new Error(this.$t('transfer.transfer131') + Number(Minus(Number(timesDecimals(this.balanceInfo.balance)), 0.001))));
+          } else {
+            callback()
+          }
         } else {
-          callback()
+          if (!value) {
+            return callback(new Error(this.$t('consensusInfo.consensusInfo16')));
+          } else if (!re.exec(value) || !res.exec(value)) {
+            callback(new Error(this.$t('consensusInfo.consensusInfo17')))
+          } /*else if (value > usable) {
+            callback(new Error(this.$t('consensusInfo.consensusInfo17')))
+          }*/ else {
+            callback()
+          }
         }
+
       };
 
       return {
@@ -208,6 +215,9 @@
           this.$t('nodeStatus.1'),
           this.$t('nodeStatus.3'),
         ]
+      },
+      operateType() {
+        return this.passwordType === 0 ? 1 : 2
       }
     },
     created() {
@@ -219,14 +229,17 @@
         this.prefix = '';
       });
       this.getSelectAddressInfo()
-      this.getNodeInfoByHash(this.$route.query.hash);
+      this.getNodeInfoByHash();
+      agentDeposistList(this.$route.query.hash);
+      getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash,'',8000)
     },
     mounted() {
     },
     methods: {
+      //获取当前用户账户信息&委托列表
       getSelectAddressInfo() {
-        this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
-        this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash)
+        this.getBalanceByAddress();
+        this.getNodeDepositByHash()
       },
       //判断节点类型
       judgeNodeType(bankNode, isConsensus) {
@@ -242,9 +255,9 @@
        * 根据hash获取节点详情信息
        * @param hash
        **/
-      getNodeInfoByHash(hash) {
+      getNodeInfoByHash() {
         this.nodeInfoLoading = true
-        this.$post('/', 'getConsensusNode', [hash])
+        this.$post('/', 'getConsensusNode', [this.$route.query.hash])
           .then((response) => {
             this.nodeInfoLoading = false
             console.log(response);
@@ -269,9 +282,10 @@
        * @param address
        * @param hash
        **/
-      getNodeDepositByHash(pageIndex, pageSize, address, hash) {
+      getNodeDepositByHash() {
         this.nodeDepositLoading = true;
-        this.$post('/', 'getAccountDeposit', [pageIndex, pageSize, address, hash])
+        const params = [this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash]
+        this.$post('/', 'getAccountDeposit', params)
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
@@ -302,33 +316,22 @@
         this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash);
       },
 
-
-      //追加保证金
-      joinNodeSubmitForm(formName) {
+      addition() {
+        this.additionDialog = true
+        this.passwordType = 0
+      },
+      quit() {
+        this.additionDialog = true
+        this.passwordType = 1
+        const reduceAmount = Number(Times(this.jionNodeForm.amount, 100000000))
+        getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash, '', reduceAmount)
+      },
+      //追加,退出保证金
+      handleSubmit(formName) {
         this.$refs[formName].validate(async (valid) => {
           if (valid) {
-            this.passwordType = 0;
-            if (this.addressInfo.aesPri === '') {
-              this.txHexRandom = await getRamNumber(16);
-              this.signDataKeyRandom = await getRamNumber(16);
-              let assembleHex = await this.getAssemble();
-              if (!assembleHex.success) {
-                this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
-                return;
-              }
-              let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom, this.addressInfo.address, assembleHex.data);
-              if (!commitDatas.success) {
-                this.$message({
-                  message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
-                  type: 'error',
-                  duration: 3000
-                });
-                return;
-              }
-              this.$refs.password.showScan(commitDatas.data.txInfo, commitDatas.data.assembleHex);
-            } else {
-              this.$refs.password.showPassword(true);
-            }
+            this.$refs.password.showPassword(true);
+            this.additionDialog = false
           } else {
             return false;
           }
@@ -341,8 +344,9 @@
        * @param assetId
        * @param address
        **/
-      getBalanceByAddress(assetChainId, assetId, address) {
-        getNulsBalance(assetChainId, assetId, address).then((response) => {
+      getBalanceByAddress() {
+        const params = [this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address]
+        getNulsBalance(...params).then((response) => {
           //console.log(response);
           if (response.success) {
             this.balanceInfo = response.data;
@@ -354,64 +358,11 @@
         });
       },
 
-      /**
-       * 退出共识
-       * @param outInfo
-       **/
-      async cancelDeposit(outInfo) {
-        this.outInfo = outInfo;
-        this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
-        this.passwordType = 1;
-        if (this.addressInfo.aesPri === '') {
-          this.txHexRandom = await getRamNumber(16);
-          this.signDataKeyRandom = await getRamNumber(16);
-          let assembleHex = await this.getAssemble();
-          if (!assembleHex.success) {
-            this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
-            return;
-          }
-          let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom, this.addressInfo.address, assembleHex.data);
-          if (!commitDatas.success) {
-            this.$message({
-              message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
-              type: 'error',
-              duration: 3000
-            });
-            return;
-          }
-          this.$refs.password.showScan(commitDatas.data.txInfo, commitDatas.data.assembleHex);
-        } else {
-          this.$refs.password.showPassword(true);
-        }
-      },
 
-      /**
-       *  注销节点
-       **/
+      //注销节点
       async stopNode() {
-        this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
         this.passwordType = 2;
-        if (this.addressInfo.aesPri === '') {
-          this.txHexRandom = await getRamNumber(16);
-          this.signDataKeyRandom = await getRamNumber(16);
-          let assembleHex = await this.getAssemble();
-          if (!assembleHex.success) {
-            this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
-            return;
-          }
-          let commitDatas = await commitData(this.txHexRandom, this.signDataKeyRandom, this.addressInfo.address, assembleHex.data);
-          if (!commitDatas.success) {
-            this.$message({
-              message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
-              type: 'error',
-              duration: 3000
-            });
-            return;
-          }
-          this.$refs.password.showScan(commitDatas.data.txInfo, commitDatas.data.assembleHex);
-        } else {
-          this.$refs.password.showPassword(true);
-        }
+        this.$refs.password.showPassword(true);
       },
 
       /**
@@ -421,26 +372,25 @@
       async passSubmit(password) {
         const pri = nerve.decrypteOfAES(this.addressInfo.aesPri, password);
         const newAddressInfo = nerve.importByKey(this.addressInfo.chainId, pri, password, this.prefix);
-        console.log(newAddressInfo,111,this.addressInfo)
         if (newAddressInfo.address === this.addressInfo.address) {
+          const amount = Number(Times(this.jionNodeForm.amount, 100000000))
           let transferInfo = {
             fromAddress: this.addressInfo.address,
             assetsChainId: this.agentAsset.agentAsset.chainId,
             assetsId: this.agentAsset.agentAsset.assetId,
-            amount: Number(Times(this.jionNodeForm.amount, 100000000)),
+            amount,
             fee: 100000
           };
           let inOrOutputs = {};
           let txhex = '';
           let pub = this.addressInfo.pub;
           let remark = '';
-          if (this.passwordType === 0) { //加入共识
-            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 5);
-            console.log(inOrOutputs);
+          if (this.passwordType === 0) { //追加保证金
+            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 28);
             let depositInfo = {
               address: this.addressInfo.address,
               agentHash: this.$route.query.hash,
-              amount: Number(Times(this.jionNodeForm.amount, 100000000))
+              amount
             };
             if (!inOrOutputs.success) {
               this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
@@ -448,28 +398,17 @@
             }
             let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 28, depositInfo);
             txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
-          } else if (this.passwordType === 1) { //退出共识
-            transferInfo.amount = Number(Times(this.outInfo.amount, 100000000));
-            transferInfo.depositHash = this.outInfo.txHash;
-            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 6);
+          } else if (this.passwordType === 1) { //退出保证金
+            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 29);
             //console.log(inOrOutputs);
             if (inOrOutputs.success) {
-              let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 6, this.outInfo.txHash);
-              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
-            } else {
-              this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
-            }
-          } else if (this.passwordType === 2) { //注销节点
-            transferInfo.amount = this.nodeInfo.deposit;
-            transferInfo.depositHash = this.$route.query.hash;
-            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 9);
-            //console.log(inOrOutputs);
-            if (inOrOutputs.success) {
-              let newInputs = inOrOutputs.data.inputs;
-              let outputs = [];
-              const depositList = await agentDeposistList(this.$route.query.hash);
-              for (let itme of depositList.list) {
-                //console.log(itme.address);
+              let newInputs = [];
+              let newOutputs = inOrOutputs.data.outputs
+
+              //查询委托列表，计算input output
+              const depositList = await agentDeposistList(this.$route.query.hash) //await getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash,1,'')
+              for (let i = 0; i < 2; i++) {
+                const itme = depositList.list[i]
                 newInputs.push({
                   address: itme.address,
                   assetsChainId: this.agentAsset.agentAsset.chainId,
@@ -478,40 +417,48 @@
                   locked: -1,
                   nonce: itme.txHash.substring(itme.txHash.length - 16)//这里是hash的最后16个字符
                 });
-                outputs.push({
-                  address: itme.address,
+              }
+              const depositInfo = {
+                address: this.addressInfo.address,
+                agentHash: this.$route.query.hash,
+              };
+              let tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 29, depositInfo);
+              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
+            } else {
+              this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
+            }
+            /*transferInfo.amount = Number(Times(this.jionNodeForm.amount, 100000000));
+            transferInfo.depositHash = this.$route.query.hash;
+            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 29);
+            //console.log(inOrOutputs);
+            if (inOrOutputs.success) {
+              let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 29, this.outInfo.txHash);
+              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
+            } else {
+              this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
+            }*/
+          } else if (this.passwordType === 2) { //注销节点
+            transferInfo.amount = this.nodeInfo.deposit;
+            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 9);
+            //console.log(inOrOutputs);
+            if (inOrOutputs.success) {
+              let newInputs = []
+              let newOutputs = inOrOutputs.data.outputs
+              //查询委托列表，计算input output
+              const depositList = await agentDeposistList(this.$route.query.hash) //await getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash,1,'')
+              for (let item of depositList.list) {
+                newInputs.push({
+                  address: item.address,
                   assetsChainId: this.agentAsset.agentAsset.chainId,
                   assetsId: this.agentAsset.agentAsset.assetId,
-                  amount: itme.amount,
-                  lockTime: 0
+                  amount: item.amount,
+                  locked: -1,
+                  nonce: item.txHash.substring(item.txHash.length - 16)//这里是hash的最后16个字符
                 });
               }
-              let addressArr = [];
-              let newOutputs = [];
-              outputs.forEach(function (item) {
-                let i;
-                if ((i = addressArr.indexOf(item.address)) > -1) {
-                  //console.log(result, i);
-                  newOutputs[i].amount = Number(newOutputs[i].amount) + Number(item.amount);
-                } else {
-                  addressArr.push(item.address);
-                  newOutputs.push({
-                    address: item.address,
-                    amount: item.amount,
-                    assetsChainId: item.assetsChainId,
-                    assetsId: item.assetsId,
-                    lockTime: item.lockTime,
-                  })
-                }
-              });
-              newOutputs.unshift(inOrOutputs.data.outputs[0]);
               newOutputs[0].lockTime = newOutputs[0].lockTime + 86400 * 3;
-              /* console.log(newInputs);
-               console.log(newOutputs);*/
               let tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
-              //console.log(tAssemble);
               let newFee = countFee(tAssemble, 1);
-              //console.log(transferInfo.fee !== newFee);
               if (transferInfo.fee !== newFee) {
                 transferInfo.fee = newFee;
                 newOutputs[0].amount = Number(Minus(this.nodeInfo.deposit, newFee).toString());
@@ -522,13 +469,9 @@
             else {
               this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
             }
-          } else {
-            console.log("交易类型错误")
           }
-
           //console.log(txhex);
           await validateAndBroadcast(txhex).then((response) => {
-            //console.log(response);
             if (response.success) {
               this.$router.push({
                 name: "txList"
@@ -541,113 +484,6 @@
           });
         } else {
           this.$message({message: this.$t('address.address13'), type: 'error', duration: 1000});
-        }
-      },
-
-      /**
-       * @disc: 组装交易序列化
-       * @date: 2019-12-06 13:38
-       * @author: Wave
-       */
-      async getAssemble() {
-        let transferInfo = {
-          fromAddress: this.addressInfo.address,
-          assetsChainId: this.agentAsset.agentAsset.chainId,
-          assetsId: this.agentAsset.agentAsset.assetId,
-          amount: Number(Times(this.jionNodeForm.amount, 100000000)),
-          fee: 100000
-        };
-        let inOrOutputs = {};
-        let remark = '';
-        let tAssemble = '';
-        if (this.passwordType === 0) { //加入共识
-          inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 5);
-          let depositInfo = {
-            address: this.addressInfo.address,
-            agentHash: this.$route.query.hash,
-            deposit: Number(Times(this.jionNodeForm.amount, 100000000))
-          };
-          if (!inOrOutputs.success) {
-            this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 3000});
-            return {success: false};
-          }
-          tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 5, depositInfo);
-          return {success: true, data: tAssemble}
-        } else if (this.passwordType === 1) { //退出共识
-          transferInfo.amount = Number(Times(this.outInfo.amount, 100000000));
-          transferInfo.depositHash = this.outInfo.txHash;
-          inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 6);
-          //console.log(inOrOutputs);
-          if (!inOrOutputs.success) {
-            this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 3000});
-            return {success: false};
-          }
-          tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 6, this.outInfo.txHash);
-          return {success: true, data: tAssemble}
-        } else if (this.passwordType === 2) { //注销节点
-          transferInfo.amount = this.nodeInfo.deposit;
-          transferInfo.depositHash = this.$route.query.hash;
-          inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 9);
-          //console.log(inOrOutputs);
-
-          if (!inOrOutputs.success) {
-            this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 3000});
-            return {success: false};
-          }
-
-          let newInputs = inOrOutputs.data.inputs;
-          let outputs = [];
-          const depositList = await agentDeposistList(this.$route.query.hash);
-          for (let itme of depositList.list) {
-            //console.log(itme.address);
-            newInputs.push({
-              address: itme.address,
-              assetsChainId: this.agentAsset.agentAsset.chainId,
-              assetsId: this.agentAsset.agentAsset.assetId,
-              amount: itme.amount,
-              locked: -1,
-              nonce: itme.txHash.substring(itme.txHash.length - 16)//这里是hash的最后16个字符
-            });
-            outputs.push({
-              address: itme.address,
-              assetsChainId: this.agentAsset.agentAsset.chainId,
-              assetsId: this.agentAsset.agentAsset.assetId,
-              amount: itme.amount,
-              lockTime: 0
-            });
-          }
-          let addressArr = [];
-          let newOutputs = [];
-          outputs.forEach(function (item) {
-            let i;
-            if ((i = addressArr.indexOf(item.address)) > -1) {
-              //console.log(result, i);
-              newOutputs[i].amount = Number(newOutputs[i].amount) + Number(item.amount);
-            } else {
-              addressArr.push(item.address);
-              newOutputs.push({
-                address: item.address,
-                amount: item.amount,
-                assetsChainId: item.assetsChainId,
-                assetsId: item.assetsId,
-                lockTime: item.lockTime,
-              })
-            }
-          });
-          newOutputs.unshift(inOrOutputs.data.outputs[0]);
-          newOutputs[0].lockTime = newOutputs[0].lockTime + 86400 * 3;
-          tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
-          //console.log(tAssemble);
-          let newFee = countFee(tAssemble, 1);
-          //console.log(transferInfo.fee !== newFee);
-          if (transferInfo.fee !== newFee) {
-            transferInfo.fee = newFee;
-            newOutputs[0].amount = Number(Minus(this.nodeInfo.deposit, newFee).toString());
-            tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
-          }
-          return {success: true, data: tAssemble}
-        } else {
-          console.log("交易类型错误")
         }
       },
 
@@ -709,12 +545,10 @@
           margin-left: 40px;
           .el-button {
             position: relative;
-            width: 100px;
             bottom: 0;
             right: 0;
             margin: 0;
-            padding: 0;
-            height: 40px;
+            padding: 10px 30px;
           }
         }
       }
@@ -730,40 +564,22 @@
         margin-bottom: 30px;
         font-size: 14px;
         .el-button {
-          padding: 12px 25px;
-          position: relative;
+          padding: 10px 30px;
+          &:first-of-type {
+            margin-left: 20px;
+          }
+         /* position: relative;
           right: 0;
-          bottom: 10px;
+          bottom: 10px;*/
         }
       }
       .el-table .el-table__header-wrapper {
         border-radius: 5px 5px 0 0;
       }
-      .el-dialog {
-        .el-form-item {
-          margin-bottom: 0;
-          padding: 0 20px;
-        }
-        .el-dialog__header {
-          text-align: center;
-        }
+      .form-dialog .el-dialog{
         .el-dialog__body {
-          .el-form-item__label {
-            margin-top: 7px;
-          }
-          .el-form-item__content {
-            .balance {
-              color: #606266;
-              margin-top: 15px;
-            }
-          }
           .fee {
             color: #606266
-          }
-        }
-        .el-dialog__footer {
-          .el-button {
-            width: 9.5rem;
           }
         }
       }

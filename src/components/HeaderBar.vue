@@ -7,10 +7,10 @@
       <div class="nav">
         <el-menu mode="horizontal" :default-active="navActives($route.path)" @select="handleSelect">
           <el-menu-item index="home">{{$t('nav.wallet')}}</el-menu-item>
-          <el-menu-item index="transfer" :disabled="addressList.length === 0" v-if="false">{{$t('nav.transfer')}}
-          </el-menu-item>
+          <el-menu-item index="staking">{{$t('nav.staking')}}</el-menu-item>
           <el-menu-item index="consensus" :disabled="addressList.length === 0">{{$t('nav.consensus')}}
           </el-menu-item>
+          <el-menu-item index="governance" v-if="false">治理</el-menu-item>
           <el-menu-item index="application" v-if="false">应用</el-menu-item>
         </el-menu>
       </div>
@@ -62,9 +62,8 @@
 
 <script>
   import logo from '@/assets/img/logo.svg'
-  import {superLong, connectToExplorer, divisionDecimals, Times, Plus, getSymbolInfo} from '@/api/util'
+  import {superLong, connectToExplorer} from '@/api/util'
   import {IS_DEV} from '@/config.js'
-  import defaultIcon from '@/assets/img/commonIcon.png'
 
   export default {
     data() {
@@ -74,7 +73,6 @@
         addressList: [], //地址列表
         lang: 'cn', //语言选择
         symbol: 'NVT', //symbol
-        addressInfo: this.$store.getters.getSelectAddress //账户信息
       };
     },
     components: {},
@@ -84,8 +82,7 @@
         // deep: true,
         handler: function(val, old) {
           if (val.address !== old.address && old.address) {
-            this.addressInfo = this.$store.getters.getSelectAddress
-            this.getAccountList()
+            this.$store.dispatch('getAccountList')
           }
         }
       },
@@ -96,7 +93,7 @@
       }
     },
     created() {
-      this.getAccountList()
+      this.$store.dispatch('getAccountList')
       this.setLang()
       this.getAddressList();
     },
@@ -124,65 +121,6 @@
           this.lang = 'en';
         }
         this.$i18n.locale = this.lang;
-      },
-      //查询账户资产信息
-      async getAccountList() {
-        this.$store.commit('homeLoading', true)
-        const ledgerList = await this.getLedgerList()
-        const crossList =  await this.getCrossList()
-        let accountList = [...ledgerList, ...crossList]
-        this.$store.commit('homeLoading', false)
-        this.$store.commit('setAccountList', accountList)
-      },
-      //查询当前账户本链资产
-      async getLedgerList(){
-        let res = []
-        try {
-          const result = await this.$post('/', 'getAccountLedgerList', [this.addressInfo.address])
-          if (result.result) {
-            for(let item of result.result) {
-              const coinInfo = await getSymbolInfo(item.assetId, item.chainId)
-              item.icon = item.icon || defaultIcon
-              item.usdPrice = coinInfo.usdPrice || 0
-              item.name = item.symbol;
-              item.number = divisionDecimals(item.totalBalance, item.decimals);
-              item.valuation = Number(Times(item.number, item.usdPrice));
-              item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
-              item.usdLocking = Number(Times(item.locking, item.usdPrice));
-              item.available = divisionDecimals(item.balance, item.decimals);
-              item.usdAvailable = Number(Times(item.available, item.usdPrice));
-              res.push({...item})
-            }
-          }
-        } catch (e) {
-          console.error('获取本链资产失败')
-        }
-        return res
-      },
-      //查询当前账户跨链资产
-      async getCrossList() {
-        let res = []
-        try {
-          const result = await this.$post('/', 'getAccountCrossLedgerList', [this.addressInfo.address])
-          if (result.result) {
-            for(let item of result.result) {
-              const coinInfo = await getSymbolInfo(item.assetId, item.chainId)
-              item.icon = item.icon || defaultIcon
-              item.usdPrice = coinInfo.usdPrice
-              item.name = item.symbol;
-              item.number = divisionDecimals(item.totalBalance, item.decimals);
-              item.valuation = Number(Times(item.number, item.usdPrice));
-              item.locking = divisionDecimals(Number(Plus(item.timeLock, item.consensusLock)), item.decimals);
-              item.usdLocking = Number(Times(item.locking, item.usdPrice));
-              item.available = divisionDecimals(item.balance, item.decimals);
-              item.usdAvailable = Number(Times(item.available, item.usdPrice));
-              res.push({...item})
-            }
-          }
-        } catch (e) {
-          console.error('获取跨链资产失败')
-        }
-        return res
       },
       /**
        * 菜单导航
@@ -212,7 +150,7 @@
             if (keyPath[1] === 'official') {
               newUrl = 'http://nerve.network/'
             } else if (keyPath[1] === 'explorer') {
-              newUrl = IS_DEV ? 'https://nervecan.nervedex.com/' : 'http://beta.nervecan.nervedex.com/'
+              newUrl = IS_DEV ? 'http://beta.nervecan.nervedex.com/' : 'https://nervecan.nervedex.com/'
             } else if (keyPath[1] === 'docs') {
               newUrl = 'https://docs.nuls.io/'
             }
@@ -232,23 +170,20 @@
        * @param val
        **/
       navActives(val) {
-        if (val.indexOf('/transfer') === 0) {
-          return 'transfer'
+        if (val.indexOf('/staking') ===0) {
+          return 'staking'
         } else if (val.indexOf('/consensus') === 0) {
           return 'consensus'
-        } else if (val.indexOf('/contract') === 0) {
-          return 'contract'
-        } else {
+        }  else {
           return 'home'
         }
       },
 
       /**
-       * 获取账户列表
+       * 获取账户列表缩写
        */
       getAddressList() {
-        console.log(123465)
-        this.addressList = this.$store.state.addressInfo
+        this.addressList = [...this.$store.state.addressInfo]
         if (this.addressList) {
           for (let item  of this.addressList) {
             item.addresss = superLong(item.address, 8);

@@ -28,11 +28,15 @@
 
 .el-tabs {
   .el-tabs__header {
+    margin: 0 0 20px;
     .el-tabs__nav-wrap {
-      .el-tabs__active-bar {
+      /*.el-tabs__active-bar {
         height: 0;
-      }
+      }*/
       .el-tabs__item {
+        text-transform: Capitalize;
+        font-weight: 600;
+        font-size: 16px;
         &:hover {
           color: @Ncolour;
         }
@@ -84,6 +88,12 @@
 }
 
 .el-table {
+  &:before, .el-table__fixed:before {
+    height: 0;
+  }
+  td {
+    padding: 8px 0 !important;
+  }
   &.el-table--striped .el-table__body tr.el-table__row--striped td {
     background: #f3f6fd;
   }
@@ -127,11 +137,12 @@
     }
   }
 }
+.el-table--border td, .el-table--border th, .el-table__body-wrapper .el-table--border.is-scrolling-left ~ .el-table__fixed {
+  border: 0 !important;
+}
 
-.el-table {
-  td {
-    padding: 8px 0 !important;
-  }
+.el-table td, .el-table th.is-leaf {
+  border: 0 !important;
 }
 
 .el-input {
@@ -278,7 +289,7 @@
         label {
           width: auto;
           .fCN {
-            color: #5daf34;
+            color: #2688f7;
           }
         }
       }
@@ -375,5 +386,38 @@
   &.el-button--primary, &.el-button--success {
     background-color: @Ncolour;
     border-color: #409EFF;
+  }
+}
+
+.form-dialog .el-dialog{
+  padding-bottom: 20px;
+  .el-dialog__header {
+    text-align: center;
+  }
+  .el-dialog__body {
+    background-color: #fff;
+    margin: 20px 20px 0;
+    padding: 0 20px;
+    .el-form-item {
+      margin-bottom: 0;
+      padding-bottom: 5px;
+    }
+    .el-form-item__label {
+      margin-top: 7px;
+    }
+    .el-form-item__content {
+      .balance {
+        color: #606266;
+        margin-top: 15px;
+      }
+    }
+  }
+  .el-dialog__footer {
+    background-color: #fff;
+    margin: 0 20px;
+    padding-top: 0;
+    .el-button {
+      width: 9.5rem;
+    }
   }
 }

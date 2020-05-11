@@ -61,12 +61,11 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
   let newLockTime = 0;
   if (type === 4) {//创建节点
     newLockTime = -1;
-  } else if (type === 5) { //加入共识
+  } else if (type === 28) { //追加保证金
     newLockTime = -1;
-  } else if (type === 6) { //退出共识
+  } else if (type === 29) { //退出保证金
     newAmount = transferInfo.amount;
     newLocked = -1;
-    newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
     newoutputAmount = transferInfo.amount - transferInfo.fee;
   } else if (type === 9) { //注销节点
     newAmount = transferInfo.amount;
@@ -109,24 +108,6 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
     })
   }
   let outputs = [];
-  if (type === 15 || type === 17) {
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
-  }
-  if (type === 16) {
-    if (transferInfo.toAddress) {
-      if (transferInfo.value) { //向合约地址转nuls
-        inputs[0].amount = transferInfo.amount;
-        outputs = [{
-          address: transferInfo.toAddress,
-          assetsChainId: transferInfo.assetsChainId,
-          assetsId: transferInfo.assetsId,
-          amount: transferInfo.value,
-          lockTime: newLockTime
-        }];
-      }
-    }
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
-  }
   outputs = [{
     address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
     assetsChainId: transferInfo.assetsChainId,
@@ -381,5 +362,24 @@ export async function commitData(txHexKey, signDataKey, address, assembleHex) {
     })
     .catch((error) => {
       return {success: false, data: error}
+    });
+}
+
+
+/**
+ * 获取退出、注销节点保证金、nonce
+ * @params chainId
+ * @params agentHash
+ * @params quitAll 是否退出所有，1退出所有，即停止节点
+ * @params reduceAmount 退出金额，停止节点，可不传
+ * @returns
+ */
+export async function getReduceDepositList(chainId, agentHash,quitAll,reduceAmount) {
+  return await post('/', 'getReduceDepositList', [chainId, agentHash,quitAll,reduceAmount])
+    .then((response) => {
+      return response.result
+    })
+    .catch((error) => {
+      return {success: false, data: error};
     });
 }

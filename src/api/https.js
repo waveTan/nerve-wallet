@@ -8,9 +8,6 @@ setInterval(() => {
   axios.defaults.baseURL = config.API_URL;
 }, 500);
 axios.defaults.headers.post['Content-Type'] = 'application/json';
-import logger from "./logger-web"
-
-// import logger from "./logger-desktop"
 
 /**
  * 封装post请求
@@ -30,14 +27,8 @@ export function post(url, methodName, data = [], templateName = '') {
     axios.post(url, params)
       .then(response => {
         //console.log(response);
-        if (!response.data.hasOwnProperty('error')) {
-          logger.info(methodName + ' ' + templateName);
-        } else {
-          logger.warn(methodName + ' ' + JSON.stringify(response.data.error) + ' ' + templateName);
-        }
         resolve(response.data);
       }, err => {
-        logger.error(err + ' params:' + params + ' ' + templateName);
         reject(err)
       })
   })

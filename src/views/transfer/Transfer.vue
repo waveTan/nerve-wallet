@@ -41,7 +41,7 @@
         <li><span>{{$t('public.remarks')}}：</span><font>{{transferForm.remarks}}</font></li>
       </ul>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="transferFormDialog = false">{{$t('address.address10')}}</el-button>
+        <el-button @click="transferFormDialog = false" style="margin-right: 20px">{{$t('address.address10')}}</el-button>
         <el-button type="primary" @click="confirmSubmission">{{$t('transfer.transfer8')}}</el-button>
       </div>
     </el-dialog>
@@ -130,23 +130,31 @@
         transferFormDialog: false,//确认弹框
       };
     },
+    watch: {
+      '$store.getters.getSelectAddress': {
+        handler: function(val, old) {
+          if (val.address !== old.address) {
+            this.initInfo()
+            this.changeAssetType(this.changeAssetInfo);
+          }
+        }
+      }
+    },
     created() {
       this.assetList = this.$store.state.accountList
-      this.addressInfo = this.$store.getters.getSelectAddress
-      this.transferForm.fromAddress = this.addressInfo.address;
+      this.initInfo()
     },
     mounted() {
       let transferParams = {};
       if (sessionStorage.hasOwnProperty('transferParams')) {
         transferParams = JSON.parse(sessionStorage.getItem('transferParams'))
       } else {
-        let assetsInfo = this.assetList.filter(k => k.chainId === 2);
+        let assetsInfo = this.assetList.filter(k => k.chainId === MAIN_INFO.chainId);
         transferParams = assetsInfo[0];
       }
       this.transferForm.assetType = transferParams.symbol;
       this.changeAssetType(transferParams);
     },
-    watch: {},
     components: {
       Password,
     },
@@ -154,6 +162,11 @@
       sessionStorage.removeItem('transferParams')
     },
     methods: {
+      //初始化选中账户数据
+      initInfo() {
+        this.addressInfo = this.$store.getters.getSelectAddress
+        this.transferForm.fromAddress = this.addressInfo.address;
+      },
 
       /**
        * @disc: 选择资产

@@ -117,6 +117,7 @@
         handler: function(val, old) {
           if (val.address !== old.address) {
             this.addressInfo = this.$store.getters.getSelectAddress
+            this.txListDataLoading = true;
             this.getTxlistByAddress()
           }
         }
@@ -147,7 +148,6 @@
        * @param type
        **/
       getTxlistByAddress() {
-        this.txListDataLoading = true;
         const params = [this.pageIndex, this.pageSize, this.addressInfo.address, this.types, -1, -1]
         this.$post('/', 'getAccountTxs', params)
           .then((response) => {
@@ -189,6 +189,7 @@
       channgeType(e) {
         this.types = Number(e);
         this.typeValue = Number(e);
+        this.txListDataLoading = true;
         this.getTxlistByAddress();
       },
 
@@ -216,6 +217,7 @@
        **/
       txListPages(val) {
         this.pageIndex = val;
+        this.txListDataLoading = true;
         this.getTxlistByAddress()
       },
 

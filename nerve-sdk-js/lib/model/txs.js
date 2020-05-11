@@ -233,7 +233,7 @@ module.exports = {
   },
 
   /**
-   * 追加委托节点交易
+   * 追加保证金
    * @param entity
    * @constructor
    */
@@ -249,6 +249,15 @@ module.exports = {
     bw.writeBigInt(entity.amount);
     bw.getBufWriter().write(Buffer.from(entity.agentHash, 'hex'));
     this.txData = bw.getBufWriter().toBuffer();
+  },
+  //退出保证金
+  WithdrawTransaction: function (depositTxHash) {
+    Transaction.call(this);
+    if (!depositTxHash) {
+      throw "Data wrong!";
+    }
+    this.type = 29;
+    this.txData = Buffer.from(depositTxHash, 'hex');
   },
 
   /**

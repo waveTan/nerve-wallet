@@ -67,7 +67,7 @@
         </div>-->
         <div class="div-data">
           <p>{{$t('public.deposit')}}:&nbsp;</p>
-          <label class="yellow">{{createrForm.amount}} <span
+          <label class="fCN">{{createrForm.amount}} <span
                   class="fCN">{{agentAsset.agentAsset.symbol}}</span></label>
         </div>
         <div class="div-data">

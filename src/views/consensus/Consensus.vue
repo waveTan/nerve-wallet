@@ -47,7 +47,7 @@
         <div class="node" v-loading="allNodeLoading" v-show="viewList">
           <div class="node_info shadow1" v-for="item in searchData" :key="item.agentId">
             <h4>
-              <span class="uppercase fCN">{{item.agentId}}</span>&nbsp;
+              <span class="uppercase fCN fw">{{item.agentId}}</span>&nbsp;
               <i class="iconfont fr"
                  :class="item.status ===0 ? 'icondaigongshi fred' : 'icongongshizhong fCN'"></i>
             </h4>
@@ -61,7 +61,7 @@
           <div class="cb"></div>
         </div>
         <div v-show="!viewList" v-loading="allNodeLoading" class="c_tabs">
-          <el-table :data="searchData" stripe border style="width: 100%">
+          <el-table :data="searchData" stripe style="width: 100%">
             <el-table-column label="" width="80">
             </el-table-column>
             <el-table-column label="ID" min-width="150" align="left">
@@ -452,14 +452,16 @@
           margin-top: 15px;
         }
       }
+      .el-tabs__content {
+        overflow: inherit;
+      }
     }
     .node {
       margin-bottom: 100px;
-      padding-left: 10px;
       .node_info {
-        width: 580px;
+        width: 590px;
         height: 120px;
-        margin: 20px 20px 0 0;
+        margin: 10px 20px 0 0;
         padding: 15px 30px;
         float: left;
         &:nth-child(2n) {
@@ -500,7 +502,7 @@
       cursor: auto;
       font-size: 18px;
       font-weight: 600;
-      color: #475472;
+      color: #2688f7;
     }
   }
 </style>

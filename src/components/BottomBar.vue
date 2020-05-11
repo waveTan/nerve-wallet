@@ -78,11 +78,11 @@
         const params = {
           "jsonrpc": "2.0", "method": "getInfo", "params": [chainID()], "id": Math.floor(Math.random() * 1000)
         };
-        axios.post(url, params)
+        this.$post('/', 'getInfo', [])
           .then((response) => {
-            if (response.data.hasOwnProperty("result")) {
-              this.heightInfo = response.data.result;
-              sessionStorage.setItem("info", JSON.stringify(response.data.result))
+            if (response.hasOwnProperty("result")) {
+              this.heightInfo = response.result;
+              sessionStorage.setItem("info", JSON.stringify(response.result))
             } else {
               this.heightInfo = {localHeight: 0, networkHeight: 0};
               sessionStorage.removeItem("info")

@@ -100,6 +100,11 @@ export default new Router({
       path: '/contact',
       name: 'contact',
       component: resolve => require(['@/views/set/Contact.vue'], resolve)
+    },
+    {
+      path: '/staking',
+      name: 'staking',
+      component: resolve => require(['@/views/staking/index.vue'], resolve)
     }
   ]
 })
