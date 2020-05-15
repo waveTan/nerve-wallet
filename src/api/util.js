@@ -1,7 +1,7 @@
 import nerve from 'nerve-sdk-js'
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
-import {explorerUrl, IS_DEV,MAIN_INFO} from '@/config.js'
+import {explorerUrl, MAIN_INFO} from '@/config.js'
 import openner from "./opener-web";
 import {post} from './https'
 
@@ -70,7 +70,7 @@ export function Division(nu, arg) {
 export function timesDecimals(nu, decimals) {
   let newInfo = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')) : '';
   let newDecimals = decimals ? decimals : newInfo.defaultAsset.decimals;
-  if(decimals===0){
+  if (decimals === 0) {
     return nu
   }
   let newNu = new BigNumber(Times(nu, Power(newDecimals)).toString());
@@ -80,10 +80,10 @@ export function timesDecimals(nu, decimals) {
 /**
  * 数字除以精度系数
  */
-export function divisionDecimals(nu, decimals) {
+export function divisionDecimals(nu, decimals = '') {
   let newInfo = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')) : '';
   let newDecimals = decimals ? decimals : newInfo.defaultAsset.decimals;
-  if(decimals===0){
+  if (decimals === 0) {
     return nu
   }
   let newNu = new BigNumber(Division(nu, Power(newDecimals)).toString());
@@ -116,7 +116,7 @@ export function passwordVerification(accountInfo, password, prefix) {
  * @returns {number}
  */
 export function chainID() {
-  const url = JSON.parse(localStorage.getItem('url'))
+  const url = JSON.parse(localStorage.getItem('url'));
   if (url && url.urls) {
     return url.chainId
   } else {
@@ -415,7 +415,7 @@ export function htmlEncode(str) {
   s = s.replace(/</g, "&lt;");
   s = s.replace(/>/g, "&gt;");
   s = s.replace(/ /g, "&nbsp;");
-  s = s.replace(/\'/g, "&#39;");//IE下不支持实体名称
+  s = s.replace(/\'/g, "&#39;"); //IE下不支持实体名称
   s = s.replace(/\"/g, "&quot;");
   return s;
 }
@@ -435,37 +435,37 @@ export function htmlRestore(str) {
   s = s.replace(/&lt;/g, "<");
   s = s.replace(/&gt;/g, ">");
   s = s.replace(/&nbsp;/g, " ");
-  s = s.replace(/&#39;/g, "\'");
-  s = s.replace(/&quot;/g, "\"");
+  s = s.replace(/&#39;/g, "/\'");
+  s = s.replace(/&quot;/g, "/\"");
   return s;
 }
 
 //转千分位
 export function toThousands(num = 0) {
-  const N = num.toString().split('.')
-  const int  = N[0]
-  const float = N[1] ? '.'+N[1] : ''
+  const N = num.toString().split('.');
+  const int = N[0];
+  const float = N[1] ? '.' + N[1] : '';
   return int.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,') + float;
 }
 
 //获取币种配置
 export async function getSymbolInfo(assetId, chainId) {
-  if (!assetId || !chainId) return
-  const symbol = chainId + '-' + assetId
-  let coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {}
-  if ( coinInfo[symbol]) {
+  if (!assetId || !chainId) return;
+  const symbol = chainId + '-' + assetId;
+  let coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {};
+  if (coinInfo[symbol]) {
     return coinInfo[symbol]
   }
   try {
-    const res = await post('/', 'getSymbolInfo', [assetId, chainId])
+    const res = await post('/', 'getSymbolInfo', [assetId, chainId]);
     if (res.result.symbol) {
-      const symbol = chainId + '-' + assetId
-      const coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {}
-      coinInfo[symbol] = res.result
+      const symbol = chainId + '-' + assetId;
+      const coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {};
+      coinInfo[symbol] = res.result;
       sessionStorage.setItem('coinInfo', JSON.stringify(coinInfo))
     }
     return res.result || {}
   } catch (e) {
-    console.error('获取币种信息失败'+chainId+'-'+assetId)
+    console.error('获取币种信息失败' + chainId + '-' + assetId)
   }
 }

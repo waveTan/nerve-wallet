@@ -22,8 +22,7 @@
 
 <script>
   import nerve from 'nerve-sdk-js'
-  import axios from 'axios'
-  import {chainID, divisionDecimals} from '@/api/util'
+  import {divisionDecimals} from '@/api/util'
 
   export default {
     name: "bottom-bar",
@@ -74,10 +73,12 @@
        * 获取主网最新高度和本地高度
        */
       getHeaderInfo() {
-        const url = this.$store.getters.getCurrentUrlData.urls
+        /*
+        const url = this.$store.getters.getCurrentUrlData.urls;
         const params = {
           "jsonrpc": "2.0", "method": "getInfo", "params": [chainID()], "id": Math.floor(Math.random() * 1000)
         };
+        */
         this.$post('/', 'getInfo', [])
           .then((response) => {
             if (response.hasOwnProperty("result")) {

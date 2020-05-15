@@ -374,8 +374,8 @@ export async function commitData(txHexKey, signDataKey, address, assembleHex) {
  * @params reduceAmount 退出金额，停止节点，可不传
  * @returns
  */
-export async function getReduceDepositList(chainId, agentHash,quitAll,reduceAmount) {
-  return await post('/', 'getReduceDepositList', [chainId, agentHash,quitAll,reduceAmount])
+export async function getReduceDepositList(chainId, agentHash, quitAll, reduceAmount) {
+  return await post('/', 'getReduceDepositList', [chainId, agentHash, quitAll, reduceAmount])
     .then((response) => {
       return response.result
     })

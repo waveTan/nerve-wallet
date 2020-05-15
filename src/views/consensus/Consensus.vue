@@ -137,7 +137,7 @@
     created() {
     },
     mounted() {
-      this.getSelectAddressInfo()
+      this.getSelectAddressInfo();
       this.getConsensusNodes(this.pageIndex, this.pageSize, this.nodeTypeRegion);
     },
     computed: {
@@ -167,7 +167,7 @@
         // deep: true,
         handler: function(val, old) {
           if (val.address !== old.address) {
-            this.addressInfo = this.$store.getters.getSelectAddress
+            this.addressInfo = this.$store.getters.getSelectAddress;
             this.getSelectAddressInfo()
           }
         }
@@ -175,8 +175,8 @@
     },
     methods: {
       getSelectAddressInfo() {
-        this.myNodeData={}
-        this.myNodeLoading = true
+        this.myNodeData={};
+        this.myNodeLoading = true;
         this.getConsensusInfoByAddress(this.pageIndex, this.pageSize, this.addressInfo.address);
         this.getAddressInfoByNode(this.addressInfo);
         this.getPunishByAddress(this.addressInfo.address);
@@ -191,6 +191,7 @@
           return this.computeNodeType[2]
         }
       },
+
       /**
        * 查询创建地址是否有红牌
        * @param address
@@ -254,7 +255,7 @@
         this.allNodeLoading = true;
         this.$post('/', 'getConsensusNodes', [pageIndex, pageSize, type])
           .then((response) => {
-            //console.log(response);
+            console.log(response);
             if (response.hasOwnProperty("result")) {
               for (let itme of response.result.list) {
                 itme.bozhengjin = itme.deposit;
@@ -282,7 +283,7 @@
       getConsensusInfoByAddress(pageIndex, pageSize, address) {
         this.$post('/', 'getAccountConsensusNode', [address])
           .then((response) => {
-            //console.log(response);
+            console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.deposit = Number(divisionDecimals(response.result.deposit)).toFixed(3);
               response.result.totalDeposit = Number(divisionDecimals(response.result.totalDeposit)).toFixed(3);

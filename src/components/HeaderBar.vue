@@ -99,7 +99,7 @@
     },
     mounted() {
       setInterval(() => {
-        this.symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol : 'NVT';
+        this.symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).symbol : 'NVT';
         if (this.symbol !== 'TNVT' && this.symbol !== 'NVT') {
           document.title = this.symbol + " Wallet";
         }
@@ -183,7 +183,7 @@
        * 获取账户列表缩写
        */
       getAddressList() {
-        this.addressList = [...this.$store.state.addressInfo]
+        this.addressList = [...this.$store.state.addressInfo];
         if (this.addressList) {
           for (let item  of this.addressList) {
             item.addresss = superLong(item.address, 8);

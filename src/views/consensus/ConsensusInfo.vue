@@ -201,7 +201,7 @@
       '$store.getters.getSelectAddress': {
         handler: function(val, old) {
           if (val.address !== old.address) {
-            this.addressInfo = this.$store.getters.getSelectAddress
+            this.addressInfo = this.$store.getters.getSelectAddress;
             this.jionNodeForm.amount = '';
             this.getSelectAddressInfo()
           }
@@ -228,7 +228,7 @@
         console.log(err);
         this.prefix = '';
       });
-      this.getSelectAddressInfo()
+      this.getSelectAddressInfo();
       this.getNodeInfoByHash();
       agentDeposistList(this.$route.query.hash);
       getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash,'',8000)
@@ -236,11 +236,13 @@
     mounted() {
     },
     methods: {
+
       //获取当前用户账户信息&委托列表
       getSelectAddressInfo() {
         this.getBalanceByAddress();
         this.getNodeDepositByHash()
       },
+
       //判断节点类型
       judgeNodeType(bankNode, isConsensus) {
         if (bankNode) {
@@ -251,6 +253,7 @@
           return this.computeNodeType[2]
         }
       },
+
       /**
        * 根据hash获取节点详情信息
        * @param hash
@@ -320,12 +323,14 @@
         this.additionDialog = true
         this.passwordType = 0
       },
+
       quit() {
         this.additionDialog = true
         this.passwordType = 1
         const reduceAmount = Number(Times(this.jionNodeForm.amount, 100000000))
         getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash, '', reduceAmount)
       },
+
       //追加,退出保证金
       handleSubmit(formName) {
         this.$refs[formName].validate(async (valid) => {
@@ -357,7 +362,6 @@
           this.$message({message: this.$t('public.err3') + error, type: 'error', duration: 1000});
         });
       },
-
 
       //注销节点
       async stopNode() {

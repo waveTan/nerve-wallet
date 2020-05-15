@@ -92,8 +92,6 @@
     },
     watch: {
       '$store.state.accountList': {
-        // deep: true,
-        // immediate: true,
         handler: function() {
           this.init()
         }
@@ -102,13 +100,14 @@
     computed: {
     },
     methods: {
+
       init() {
-        const assetsInfo = this.$store.state.accountList
-        const myAssetsInfo = {total:0,available:0,locking:0}
-        const chartData = []
+        const assetsInfo = this.$store.state.accountList;
+        const myAssetsInfo = {total:0,available:0,locking:0};
+        const chartData = [];
         const total = assetsInfo.reduce((cur,next)=>{
           return Number(Plus(cur, next.valuation))
-        },0)
+        },0);
         assetsInfo.forEach(item => {
           myAssetsInfo.total = Number(Plus(myAssetsInfo.total, item.valuation));
           myAssetsInfo.available = Number(Plus(myAssetsInfo.available, item.usdAvailable));
@@ -118,10 +117,12 @@
             value: item.valuation,
             rate: total ? (Number(Division(item.valuation, total)) * 100).toFixed(2) + '%' : '0%'
           })
-        })
-        this.myAssetsInfo = myAssetsInfo
+        });
+        this.myAssetsInfo = myAssetsInfo;
+        //console.log( this.myAssetsInfo);
         this.chartData = chartData
       },
+
       /**
        * @disc: 链内转账
        * @params: row 选择币种信息

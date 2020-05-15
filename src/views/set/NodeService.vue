@@ -202,7 +202,7 @@
         }
         this.loading = false;
         //没有选中的连接默认选中一个
-        const hasDefaultConnect = this.setDefaultConnect(newData)
+        const hasDefaultConnect = this.setDefaultConnect(newData);
         this.$store.commit('setUrlData', newData);
         if (!hasDefaultConnect) {
           setTimeout(()=>{
