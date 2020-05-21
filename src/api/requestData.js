@@ -1,3 +1,4 @@
+import axios from 'axios'
 import {post} from './https'
 import {Plus, chainID} from './util'
 import {MAIN_INFO} from '@/config.js'
@@ -50,71 +51,107 @@ export async function countCtxFee(tx, signatrueCount) {
  * 获取inputs and outputs
  * @param transferInfo
  * @param balanceInfo
- * @param type
+ * @param type 2:转账 4:创建节点 5:加入staking 6:退出staking 9:注销节点 28:追加保证金 29:退出保证金
  * @returns {*}
  **/
 export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
-  let newAmount = Number(Plus(transferInfo.amount, transferInfo.fee));
+  let newAmount = transferInfo.amount + transferInfo.fee;
   let newLocked = 0;
   let newNonce = balanceInfo.nonce;
   let newoutputAmount = transferInfo.amount;
   let newLockTime = 0;
-  if (type === 4) {//创建节点
+  let inputs = [];
+  let outputs = [];
+
+  if (type === 4) {
     newLockTime = -1;
+  } else if (type === 5) {
+    newLockTime = -1;
+  } else if (type === 9) { //注销节点
+    newoutputAmount = transferInfo.amount - transferInfo.fee;
+    let times = (new Date()).valueOf() + 3600000 * 72;//锁定三天
+    newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
+    for (let item of transferInfo.nonceList) {
+      let newArr = {
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: item.deposit,
+        locked: -1,
+        nonce: item.nonce
+      };
+      inputs.push(newArr)
+    }
+
+    outputs.push({
+      address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+      assetsChainId: transferInfo.assetsChainId,
+      assetsId: transferInfo.assetsId,
+      amount: newoutputAmount,
+      lockTime: newLockTime
+    });
+    return {success: true, data: {inputs: inputs, outputs: outputs}};
   } else if (type === 28) { //追加保证金
     newLockTime = -1;
   } else if (type === 29) { //退出保证金
-    newAmount = transferInfo.amount;
-    newLocked = -1;
-    newoutputAmount = transferInfo.amount - transferInfo.fee;
-  } else if (type === 9) { //注销节点
-    newAmount = transferInfo.amount;
-    newLocked = -1;
-    newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
     newoutputAmount = transferInfo.amount - transferInfo.fee;
     //锁定三天
-    //let times = (new Date()).valueOf() + 3600000 * 72;
-    let times = (new Date()).valueOf();
+    let times = (new Date()).valueOf() + 3600000 * 72;
     newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
-    //newLockTime = times;
-  } else {
-    //return {success: false, data: "No transaction type"}
+
+    for (let item of transferInfo.nonceList) {
+      let newArr = {
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: item.deposit,
+        locked: -1,
+        nonce: item.nonce
+      };
+      inputs.push(newArr)
+    }
+
+    outputs.push({
+      address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+      assetsChainId: transferInfo.assetsChainId,
+      assetsId: transferInfo.assetsId,
+      amount: newoutputAmount,
+      lockTime: newLockTime
+    });
+    let allAmount = 0;
+    for (let item of transferInfo.nonceList) {
+      allAmount = allAmount + Number(item.deposit)
+    }
+    outputs.push({
+      address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+      assetsChainId: transferInfo.assetsChainId,
+      assetsId: transferInfo.assetsId,
+      amount: allAmount - transferInfo.amount,
+      lockTime: -1
+    });
+
+    return {success: true, data: {inputs: inputs, outputs: outputs}};
   }
 
-  let inputs = [{
+  inputs.push({
     address: transferInfo.fromAddress,
     assetsChainId: transferInfo.assetsChainId,
     assetsId: transferInfo.assetsId,
     amount: newAmount,
     locked: newLocked,
     nonce: newNonce
-  }];
+  });
 
-  if (type === 2 && transferInfo.assetsChainId !== chainID()) {
-    inputs[0].amount = transferInfo.amount;
-    //账户转出资产余额
-    let nulsbalance = await getNulsBalance(chainID(), transferInfo.assetsId, transferInfo.fromAddress);
-    if (nulsbalance.data.balance < 100000) {
-      console.log("余额小于手续费");
-      return
-    }
-    inputs.push({
-      address: transferInfo.fromAddress,
-      assetsChainId: chainID(),
-      assetsId: transferInfo.assetsId,
-      amount: 100000,
-      locked: newLocked,
-      nonce: nulsbalance.data.nonce
-    })
-  }
-  let outputs = [];
-  outputs = [{
+  outputs.push({
     address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
     assetsChainId: transferInfo.assetsChainId,
     assetsId: transferInfo.assetsId,
     amount: newoutputAmount,
     lockTime: newLockTime
-  }];
+  });
+
+  /*console.log(inputs);
+  console.log(outputs);*/
   return {success: true, data: {inputs: inputs, outputs: outputs}};
 }
 
@@ -365,21 +402,34 @@ export async function commitData(txHexKey, signDataKey, address, assembleHex) {
     });
 }
 
-
 /**
- * 获取退出、注销节点保证金、nonce
- * @params chainId
- * @params agentHash
- * @params quitAll 是否退出所有，1退出所有，即停止节点
- * @params reduceAmount 退出金额，停止节点，可不传
- * @returns
+ * @disc: 获取退出节点/退出保证金对应的追加保证金交易列表
+ * @params: agentHash 节点hash
+ * @params: reduceAmount 退出金额
+ * @params: quitAll  是否全部退出 0：部分 1：全部
+ * @date: 2020-05-15 16:03
+ * @author: Wave
  */
-export async function getReduceDepositList(chainId, agentHash, quitAll, reduceAmount) {
-  return await post('/', 'getReduceDepositList', [chainId, agentHash, quitAll, reduceAmount])
-    .then((response) => {
-      return response.result
-    })
-    .catch((error) => {
-      return {success: false, data: error};
-    });
+export async function getReduceNonceList(agentHash, reduceAmount, quitAll) {
+  let url = 'http://seede.nuls.io:17004/jsonrpc';
+  let data = [chainID(), agentHash, reduceAmount, quitAll];
+  const params = {
+    "jsonrpc": "2.0",
+    "method": 'getReduceNonceList',
+    "params": data,
+    "id": Math.floor(Math.random() * 1000)
+  };
+  try {
+    let res = await axios.post(url, params);
+    //console.log(res.data);
+    if (res.data.hasOwnProperty('result')) {
+      return {success: true, data: res.data.result}
+    } else {
+      return {success: false, data: res.data}
+    }
+  }
+  catch (err) {
+    return {success: false, data: err}
+  }
+
 }

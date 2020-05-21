@@ -85,15 +85,18 @@ module.exports = {
     } else if (type === 4) {
       //创建节点
       tt = new txs.CreateAgentTransaction(info);
+    } else if (type === 5) {
+      //加入staking
+      tt = new txs.addStakingTransaction(info);
+    } else if (type === 9) {
+      //注销节点
+      tt = new txs.StopAgentTransaction(info, outputs[0].lockTime - 86400 * 3);
     } else if (type === 28) {
       //追加保证金
       tt = new txs.DepositTransaction(info);
     } else if (type === 29) {
-      //退出保证金 todo 待完成
+      //退出保证金
       tt = new txs.WithdrawTransaction(info);
-    } else if (type === 9) {
-      //注销节点
-      tt = new txs.StopAgentTransaction(info, outputs[0].lockTime - 86400 * 3);
     }
     tt.setCoinData(inputs, outputs);
     tt.remark = remark;

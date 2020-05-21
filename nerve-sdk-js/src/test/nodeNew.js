@@ -7,24 +7,24 @@ const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx} = require('./ap
  * @author: Wave
  */
 
-let pri = '33027cb348f51d0909021343c3374b23cf011cadab0f24c1718bf6a382ce7a30';
-let pub = '0243a092a010f668680238546f2b68b598bb8c606820f0d5051435adaff59e95b9';
-let fromAddress = "TNVTdN9i4JSE9C1PrZZzuQpvrzdhXakSw3UxY";
+let pri = '10d8804991ceaafa5d19dfa30d79c5091767a48da8e66b73494f0b6af8554618';
+let pub = '024bafc4a364659db1674d888bd3e0e7ab11cc4ca02dca95d548637c6b66d63f42';
+let fromAddress = "TNVTdN9iJcMNiTttfV4Wdi6wUp3k8NteoebYo";
 let amount = 2000100000000;
 let remark = 'new agent...';
 
 let agent = {
   agentAddress: fromAddress,
-  packingAddress: "TNVTdN9iJVX42PxxzvhnkC7vFmTuoPnRAgtyA",
+  packingAddress: "TNVTdN9i3GqhhTXjzqBEqmcp28yYx3BPGkQDB",
   rewardAddress: fromAddress,
   deposit: 2000100000000
 };
 
-//调用新建节点
+//调用创建节点
 newAgent(pri, pub, fromAddress, 4, 1, amount, agent);
 
 /**
- * 新建节点
+ * 创建节点
  * @param pri
  * @param pub
  * @param fromAddress
@@ -37,6 +37,11 @@ newAgent(pri, pub, fromAddress, 4, 1, amount, agent);
 async function newAgent(pri, pub, fromAddress, assetsChainId, assetsId, amount, agent) {
   const balanceInfo = await getNulsBalance(fromAddress);
   //console.log(balanceInfo);
+  if (!balanceInfo.success) {
+    console.log("获取账户balanceInfo错误");
+    return;
+  }
+
   let transferInfo = {
     fromAddress: fromAddress,
     assetsChainId: assetsChainId,
@@ -44,7 +49,17 @@ async function newAgent(pri, pub, fromAddress, assetsChainId, assetsId, amount, 
     amount: amount,
     fee: 100000
   };
-  let inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo, 4);
+  let newAmount = transferInfo.amount + transferInfo.fee;
+  if (balanceInfo.data.balance < newAmount) {
+    console.log("余额不住，请更换账户");
+    return;
+  }
+
+  let inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo.data, 4);
+  if (!inOrOutputs.success) {
+    console.log("inputOutputs组装失败!");
+    return;
+  }
   //console.log(inOrOutputs);
   let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 4, agent);
   let txhex = await nuls.transactionSerialize(pri, pub, tAssemble);

@@ -134,7 +134,7 @@
         } else {
           callback()
         }
-      }
+      };
       // todo
       const validateJoinAmount = (rule, value, callback) => {
         const decimals = 8;
@@ -152,14 +152,14 @@
         } else {
           callback()
         }
-      }
+      };
       const validateJoinDeadline =  (rule, value, callback) => {
         if (value === '') {
           callback(new Error(this.$t('staking.staking28')))
         } else {
           callback()
         }
-      }
+      };
       return {
         addressInfo: this.$store.getters.getSelectAddress,
         totalStaking: 1873.24,//staking总量
@@ -224,7 +224,7 @@
       stakingList
     },
     created() {
-      this.addressInfo = this.$store.getters.getSelectAddress
+      this.addressInfo = this.$store.getters.getSelectAddress;
       this.getStackingRate();
     },
     mounted() {
@@ -241,13 +241,13 @@
         {symbol: 'BTC',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
         {symbol: 'ETH',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
         {symbol: 'BCH',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
-      ]
+      ];
       const list = [
         {height:654814,symbol: 'NVT',amount:5647.26,deadline:'1年',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00},
         {height:654814,symbol: 'BTC',amount:5647.26,deadline:'3个月',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00},
         {height:654814,symbol: 'NULS',amount:5647.26,deadline:'1年',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00},
         {height:654814,symbol: 'ETH',amount:5647.26,deadline:'活期',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00,type:1},
-      ]
+      ];
       this.pieData = data;
       // this.stakingRate = rate
       this.stakingList = list
@@ -259,31 +259,33 @@
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
-              const res = []
+              const res = [];
               response.result.map(v=>{
-                const obj={}
-                obj.symbol = v.symbol
+                const obj={};
+                obj.symbol = v.symbol;
                 // obj.
                 v.detailList.forEach((item, index)=>{
                   obj['rate'+(index+1)] = Times(item.totalAddition, 100).toFixed(2)+'%'
-                })
+                });
                 res.push(obj)
-              })
-              this.stakingRate = res
+              });
+              this.stakingRate = res;
               this.stakingRateLoading = false
             }
           })
       },
+
       //选择币种下拉
       changeCurrency(symbol) {
-        const currency = this.$store.state.accountList.filter(v=>v.symbol === symbol)[0]
+        const currency = this.$store.state.accountList.filter(v=>v.symbol === symbol)[0];
         this.currentCurrency = currency || {}
       },
+
       //加入staking
       joinStaking() {
         this.$refs.joinStakingForm.validate((valid) => {
           if (valid) {
-            this.submitType = 1
+            this.submitType = 1;
             this.$refs.password.showPassword(true);
             this.joinStakingDialog = false
           } else {
@@ -291,15 +293,17 @@
           }
         })
       },
+
       showChangeStakingDialog(e) {
-        this.currency = e.symbol
+        this.currency = e.symbol;
         this.changeStakingDialog = true
       },
+
       //转定期
       changeStaking() {
         this.$refs.changeStakingForm.validate((valid) => {
           if (valid) {
-            this.submitType = 2
+            this.submitType = 2;
             this.$refs.password.showPassword(true);
             this.changeStakingDialog = false
           } else {
@@ -307,13 +311,15 @@
           }
         })
       },
+
       //退出staking
       quitStaking(e) {
-        this.submitType = 3
+        this.submitType = 3;
         this.$refs.password.showPassword(true);
-        this.quitStakingDialog = false
+        this.quitStakingDialog = false;
         console.log(e,'quit')
       },
+
       async submit(password) {
         let passwordInfo = await passwordVerification(this.addressInfo, password);
         if (!passwordInfo.success) {
@@ -322,23 +328,26 @@
         }
         switch (this.submitType) {
           case 1:
-            this.submitJoinStaking(passwordInfo)
+            this.submitJoinStaking(passwordInfo);
             break;
           case 2:
-            this.submitChangeStaking(passwordInfo)
+            this.submitChangeStaking(passwordInfo);
             break;
           default:
             this.submitQuitStaking(passwordInfo)
         }
       },
+
       //加入staking组装交易
       submitJoinStaking(info) {
 
       },
+
       //转定期组装交易
       submitChangeStaking(info) {
 
       },
+
       //退出staking组装交易
       submitQuitStaking(info) {
 

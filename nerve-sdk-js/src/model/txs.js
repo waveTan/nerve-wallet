@@ -233,7 +233,30 @@ module.exports = {
   },
 
   /**
-   * 追加委托节点交易
+   * 加入staking
+   * @param entity
+   * @constructor
+   */
+  addStakingTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity || !entity.deposit || !entity.address || !entity.assetsChainId || !entity.assetsId || !entity.depositType || !entity.timeType) {
+      throw "Data Wrong!";
+    }
+    this.type = 5;
+    let bw = new Serializers();
+    bw.writeBigInt(entity.deposit);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.address));
+    bw.getBufWriter().writeUInt16LE(entity.assetsChainId);
+    bw.getBufWriter().writeUInt16LE(entity.assetsId);
+    bw.getBufWriter().write(Buffer.from([entity.depositType]));
+    bw.getBufWriter().write(Buffer.from([entity.timeType]));
+    this.txData = bw.getBufWriter().toBuffer();
+
+  },
+
+  /**
+   * 追加保证金
    * @param entity
    * @constructor
    */
@@ -252,46 +275,42 @@ module.exports = {
   },
 
   /**
-   * 添加staking交易
+   * 退出保证金
    * @param entity
    * @constructor
    */
-  addStakingTransaction: function (entity) {
+  WithdrawTransaction: function (entity) {
+    //console.log(entity);
     Transaction.call(this);
     //对象属性结构
-    if (!entity || !entity.address || !entity.agentHash || !entity.deposit) {
+    if (!entity || !entity.address || !entity.agentHash || !entity.amount) {
       throw "Data Wrong!";
     }
-    this.type = 28; //todo 类型待确定
+    this.type = 29;
     let bw = new Serializers();
     bw.getBufWriter().write(sdk.getBytesAddress(entity.address));
-    bw.writeBigInt(entity.deposit);
-    bw.getBufWriter().writeUInt16LE(entity.assetsChainId);
-    bw.getBufWriter().writeUInt16LE(entity.assetsId);
-    bw.getBufWriter().write(Buffer.from([entity.depositType]));
-    bw.getBufWriter().write(Buffer.from([entity.timeType]));
-
+    bw.writeBigInt(entity.amount);
+    bw.getBufWriter().write(Buffer.from(entity.agentHash, 'hex'));
     this.txData = bw.getBufWriter().toBuffer();
   },
 
   /**
-   * 注销节点交易
-   * @param agentHash
+   * 注销节点
+   * @param entity
    * @constructor
    */
   StopAgentTransaction: function (entity, lockTime) {
-    console.log(entity);
     Transaction.call(this);
     if (!entity || !entity.address || !entity.agentHash) {
       throw "Data wrong!";
     }
     this.type = 9;
     this.time = lockTime;
+
     let bw = new Serializers();
-    bw.getBufWriter().write(sdk.getBytesAddress(entity.address));
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.address));
     bw.getBufWriter().write(Buffer.from(entity.agentHash, 'hex'));
     this.txData = bw.getBufWriter().toBuffer();
-    //this.txData = Buffer.from(agentHash, 'hex');
   },
 
 };

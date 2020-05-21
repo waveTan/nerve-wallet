@@ -12,7 +12,8 @@
       </div>
       <div class="body clear">
         <div class="left-part">
-          <p>{{$t('consensusInfo.consensusInfo8')}} <label>{{nodeInfo.agentAlias ? nodeInfo.agentAlias :'-' }}</label></p>
+          <p>{{$t('consensusInfo.consensusInfo8')}} <label>{{nodeInfo.agentAlias ? nodeInfo.agentAlias :'-' }}</label>
+          </p>
           <p>{{$t('public.createAddress')}} <label>{{nodeInfo.agentAddress}}</label></p>
           <p>{{$t('public.rewardAddress')}} <label>{{nodeInfo.rewardAddress}}</label></p>
           <p>{{$t('public.packingAddress')}} <label>{{nodeInfo.packingAddress}}</label></p>
@@ -39,19 +40,23 @@
               </u>
             </label>
           </p>
-          <el-button class="fr" type="danger" @click="stopNode" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensusInfo.consensusInfo5')}}</el-button>
+          <el-button class="fr" type="danger" @click="stopNode" v-if="addressInfo.address===nodeInfo.agentAddress">
+            {{$t('consensusInfo.consensusInfo5')}}
+          </el-button>
         </div>
       </div>
     </div>
-
-
     <div v-loading="nodeDepositLoading" class="entrust-list">
       <div class="head">
         {{$t('public.total')}} {{pageTotal+' ' +$t('public.item') + ' ' +$t('consensus.consensus18')}},
         {{$t('consensus.consensus19')+ ' '+nodeInfo.deposits+ ' '+ agentAsset.agentAsset.symbol}},
         {{$t('consensus.consensus16')+ ' '+nodeInfo.reward+ ' '+ agentAsset.agentAsset.symbol}}
-        <el-button type="danger" class="fr" @click="quit" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensusInfo.consensusInfo0')}}</el-button>
-        <el-button type="primary" class="fr" @click="addition" v-if="addressInfo.address===nodeInfo.agentAddress">{{$t('consensus.consensus20')}}</el-button>
+        <el-button type="danger" class="fr" @click="quit" v-if="addressInfo.address===nodeInfo.agentAddress">
+          {{$t('consensusInfo.consensusInfo0')}}
+        </el-button>
+        <el-button type="primary" class="fr" @click="addition" v-if="addressInfo.address===nodeInfo.agentAddress">
+          {{$t('consensus.consensus20')}}
+        </el-button>
       </div>
       <el-table :data="nodeDepositData" stripe border class="shadow1">
         <el-table-column width="30"></el-table-column>
@@ -69,7 +74,9 @@
         <el-table-column prop="createTime" :label="$t('public.time')" min-width="90">
         </el-table-column>
         <el-table-column :label="$t('public.status')" min-width="60">
-          <template v-slot="scope">{{scope.row.type===1 ? $t('consensusInfo.consensusInfo13'):$t('consensusInfo.consensusInfo14')}}</template>
+          <template v-slot="scope">{{scope.row.type===1 ?
+            $t('consensusInfo.consensusInfo13'):$t('consensusInfo.consensusInfo14')}}
+          </template>
         </el-table-column>
       </el-table>
       <div class="pages">
@@ -83,11 +90,16 @@
                        :total="pageTotal">
         </el-pagination>
       </div>
-      <el-dialog class="form-dialog" :title="operateType===1?$t('consensus.consensus20'):$t('consensusInfo.consensusInfo0')" :visible.sync="additionDialog" width="38rem">
+      <el-dialog class="form-dialog"
+                 :title="operateType===1?$t('consensus.consensus20'):$t('consensusInfo.consensusInfo0')"
+                 :visible.sync="additionDialog" width="38rem">
         <el-form :model="jionNodeForm" status-icon :rules="jionNodeRules" ref="jionNodeForm">
-          <el-form-item :label="operateType===1?$t('consensusInfo.consensusInfo1'):$t('consensusInfo.consensusInfo15')+': '" prop="amount">
+          <el-form-item
+                  :label="operateType===1?$t('consensusInfo.consensusInfo1'):$t('consensusInfo.consensusInfo15')+': '"
+                  prop="amount">
             <span class="balance font12 fr" v-if="operateType===1">{{$t('consensus.consensus2')}}：{{balanceInfo.balance/100000000}}</span>
             <el-input v-model="jionNodeForm.amount"></el-input>
+            <!--<div class="fred font12">最小金额为2000</div>-->
           </el-form-item>
           <el-form-item :label="$t('public.fee')+': '">
             <span class="fee">0.001 NVT</span>
@@ -115,7 +127,7 @@
     validateAndBroadcast,
     agentDeposistList,
     getPrefixByChainId,
-    getReduceDepositList
+    getReduceNonceList
   } from '@/api/requestData'
   import {
     timesDecimals,
@@ -133,7 +145,7 @@
   export default {
     data() {
       let checkAmount = (rule, value, callback) => {
-        let usable = Number(Minus(500000, Number(this.nodeInfo.totalDeposit)));
+        let usable = Number(Minus(Number(timesDecimals(500000)), Number(this.nodeInfo.deposit)));
         let balance = Number(Minus(this.balanceInfo.balance, Number(Times(value, 100000000))));
         let re = /^\d+(?=\.{0,1}\d+$|$)/;
         let res = /^\d{1,8}(\.\d{1,8})?$/;
@@ -147,18 +159,20 @@
           } else if (value > usable) {
             return callback(new Error(this.$t('consensusInfo.consensusInfo41') + usable + this.$t('consensusInfo.consensusInfo42')));
           } else if (balance < 0.001) {
-            return callback(new Error(this.$t('transfer.transfer131') + Number(Minus(Number(timesDecimals(this.balanceInfo.balance)), 0.001))));
+            return callback(new Error(this.$t('transfer.transfer131') + Number(Minus(Number(divisionDecimals(this.balanceInfo.balance)), 0.001))));
           } else {
             callback()
           }
         } else {
+          //console.log(this.nodeInfo);
+          let maxNumber = Number(Minus(this.nodeInfo.deposit, 2000000000000));
           if (!value) {
             return callback(new Error(this.$t('consensusInfo.consensusInfo16')));
           } else if (!re.exec(value) || !res.exec(value)) {
-            callback(new Error(this.$t('consensusInfo.consensusInfo17')))
-          } /*else if (value > usable) {
-            callback(new Error(this.$t('consensusInfo.consensusInfo17')))
-          }*/ else {
+            return callback(new Error(this.$t('consensusInfo.consensusInfo17')))
+          } else if (value > Number(divisionDecimals(maxNumber))) {
+            return callback(new Error("您最多可以退出:" + Number(divisionDecimals(maxNumber))))
+          } else {
             callback()
           }
         }
@@ -199,7 +213,7 @@
     },
     watch: {
       '$store.getters.getSelectAddress': {
-        handler: function(val, old) {
+        handler: function (val, old) {
           if (val.address !== old.address) {
             this.addressInfo = this.$store.getters.getSelectAddress;
             this.jionNodeForm.amount = '';
@@ -231,7 +245,7 @@
       this.getSelectAddressInfo();
       this.getNodeInfoByHash();
       agentDeposistList(this.$route.query.hash);
-      getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash,'',8000)
+      //getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash, '', 8000)
     },
     mounted() {
     },
@@ -256,13 +270,12 @@
 
       /**
        * 根据hash获取节点详情信息
-       * @param hash
        **/
       getNodeInfoByHash() {
-        this.nodeInfoLoading = true
+        this.nodeInfoLoading = true;
         this.$post('/', 'getConsensusNode', [this.$route.query.hash])
           .then((response) => {
-            this.nodeInfoLoading = false
+            this.nodeInfoLoading = false;
             console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.agentReward = divisionDecimals(response.result.agentReward);
@@ -280,14 +293,10 @@
 
       /**
        * 根据hash获取节点委托列表
-       * @param pageIndex
-       * @param pageSize
-       * @param address
-       * @param hash
        **/
       getNodeDepositByHash() {
         this.nodeDepositLoading = true;
-        const params = [this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash]
+        const params = [this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash];
         this.$post('/', 'getAccountDeposit', params)
           .then((response) => {
             //console.log(response);
@@ -319,16 +328,18 @@
         this.getNodeDepositByHash(this.pageIndex, this.pageSize, this.addressInfo.address, this.$route.query.hash);
       },
 
+      //追加保证金
       addition() {
-        this.additionDialog = true
-        this.passwordType = 0
+        this.additionDialog = true;
+        this.passwordType = 0;
       },
 
+      //退出保证金
       quit() {
-        this.additionDialog = true
-        this.passwordType = 1
-        const reduceAmount = Number(Times(this.jionNodeForm.amount, 100000000))
-        getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash, '', reduceAmount)
+        this.additionDialog = true;
+        this.passwordType = 1;
+        const reduceAmount = Number(Times(this.jionNodeForm.amount, 100000000));
+        //getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash, '', reduceAmount)
       },
 
       //追加,退出保证金
@@ -345,12 +356,9 @@
 
       /**
        * 获取账户余额
-       * @param assetChainId
-       * @param assetId
-       * @param address
        **/
       getBalanceByAddress() {
-        const params = [this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address]
+        const params = [this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address];
         getNulsBalance(...params).then((response) => {
           //console.log(response);
           if (response.success) {
@@ -377,12 +385,12 @@
         const pri = nerve.decrypteOfAES(this.addressInfo.aesPri, password);
         const newAddressInfo = nerve.importByKey(this.addressInfo.chainId, pri, password, this.prefix);
         if (newAddressInfo.address === this.addressInfo.address) {
-          const amount = Number(Times(this.jionNodeForm.amount, 100000000))
+          const amount = Number(Times(this.jionNodeForm.amount, 100000000));
           let transferInfo = {
             fromAddress: this.addressInfo.address,
             assetsChainId: this.agentAsset.agentAsset.chainId,
             assetsId: this.agentAsset.agentAsset.assetId,
-            amount,
+            amount: amount,
             fee: 100000
           };
           let inOrOutputs = {};
@@ -394,7 +402,7 @@
             let depositInfo = {
               address: this.addressInfo.address,
               agentHash: this.$route.query.hash,
-              amount
+              amount: amount,
             };
             if (!inOrOutputs.success) {
               this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
@@ -403,80 +411,59 @@
             let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 28, depositInfo);
             txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
           } else if (this.passwordType === 1) { //退出保证金
-            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 29);
-            //console.log(inOrOutputs);
-            if (inOrOutputs.success) {
-              let newInputs = [];
-              let newOutputs = inOrOutputs.data.outputs
+            let depositHash = this.nodeInfo.txHash;
+            let reduceNonceList = await getReduceNonceList(depositHash, amount, 0);
+            //console.log(reduceNonceList);
+            if (!reduceNonceList.success) {
+              console.log("获取退出保证金ReduceNonceList错误");
+              return;
+            }
+            transferInfo.depositHash = depositHash;
+            transferInfo.nonceList = reduceNonceList.data;
 
-              //查询委托列表，计算input output
-              const depositList = await agentDeposistList(this.$route.query.hash) //await getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash,1,'')
-              for (let i = 0; i < 2; i++) {
-                const itme = depositList.list[i]
-                newInputs.push({
-                  address: itme.address,
-                  assetsChainId: this.agentAsset.agentAsset.chainId,
-                  assetsId: this.agentAsset.agentAsset.assetId,
-                  amount: itme.amount,
-                  locked: -1,
-                  nonce: itme.txHash.substring(itme.txHash.length - 16)//这里是hash的最后16个字符
-                });
-              }
-              const depositInfo = {
-                address: this.addressInfo.address,
-                agentHash: this.$route.query.hash,
-              };
-              let tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 29, depositInfo);
-              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
-            } else {
-              this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
-            }
-            /*transferInfo.amount = Number(Times(this.jionNodeForm.amount, 100000000));
-            transferInfo.depositHash = this.$route.query.hash;
             inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 29);
             //console.log(inOrOutputs);
-            if (inOrOutputs.success) {
-              let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 29, this.outInfo.txHash);
-              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
-            } else {
-              this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
-            }*/
+            if (!inOrOutputs.success) {
+              this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 3000});
+              console.log("inputOutputs组装失败!");
+              return;
+            }
+
+            let entity = {agentHash: depositHash, address: transferInfo.fromAddress, amount: transferInfo.amount};
+            let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 29, entity);
+            txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
+
           } else if (this.passwordType === 2) { //注销节点
+            let agentHash = this.nodeInfo.txHash;
+            let reduceNonceList = await getReduceNonceList(agentHash, '0', 1);
+            //console.log(reduceNonceList);
+            if (!reduceNonceList.success) {
+              console.log("获取退出保证金ReduceNonceList错误");
+              return;
+            }
+            transferInfo.nonceList = reduceNonceList.data;
             transferInfo.amount = this.nodeInfo.deposit;
+
             inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 9);
-            //console.log(inOrOutputs);
-            if (inOrOutputs.success) {
-              let newInputs = []
-              let newOutputs = inOrOutputs.data.outputs
-              //查询委托列表，计算input output
-              const depositList = await agentDeposistList(this.$route.query.hash) //await getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash,1,'')
-              for (let item of depositList.list) {
-                newInputs.push({
-                  address: item.address,
-                  assetsChainId: this.agentAsset.agentAsset.chainId,
-                  assetsId: this.agentAsset.agentAsset.assetId,
-                  amount: item.amount,
-                  locked: -1,
-                  nonce: item.txHash.substring(item.txHash.length - 16)//这里是hash的最后16个字符
-                });
-              }
-              newOutputs[0].lockTime = newOutputs[0].lockTime + 86400 * 3;
-              let tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
-              let newFee = countFee(tAssemble, 1);
-              if (transferInfo.fee !== newFee) {
-                transferInfo.fee = newFee;
-                newOutputs[0].amount = Number(Minus(this.nodeInfo.deposit, newFee).toString());
-                tAssemble = await nerve.transactionAssemble(newInputs, newOutputs, remark, 9, this.$route.query.hash);
-              }
-              txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
+            console.log(inOrOutputs);
+            if (!inOrOutputs.success) {
+              console.log("inputOutputs组装失败!");
+              return;
             }
-            else {
-              this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 1000});
-            }
+
+            let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 9, {
+              address: transferInfo.fromAddress,
+              agentHash: agentHash
+            });
+            txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
+            console.log(txhex);
+
           }
           //console.log(txhex);
           await validateAndBroadcast(txhex).then((response) => {
             if (response.success) {
+              //console.log(response);
+              this.$message({message: this.$t('tips.tips0'), type: 'success', duration: 1000});
               this.$router.push({
                 name: "txList"
               })
@@ -572,15 +559,15 @@
           &:first-of-type {
             margin-left: 20px;
           }
-         /* position: relative;
-          right: 0;
-          bottom: 10px;*/
+          /* position: relative;
+           right: 0;
+           bottom: 10px;*/
         }
       }
       .el-table .el-table__header-wrapper {
         border-radius: 5px 5px 0 0;
       }
-      .form-dialog .el-dialog{
+      .form-dialog .el-dialog {
         .el-dialog__body {
           .fee {
             color: #606266

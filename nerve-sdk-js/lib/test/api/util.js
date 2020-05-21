@@ -75,7 +75,7 @@ module.exports = {
    * 获取inputs 、 outputs
    * @param transferInfo
    * @param balanceInfo
-   * @param type
+   * @param type 2:转账 4:创建节点 5:加入staking 6:退出staking 9:注销节点 28:追加保证金 29:退出保证金
    * @returns {*}
    */
   inputsOrOutputs(transferInfo, balanceInfo, type) {
@@ -84,57 +84,99 @@ module.exports = {
     let newNonce = balanceInfo.nonce;
     let newoutputAmount = transferInfo.amount;
     let newLockTime = 0;
-    if (balanceInfo.balance < transferInfo.amount + transferInfo.fee) {
-      return { success: false, data: "Your balance is not enough." };
-    }
+    let inputs = [];
+    let outputs = [];
+
     if (type === 4) {
       newLockTime = -1;
-    } else if (type === 28) {
+    } else if (type === 5) {
       newLockTime = -1;
-    } else if (type === 6) {
-      newAmount = transferInfo.amount;
-      newLocked = -1;
-      newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
-      newoutputAmount = transferInfo.amount - transferInfo.fee;
     } else if (type === 9) {
-      newAmount = transferInfo.amount;
-      newLocked = -1;
-      newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
+      //注销节点
+      newoutputAmount = transferInfo.amount - transferInfo.fee;
+      let times = new Date().valueOf() + 3600000 * 72; //锁定三天
+      newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
+      for (let item of transferInfo.nonceList) {
+        let newArr = {
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: item.deposit,
+          locked: -1,
+          nonce: item.nonce
+        };
+        inputs.push(newArr);
+      }
+
+      outputs.push({
+        address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: newoutputAmount,
+        lockTime: newLockTime
+      });
+      return { success: true, data: { inputs: inputs, outputs: outputs } };
+    } else if (type === 28) {
+      //追加保证金
+      newLockTime = -1;
+    } else if (type === 29) {
+      //退出保证金
       newoutputAmount = transferInfo.amount - transferInfo.fee;
       //锁定三天
       let times = new Date().valueOf() + 3600000 * 72;
       newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
-    } else {
-      //return {success: false, data: "No transaction type"}
+
+      for (let item of transferInfo.nonceList) {
+        let newArr = {
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: item.deposit,
+          locked: -1,
+          nonce: item.nonce
+        };
+        inputs.push(newArr);
+      }
+
+      outputs.push({
+        address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: newoutputAmount,
+        lockTime: newLockTime
+      });
+      let allAmount = 0;
+      for (let item of transferInfo.nonceList) {
+        allAmount = allAmount + Number(item.deposit);
+      }
+      outputs.push({
+        address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: allAmount - transferInfo.amount,
+        lockTime: -1
+      });
+
+      return { success: true, data: { inputs: inputs, outputs: outputs } };
     }
-    let inputs = [{
+
+    inputs.push({
       address: transferInfo.fromAddress,
       assetsChainId: transferInfo.assetsChainId,
       assetsId: transferInfo.assetsId,
       amount: newAmount,
       locked: newLocked,
       nonce: newNonce
-    }];
-    let outputs = [];
-    if (type === 15 || type === 17) {
-      return { success: true, data: { inputs: inputs, outputs: outputs } };
-    }
-    if (type === 16) {
-      if (!transferInfo.toAddress) {
-        return { success: true, data: { inputs: inputs, outputs: outputs } };
-      } else {
-        newoutputAmount = transferInfo.value;
-      }
-    }
-    // if (newoutputAmount != 0) {
-    outputs = [{
+    });
+
+    outputs.push({
       address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
       assetsChainId: transferInfo.assetsChainId,
       assetsId: transferInfo.assetsId,
       amount: newoutputAmount,
       lockTime: newLockTime
-    }];
-    // }
+    });
+
     /*console.log(inputs);
     console.log(outputs);*/
     return { success: true, data: { inputs: inputs, outputs: outputs } };
@@ -272,7 +314,7 @@ module.exports = {
    */
   async getNulsBalance(address) {
     return await http.post('/', 'getAccountBalance', [4, 1, address]).then(response => {
-      return { 'balance': response.result.balance, 'nonce': response.result.nonce };
+      return { success: true, data: { 'balance': response.result.balance, 'nonce': response.result.nonce } };
     }).catch(error => {
       return { success: false, data: error };
     });
@@ -496,7 +538,11 @@ module.exports = {
    */
   async getConsensusNode(agentHash) {
     return await http.post('/', 'getConsensusNode', [agentHash]).then(response => {
-      return response.result;
+      if (response.hasOwnProperty('result')) {
+        return { success: true, data: response.result };
+      } else {
+        return { success: false, data: response };
+      }
     }).catch(error => {
       return { success: false, data: error };
     });

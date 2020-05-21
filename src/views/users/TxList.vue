@@ -112,11 +112,9 @@
     },
     watch: {
       '$store.getters.getSelectAddress': {
-        // immediate: true,
-        // deep: true,
         handler: function(val, old) {
           if (val.address !== old.address) {
-            this.addressInfo = this.$store.getters.getSelectAddress
+            this.addressInfo = this.$store.getters.getSelectAddress;
             this.txListDataLoading = true;
             this.getTxlistByAddress()
           }
@@ -142,13 +140,10 @@
 
       /**
        * 根据地址获取交易列表
-       * @param pageSize
-       * @param pageRows
-       * @param address
-       * @param type
        **/
       getTxlistByAddress() {
-        const params = [this.pageIndex, this.pageSize, this.addressInfo.address, this.types, -1, -1]
+        const params = [this.pageIndex, this.pageSize, this.addressInfo.address, this.types, -1, -1];
+        //console.log(params);
         this.$post('/', 'getAccountTxs', params)
           .then((response) => {
             //console.log(response);

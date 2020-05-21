@@ -150,9 +150,9 @@
         isRed: false,//创建地址是否有红牌惩罚
         //创建节点表单
         createrForm: {
-          rewardAddress: '',
-          blockAddress: '',
-          amount: '',
+          rewardAddress: 'TNVTdN9iB7VveoFG4GwYMRAFAF2Rsyrj9mjR3',
+          blockAddress: 'TNVTdN9iDxSXVo4JJMHELHAeZbEwyt1WtZEcA',
+          amount: '20008',
         },
         createrRules: {
           rewardAddress: [
@@ -173,11 +173,9 @@
     },
     watch: {
       '$store.getters.getSelectAddress': {
-        // immediate: true,
-        // deep: true,
-        handler: function(val, old) {
+        handler: function (val, old) {
           if (val.address !== old.address) {
-            this.addressInfo = this.$store.getters.getSelectAddress
+            this.addressInfo = this.$store.getters.getSelectAddress;
             this.getSelectAddressInfo()
           }
         }
@@ -204,6 +202,7 @@
         this.getPunishByAddress(this.addressInfo.address);
         this.getBalanceByAddress(this.agentAsset.agentAsset.chainId, this.agentAsset.agentAsset.assetId, this.addressInfo.address);
       },
+
       /**
        * 创建节点提交
        * @param formName
@@ -259,27 +258,7 @@
        *  确定框确定提交
        **/
       async confiremSubmit() {
-        if (this.addressInfo.aesPri === '') {
-          this.getNewConsensusRandomString = await getRamNumber(16);
-          this.sendNewConsensusRandomString = await getRamNumber(16);
-          let assembleHex = await this.newConsensusAssemble();
-          if (!assembleHex.success) {
-            this.$message({message: this.$t('tips.tips3'), type: 'error', duration: 3000});
-            return;
-          }
-          let commitDatas = await commitData(this.getNewConsensusRandomString, this.sendNewConsensusRandomString,this.addressInfo.address,assembleHex.data);
-          if (!commitDatas.success) {
-            this.$message({
-              message: this.$t('tips.tips4') + JSON.stringify(commitDatas.data),
-              type: 'error',
-              duration: 3000
-            });
-            return;
-          }
-          this.$refs.password.showScan(commitDatas.data.txInfo, commitDatas.data.assembleHex);
-        } else {
-          this.$refs.password.showPassword(true);
-        }
+        this.$refs.password.showPassword(true);
       },
 
       /**
@@ -342,11 +321,9 @@
           agentAddress: this.addressInfo.address,
           packingAddress: this.createrForm.blockAddress,
           rewardAddress: this.createrForm.rewardAddress,
-          // commissionRate: Number(this.createrForm.rate),
           deposit: Number(Times(this.createrForm.amount, 100000000).toString())
         };
         let data = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 4, agent);
-        console.log(data);
         return {
           success: true,
           data: data

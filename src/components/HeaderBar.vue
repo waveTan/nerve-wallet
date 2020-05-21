@@ -100,9 +100,9 @@
     mounted() {
       setInterval(() => {
         this.symbol = sessionStorage.hasOwnProperty('info') ? JSON.parse(sessionStorage.getItem('info')).symbol : 'NVT';
-        if (this.symbol !== 'TNVT' && this.symbol !== 'NVT') {
+        /*if (this.symbol !== 'TNVT' && this.symbol !== 'NVT') {
           document.title = this.symbol + " Wallet";
-        }
+        }*/
       }, 500)
     },
     methods: {

@@ -408,10 +408,10 @@
             newAddressInfos.aesPri = this.newAddressInfo.aesPri;
             newAddressInfos.pub = this.newAddressInfo.pub;
             const addressList = localStorageByAddressInfo(newAddressInfos);
-            this.$store.commit('setAddressInfo', addressList)
+            this.$store.commit('setAddressInfo', addressList);
             this.$router.push({
               name: "backupsAddress",
-              query: {'backAddressInfo': newAddressInfos}
+              query: {'backAddressInfo': newAddressInfos.address}
             })
           } else {
             return false;

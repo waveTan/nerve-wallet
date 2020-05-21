@@ -3,11 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "cross-env NULS_ENV=prod vue-cli-service serve src/main",
+    "serve-prod": "cross-env NULS_ENV=prod vue-cli-service serve src/main",
     "serve-beta": "cross-env NULS_ENV=beta vue-cli-service serve src/main",
-    "serve-other": "cross-env NULS_ENV=other vue-cli-service serve src/main",
-    "build": "cross-env NULS_ENV=prod vue-cli-service build src/main",
-    "build-other": "cross-env NULS_ENV=other vue-cli-service build src/main",
+    "build-prod": "cross-env NULS_ENV=prod vue-cli-service build src/main",
     "build-beta": "cross-env NULS_ENV=beta vue-cli-service build src/main",
     "lint": "vue-cli-service lint"
   },

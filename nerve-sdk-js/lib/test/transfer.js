@@ -3,18 +3,18 @@ const { getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx } = r
 
 /**
  * @disc: 转账 dome
- * @date: 2019-10-18 10:40
+ * @date: 2020-05-20 13:47
  * @author: Wave
  */
 
-let pri = '9ce21dad67e0f0af2599b41b515a7f7018059418bab892a7b68f283d489abc4b';
-let pub = '03958b790c331954ed367d37bac901de5c2f06ac8368b37d7bd6cd5ae143c1d7e3';
-let fromAddress = "tNULSeBaMvEtDfvZuukDf2mVyfGo3DdiN8KLRG";
-let toAddress = 'tNULSeBaMuBCG7NkSyufjE76CVbPQMrZ5Q1v3s';
-let amount = 23000000000000;
-let remark = '首先你得有一个需要配置自动更新功能的 electron 项目。这里我为了测试自动更新功能里我为了测试自动更新功能是否成功搭建使用的是里我为了测试自动更新功能是否成功搭建使用的是里我为了测试自动更新功能是否成功搭建使用的是里我为了测试自动更新功能是否成功搭建使用的是是否成功搭建使用的是 electron-vue 脚手架搭建的项目首先你得有一个需要配置自动更新功能的 electron 项目。这里我为了测试自动更新功能是否成功搭建使用的是 electron-vue 脚手架搭建的项目首先你得有一个需要配置自动更新功能的 electron 项目。这里我为了测试自动更新功能是否成功搭建使用的是 electron-vue 脚手架搭建的项目首先你得有一个需要配置自动更新功能的  electro';
+let pri = '10d8804991ceaafa5d19dfa30d79c5091767a48da8e66b73494f0b6af8554618';
+let pub = '024bafc4a364659db1674d888bd3e0e7ab11cc4ca02dca95d548637c6b66d63f42';
+let fromAddress = "TNVTdN9iJcMNiTttfV4Wdi6wUp3k8NteoebYo";
+let toAddress = 'TNVTdN9i4JSE9C1PrZZzuQpvrzdhXakSw3UxY';
+let amount = 100000000;
+let remark = 'transfer transaction remark...';
 //调用
-transferTransaction(pri, pub, fromAddress, toAddress, 2, 1, amount, remark);
+transferTransaction(pri, pub, fromAddress, toAddress, 4, 1, amount, remark);
 
 /**
  * 转账交易
@@ -30,6 +30,10 @@ transferTransaction(pri, pub, fromAddress, toAddress, 2, 1, amount, remark);
  */
 async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChainId, assetsId, amount, remark) {
   const balanceInfo = await getNulsBalance(fromAddress);
+  if (!balanceInfo.success) {
+    console.log("获取账户balanceInfo错误");
+    return;
+  }
 
   let transferInfo = {
     fromAddress: fromAddress,
@@ -39,26 +43,33 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
     amount: amount,
     fee: 100000
   };
-  let inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo, 2);
-  let tAssemble = []; //交易组装
-  let txhex = ""; //交易签名
-  if (inOrOutputs.success) {
-    tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);
-    //获取手续费
-    let newFee = countFee(tAssemble, 1);
-    //手续费大于0.001的时候重新组装交易及签名
-    if (transferInfo.fee !== newFee) {
-      transferInfo.fee = newFee;
-      inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo, 2);
-      tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);
-      txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-    } else {
-      txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-    }
-  } else {
-    console.log(inOrOutputs.data);
+
+  let newAmount = transferInfo.amount + transferInfo.fee;
+  if (balanceInfo.data.balance < newAmount) {
+    console.log("余额不住，请更换账户");
+    return;
   }
-  console.log(txhex);
+
+  let inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo.data, 2);
+  if (!inOrOutputs.success) {
+    console.log("inputOutputs组装失败!");
+    return;
+  }
+
+  let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2); //交易组装
+  let txhex = ""; //交易签名
+  let newFee = countFee(tAssemble, 1); //获取手续费
+  //手续费大于0.001的时候重新组装交易及签名
+  if (transferInfo.fee !== newFee) {
+    transferInfo.fee = newFee;
+    inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo, 2);
+    tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);
+    txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+  } else {
+    txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+  }
+  //console.log(txhex);
+
   let result = await validateTx(txhex);
   if (result.success) {
     console.log(result.data.value);

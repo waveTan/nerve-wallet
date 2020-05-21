@@ -163,8 +163,6 @@
     },
     watch: {
       '$store.getters.getSelectAddress': {
-        // immediate: true,
-        // deep: true,
         handler: function(val, old) {
           if (val.address !== old.address) {
             this.addressInfo = this.$store.getters.getSelectAddress;
@@ -174,6 +172,7 @@
       },
     },
     methods: {
+
       getSelectAddressInfo() {
         this.myNodeData={};
         this.myNodeLoading = true;
@@ -181,6 +180,7 @@
         this.getAddressInfoByNode(this.addressInfo);
         this.getPunishByAddress(this.addressInfo.address);
       },
+
       //判断节点类型
       judgeNodeType(bankNode, isConsensus) {
         if (bankNode) {
@@ -255,7 +255,7 @@
         this.allNodeLoading = true;
         this.$post('/', 'getConsensusNodes', [pageIndex, pageSize, type])
           .then((response) => {
-            console.log(response);
+            //console.log(response);
             if (response.hasOwnProperty("result")) {
               for (let itme of response.result.list) {
                 itme.bozhengjin = itme.deposit;
@@ -283,13 +283,15 @@
       getConsensusInfoByAddress(pageIndex, pageSize, address) {
         this.$post('/', 'getAccountConsensusNode', [address])
           .then((response) => {
-            console.log(response);
+            //console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.deposit = Number(divisionDecimals(response.result.deposit)).toFixed(3);
               response.result.totalDeposit = Number(divisionDecimals(response.result.totalDeposit)).toFixed(3);
               response.result.totalReward = Number(divisionDecimals(response.result.totalReward)).toFixed(3);
               this.myNodeLoading = false;
               this.myNodeData = response.result
+            }else {
+              this.myNodeLoading = false;
             }
           })
           .catch((error) => {

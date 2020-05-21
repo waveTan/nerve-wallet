@@ -42,7 +42,28 @@ export const explorerData = [
     selection: false,
     isDelete: false
   },
+  {
+    name: '456',
+    chainId: MAIN_INFO.chainId,
+    assetId: MAIN_INFO.assetId,
+    decimals: 8,
+    chainName: 'nerve',
+    urls: 'http://seede.nuls.io:17003',
+    delay: '10ms',
+    selection: false,
+    isDelete: false
+  },
+  {
+    name: '789',
+    chainId: MAIN_INFO.chainId,
+    assetId: MAIN_INFO.assetId,
+    decimals: 8,
+    chainName: 'nerve',
+    urls: 'http://192.168.1.141:17003',
+    delay: '10ms',
+    selection: false,
+    isDelete: false
+  },
 ];
 //默认浏览器地址（跳转地址）
 export const explorerUrl = IS_DEV ? 'http://beta.nervecan.nervedex.com/' : 'https://nervecan.nervedex.com/';
-

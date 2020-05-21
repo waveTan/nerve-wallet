@@ -64,7 +64,7 @@ async function setAlias(pri, pub, fromAddress, toAddress, assetsChainId, assetsI
 
   /*let getHex = await  sdk.appSplicingPub(txSignature);
   console.log(getHex);
-   let txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+    let txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
   console.log(txhex);*/
   let result = await validateTx(txhex.toString('hex'));
   console.log(result);
