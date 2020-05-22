@@ -40,7 +40,7 @@
           </el-table-column>
           <el-table-column prop="number" :label="$t('tab.tab37')" width="170">
           </el-table-column>
-          <el-table-column :label="$t('tab.tab38')" width="170">
+          <el-table-column :label="$t('tab.tab38')" width="180">
             <template slot-scope="scope">
               ${{scope.row.valuation | toThousands}}
             </template>

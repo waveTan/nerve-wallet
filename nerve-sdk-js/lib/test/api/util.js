@@ -90,7 +90,94 @@ module.exports = {
     if (type === 4) {
       newLockTime = -1;
     } else if (type === 5) {
-      newLockTime = -1;
+      if (transferInfo.defaultAssetsInfo) {
+        // 加入的资产不是nvt input组装两个
+        let newArr = {
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: transferInfo.amount,
+          locked: 0,
+          nonce: balanceInfo.nonce
+        };
+        inputs.push(newArr);
+        let feeArr = {
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.defaultAssetsInfo.chainId,
+          assetsId: transferInfo.defaultAssetsInfo.assetsId,
+          amount: transferInfo.fee,
+          locked: 0,
+          nonce: transferInfo.feeBalanceInfo.nonce
+        };
+        inputs.push(feeArr);
+      } else {
+        // 加入的资产是nvt 合并amount+fee
+        inputs.push({
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: transferInfo.amount + transferInfo.fee,
+          locked: 0,
+          nonce: balanceInfo.nonce
+        });
+      }
+
+      outputs.push({
+        address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: transferInfo.amount,
+        lockTime: transferInfo.locked
+      });
+      return { success: true, data: { inputs: inputs, outputs: outputs } };
+    } else if (type === 6) {
+      if (transferInfo.defaultAssetsInfo) {
+        // 加入的资产不是nvt input组装两个
+        let newArr = {
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: transferInfo.amount,
+          locked: 0,
+          nonce: balanceInfo.nonce
+        };
+        inputs.push(newArr);
+        let feeArr = {
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.defaultAssetsInfo.chainId,
+          assetsId: transferInfo.defaultAssetsInfo.assetsId,
+          amount: transferInfo.fee,
+          locked: 0,
+          nonce: transferInfo.feeBalanceInfo.nonce
+        };
+        inputs.push(feeArr);
+        outputs.push({
+          address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: transferInfo.amount,
+          lockTime: 0
+        });
+      } else {
+        // 加入的资产是nvt 合并amount+fee
+        inputs.push({
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: transferInfo.amount,
+          locked: 0,
+          nonce: balanceInfo.nonce
+        });
+        outputs.push({
+          address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,
+          assetsId: transferInfo.assetsId,
+          amount: transferInfo.amount - transferInfo.fee,
+          lockTime: 0
+        });
+      }
+
+      return { success: true, data: { inputs: inputs, outputs: outputs } };
     } else if (type === 9) {
       //注销节点
       newoutputAmount = transferInfo.amount - transferInfo.fee;
@@ -312,8 +399,8 @@ module.exports = {
    * @param address
    * @returns {Promise<AxiosResponse<any>>}
    */
-  async getNulsBalance(address) {
-    return await http.post('/', 'getAccountBalance', [4, 1, address]).then(response => {
+  async getNulsBalance(address, chainId = 4, assetId = 1) {
+    return await http.post('/', 'getAccountBalance', [chainId, assetId, address]).then(response => {
       return { success: true, data: { 'balance': response.result.balance, 'nonce': response.result.nonce } };
     }).catch(error => {
       return { success: false, data: error };

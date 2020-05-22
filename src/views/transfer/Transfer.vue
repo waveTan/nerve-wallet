@@ -41,7 +41,8 @@
         <li><span>{{$t('public.remarks')}}：</span><font>{{transferForm.remarks}}</font></li>
       </ul>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="transferFormDialog = false" style="margin-right: 20px">{{$t('address.address10')}}</el-button>
+        <el-button @click="transferFormDialog = false" style="margin-right: 20px">{{$t('address.address10')}}
+        </el-button>
         <el-button type="primary" @click="confirmSubmission">{{$t('transfer.transfer8')}}</el-button>
       </div>
     </el-dialog>
@@ -132,16 +133,17 @@
     },
     watch: {
       '$store.getters.getSelectAddress': {
-        handler: function(val, old) {
+        handler: function (val, old) {
           if (val.address !== old.address) {
-            this.initInfo()
+            this.initInfo();
             this.changeAssetType(this.changeAssetInfo);
           }
         }
       }
     },
     created() {
-      this.assetList = this.$store.state.accountList
+      this.assetList = this.$store.state.accountList;
+      console.log(this.assetList);
       this.initInfo()
     },
     mounted() {
@@ -164,7 +166,7 @@
     methods: {
       //初始化选中账户数据
       initInfo() {
-        this.addressInfo = this.$store.getters.getSelectAddress
+        this.addressInfo = this.$store.getters.getSelectAddress;
         this.transferForm.fromAddress = this.addressInfo.address;
       },
 
@@ -254,7 +256,7 @@
         let txhex = tAssemble.txSerialize().toString("hex");
         //console.log(txhex.toString('hex'));
         let broadcastResult = await validateAndBroadcast(txhex.toString('hex'));
-        //console.log(broadcastResult);
+        console.log(broadcastResult);
         if (!broadcastResult.success) {
           this.$message({
             message: this.$t('public.err') + JSON.stringify(broadcastResult),
@@ -276,8 +278,6 @@
       /**
        * 获取inputs and outputs
        * @param transferInfo
-       * @param balanceInfo
-       * @param type
        * @returns {*}
        **/
       async inputsOrOutputs(transferInfo) {

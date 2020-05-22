@@ -279,6 +279,7 @@
           //验证并广播交易
           await validateAndBroadcast(txhex).then((response) => {
             //console.log(response);
+            this.$message({message: this.$t('tips.tips0'), type: 'success', duration: 1000});
             if (response.success) {
               this.$router.push({
                 name: "txList"
@@ -287,10 +288,10 @@
               this.$message({message: this.$t('error.' + response.data.code), type: 'error', duration: 3000});
             }
           }).catch((err) => {
-            this.$message({message: this.$t('public.err0') + err, type: 'error', duration: 1000});
+            this.$message({message: this.$t('public.err0') + err, type: 'error', duration: 3000});
           });
         } else {
-          this.$message({message: this.$t('address.address13'), type: 'error', duration: 1000});
+          this.$message({message: this.$t('address.address13'), type: 'error', duration: 3000});
         }
       },
 

@@ -25,24 +25,26 @@
         </div>
         <div class="staking-rate shadow1 fl">
           <h3>{{$t('staking.staking3')}}</h3>
-          <el-table :data="stakingRate" stripe max-height="220" v-loading="stakingRateLoading">
-            <el-table-column width="10"></el-table-column>
-            <el-table-column fixed width="80" :label="$t('staking.staking4')" prop="symbol"></el-table-column>
-            <el-table-column width="90" :label="$t('staking.staking5')" prop="rate1"></el-table-column>
-            <el-table-column width="90" :label="$t('staking.staking6')" prop="rate2"></el-table-column>
-            <el-table-column width="100" :label="$t('staking.staking7')" prop="rate3"></el-table-column>
-            <el-table-column width="90" :label="$t('staking.staking8')" prop="rate4"></el-table-column>
-            <el-table-column width="90" :label="$t('staking.staking9')" prop="rate5"></el-table-column>
-            <el-table-column width="90" :label="$t('staking.staking10')" prop="rate6"></el-table-column>
-            <el-table-column width="90" :label="$t('staking.staking11')" prop="rate7"></el-table-column>
-            <el-table-column width="90" :label="$t('staking.staking12')" prop="rate8"></el-table-column>
+          <el-table :data="stakingRate" stripe max-height="220" v-loading="stakingRateLoading"
+                    class="staking_rate_table">
+            <el-table-column fixed width="80" :label="$t('staking.staking4')" align="center"
+                             prop="symbol"></el-table-column>
+            <el-table-column width="78" :label="$t('staking.staking5')" align="center" prop="rate1"></el-table-column>
+            <el-table-column width="85" :label="$t('staking.staking6')" align="center" prop="rate2"></el-table-column>
+            <el-table-column width="95" :label="$t('staking.staking7')" align="center" prop="rate3"></el-table-column>
+            <el-table-column width="82" :label="$t('staking.staking8')" align="center" prop="rate4"></el-table-column>
+            <el-table-column width="78" :label="$t('staking.staking9')" align="center" prop="rate5"></el-table-column>
+            <el-table-column width="78" :label="$t('staking.staking10')" align="center" prop="rate6"></el-table-column>
+            <el-table-column width="78" :label="$t('staking.staking11')" align="center" prop="rate7"></el-table-column>
+            <el-table-column width="88" :label="$t('staking.staking12')" align="center" prop="rate8"></el-table-column>
           </el-table>
         </div>
       </div>
       <div class="my-staking">
         <el-tabs v-model="activeTab">
           <el-tab-pane :label="$t('staking.staking13')" name="first">
-          <staking-list staking :data="stakingList" @changeStaking="showChangeStakingDialog" @quitStaking="quitStaking" />
+            <staking-list staking :data="stakingList" @changeStaking="showChangeStakingDialog"
+                          @quitStaking="quitStaking"/>
           </el-tab-pane>
           <el-tab-pane :label="$t('staking.staking14')" name="second">
             <staking-list :data="stakingList"/>
@@ -51,27 +53,32 @@
       </div>
     </div>
     <!--加入staking弹窗-->
-    <el-dialog :title="$t('staking.staking1')" :visible.sync="joinStakingDialog" class="join-staking-dialog form-dialog" width="600px">
+    <el-dialog :title="$t('staking.staking1')" :visible.sync="joinStakingDialog" class="join-staking-dialog form-dialog"
+               width="600px">
       <el-form ref="joinStakingForm" :model="joinStakingModel" :rules="joinStakingRule">
         <el-form-item :label="$t('staking.staking4')+': '" prop="currency">
           <el-select v-model="joinStakingModel.currency" @change="changeCurrency">
-            <el-option v-for="item in $store.state.accountList" :key="item.assetKey" :label="item.symbol" :value="item.symbol">
+            <el-option v-for="item in $store.state.accountList" :key="item.assetKey" :label="item.symbol"
+                       :value="item.symbol">
             </el-option>
           </el-select>
         </el-form-item>
-        <div class="fr font12" style="padding: 8px 0 0 0">{{$t('public.usableBalance')}}: {{currentCurrency.available}}</div>
+        <div class="fr font12" style="padding: 8px 0 0 0">{{$t('public.usableBalance')}}:
+          {{currentCurrency.available}}
+        </div>
         <el-form-item :label="$t('staking.staking16')+': '" prop="amount">
           <el-input v-model="joinStakingModel.amount"></el-input>
         </el-form-item>
         <el-form-item :label="$t('staking.staking17')+': '" prop="deadline">
           <el-select v-model="joinStakingModel.deadline">
-            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label"
+                       :value="item.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('staking.staking29')+': '">
           <span class="estimate">123456798 {{prefix}} (+64.15%)</span>
         </el-form-item>
-<!--        <div class="estimate">{{$t('staking.staking29')}}: 123456798 {{prefix}} (+64.15%)</div>-->
+        <!--        <div class="estimate">{{$t('staking.staking29')}}: 123456798 {{prefix}} (+64.15%)</div>-->
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="joinStakingDialog=false">{{$t('password.password2')}}</el-button>
@@ -79,24 +86,27 @@
       </div>
     </el-dialog>
     <!--更改staking弹窗-->
-    <el-dialog :title="$t('staking.staking30')" :visible.sync="changeStakingDialog" class="change-staking-dialog form-dialog" width="600px">
+    <el-dialog :title="$t('staking.staking30')" :visible.sync="changeStakingDialog"
+               class="change-staking-dialog form-dialog" width="600px">
       <el-form ref="changeStakingForm" :model="changeStakingModel" :rules="changeStakingRule">
         <el-form-item :label="$t('staking.staking4')+': '">
           <span class="currency-label">{{currency}}</span>
         </el-form-item>
-<!--        <div class="currency-label">{{$t('staking.staking4')}}: {{currency}}</div>-->
+        <!-- <div class="currency-label">{{$t('staking.staking4')}}: {{currency}}</div>-->
         <div class="fr font12" style="padding: 8px 0 0 0">{{$t('public.usableBalance')}}: {{addressInfo.balance}}</div>
         <el-form-item :label="$t('staking.staking16')+': '" prop="amount">
           <el-input v-model="changeStakingModel.amount"></el-input>
         </el-form-item>
         <el-form-item :label="$t('staking.staking17')+': '" prop="deadline">
           <el-select v-model="changeStakingModel.deadline">
-            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label"
+                       :value="item.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('nav.consensus')+': '" prop="node">
           <el-select v-model="changeStakingModel.node">
-            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label"
+                       :value="item.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('staking.staking29')+': '">
@@ -114,21 +124,23 @@
 </template>
 
 <script>
+  import nerve from 'nerve-sdk-js'
   import PieChart from '@/components/PieChart'
   import Password from '@/components/PasswordBar'
   import stakingList from "./stakingList"
   import {MAIN_INFO} from '@/config'
-  import {passwordVerification, Minus, Times} from '@/api/util'
+  import {passwordVerification, Minus, Times, timesDecimals} from '@/api/util'
+  import {getNulsBalance, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
+
   export default {
-    name: "",
     data() {
       this.chartExtends = {
         series: {
           center: ['45%', '50%'],
           radius: ['52%', '76%'],
         }
-      }
-      const validateJoinCurrency =  (rule, value, callback) => {
+      };
+      const validateJoinCurrency = (rule, value, callback) => {
         if (value === '') {
           callback(new Error(this.$t('staking.staking26')))
         } else {
@@ -153,7 +165,7 @@
           callback()
         }
       };
-      const validateJoinDeadline =  (rule, value, callback) => {
+      const validateJoinDeadline = (rule, value, callback) => {
         if (value === '') {
           callback(new Error(this.$t('staking.staking28')))
         } else {
@@ -162,16 +174,16 @@
       };
       return {
         addressInfo: this.$store.getters.getSelectAddress,
-        totalStaking: 1873.24,//staking总量
-        totalReward: 211.52559523, //staking总奖励
+        totalStaking: 0,//staking总量
+        totalReward: 0, //staking总奖励
         prefix: MAIN_INFO.prefix,
         pieData: [],
         stakingRateLoading: true,
         stakingRate: [], //staking利率
         activeTab: 'first',
-        stakingList:[],
+        stakingList: [],
         joinStakingDialog: false, //加入staking弹窗
-        joinStakingModel:{
+        joinStakingModel: {
           currency: '',
           amount: '',
           deadline: ''
@@ -198,7 +210,7 @@
     },
     watch: {
       '$store.getters.getSelectAddress': {
-        handler: function(val, old) {
+        handler: function (val, old) {
           if (val.address !== old.address) {
             this.addressInfo = this.$store.getters.getSelectAddress
           }
@@ -208,13 +220,13 @@
     computed: {
       deadlineList() {
         return [
-          {label: this.$t('staking.staking5'),value: 0},
-          {label: this.$t('staking.staking6'),value: 1},
-          {label: this.$t('staking.staking7'),value: 2},
-          {label: this.$t('staking.staking8'),value: 3},
-          {label: this.$t('staking.staking9'),value: 4},
-          {label: this.$t('staking.staking10'),value: 5},
-          {label: this.$t('staking.staking11'),value: 6},
+          {label: this.$t('staking.staking5'), value: 0},
+          {label: this.$t('staking.staking6'), value: 1},
+          {label: this.$t('staking.staking7'), value: 2},
+          {label: this.$t('staking.staking8'), value: 3},
+          {label: this.$t('staking.staking9'), value: 4},
+          {label: this.$t('staking.staking10'), value: 5},
+          {label: this.$t('staking.staking11'), value: 6},
         ]
       }
     },
@@ -225,47 +237,92 @@
     },
     created() {
       this.addressInfo = this.$store.getters.getSelectAddress;
+      this.getStackingInfo();
       this.getStackingRate();
     },
     mounted() {
-      const data = [
-        {key:'NVT',value:1,rate: 0.1},
-        {key:'NULS',value:2,rate: 0.2},
-        {key:'BTC',value:3,rate: 0.3},
-        {key:'ETH',value:3,rate: 0.4},
-        {key:'BCH',value:5,rate: 0.5}
-      ];
-      const rate = [
-        {symbol: 'NVT',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
-          {symbol: 'NULS',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
-        {symbol: 'BTC',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
-        {symbol: 'ETH',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
-        {symbol: 'BCH',rate1:'242.73%',rate2:'242.73%',rate3:'242.73%',rate4:'242.73%',rate5:'242.73%',rate6:'242.73%',rate7:'242.73%',rate8:'242.73%'},
-      ];
       const list = [
-        {height:654814,symbol: 'NVT',amount:5647.26,deadline:'1年',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00},
-        {height:654814,symbol: 'BTC',amount:5647.26,deadline:'3个月',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00},
-        {height:654814,symbol: 'NULS',amount:5647.26,deadline:'1年',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00},
-        {height:654814,symbol: 'ETH',amount:5647.26,deadline:'活期',nodeType: '银行节点',extra: '42.48%',joinTime:'2020-02-16 16:48:20',endTime:'2020-02-16 16:48:20',totalReward: 2000.00,type:1},
+        {
+          height: 654814,
+          symbol: 'NVT',
+          amount: 5647.26,
+          deadline: '1年',
+          nodeType: '银行节点',
+          extra: '42.48%',
+          joinTime: '2020-02-16 16:48:20',
+          endTime: '2020-02-16 16:48:20',
+          totalReward: 2000.00
+        },
+        {
+          height: 654814,
+          symbol: 'BTC',
+          amount: 5647.26,
+          deadline: '3个月',
+          nodeType: '银行节点',
+          extra: '42.48%',
+          joinTime: '2020-02-16 16:48:20',
+          endTime: '2020-02-16 16:48:20',
+          totalReward: 2000.00
+        },
+        {
+          height: 654814,
+          symbol: 'NULS',
+          amount: 5647.26,
+          deadline: '1年',
+          nodeType: '银行节点',
+          extra: '42.48%',
+          joinTime: '2020-02-16 16:48:20',
+          endTime: '2020-02-16 16:48:20',
+          totalReward: 2000.00
+        },
+        {
+          height: 654814,
+          symbol: 'ETH',
+          amount: 5647.26,
+          deadline: '活期',
+          nodeType: '银行节点',
+          extra: '42.48%',
+          joinTime: '2020-02-16 16:48:20',
+          endTime: '2020-02-16 16:48:20',
+          totalReward: 2000.00,
+          type: 1
+        },
       ];
-      this.pieData = data;
-      // this.stakingRate = rate
       this.stakingList = list
     },
     methods: {
+      //Staking总量
+      getStackingInfo() {
+        this.$post('/', 'getStackingInfo', [])
+          .then((response) => {
+            if (response.hasOwnProperty("result")) {
+              let total = 0;
+              response.result.map(v => {
+                total += v.usdValue;
+                this.pieData.push({
+                  key: v.symbol,
+                  value: v.usdValue,
+                  rate: v.rate * 100 + '%',
+                })
+              });
+              this.totalStaking = total;
+            }
+          })
+      },
+
       //获取各种币种stacking收益率
       getStackingRate() {
-        this.$post('/', 'getStackingRate',[])
+        this.$post('/', 'getStackingRate', [])
           .then((response) => {
-            //console.log(response);
+            console.log(response);
             if (response.hasOwnProperty("result")) {
               const res = [];
-              response.result.map(v=>{
-                const obj={};
+              response.result.map(v => {
+                const obj = {};
                 obj.symbol = v.symbol;
                 // obj.
-                v.detailList.forEach((item, index)=>{
-                  obj['rate'+(index+1)] = Times(item.totalAddition, 100).toFixed(2)+'%'
+                v.detailList.forEach((item, index) => {
+                  obj['rate' + (index + 1)] = Times(item.totalAddition, 100).toFixed(2) + '%'
                 });
                 res.push(obj)
               });
@@ -277,7 +334,7 @@
 
       //选择币种下拉
       changeCurrency(symbol) {
-        const currency = this.$store.state.accountList.filter(v=>v.symbol === symbol)[0];
+        const currency = this.$store.state.accountList.filter(v => v.symbol === symbol)[0];
         this.currentCurrency = currency || {}
       },
 
@@ -317,7 +374,7 @@
         this.submitType = 3;
         this.$refs.password.showPassword(true);
         this.quitStakingDialog = false;
-        console.log(e,'quit')
+        console.log(e, 'quit')
       },
 
       async submit(password) {
@@ -339,7 +396,72 @@
       },
 
       //加入staking组装交易
-      submitJoinStaking(info) {
+      async submitJoinStaking(info) {
+        let defaultAssetsInfo = MAIN_INFO;
+        let transferInfo = {
+          fromAddress: info.address,
+          assetsChainId: this.currentCurrency.chainId,
+          assetsId: this.currentCurrency.assetId,
+          amount: Number(timesDecimals(this.joinStakingModel.amount, this.currentCurrency.decimals)),
+          fee: 100000,
+        };
+        let balanceInfo = {};
+        let feeBalanceInfo = {};
+
+        if (defaultAssetsInfo.chainId !== transferInfo.assetsChainId || defaultAssetsInfo.assetId !== transferInfo.assetsId) {  //资产信息相同合并 amount+fee
+          feeBalanceInfo = await getNulsBalance(defaultAssetsInfo.chainId, defaultAssetsInfo.assetId, transferInfo.fromAddress);
+          //console.log(feeBalanceInfo);
+          if (!feeBalanceInfo.success) {
+            console.log("获取账户feeBalanceInfo错误");
+            return;
+          }
+          transferInfo.feeBalanceInfo = feeBalanceInfo.data;
+          transferInfo.defaultAssetsInfo = defaultAssetsInfo;
+        }
+
+        balanceInfo = await getNulsBalance(transferInfo.assetsChainId, transferInfo.assetsId, transferInfo.fromAddress);
+        //console.log(balanceInfo);
+        if (!balanceInfo.success) {
+          console.log("获取账户balanceInfo错误");
+          return;
+        }
+
+        //根据委托类型设置锁定时间
+        transferInfo.locked = -1;
+        let inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo.data, 5);
+        console.log(inOrOutputs);
+        if (!inOrOutputs.success) {
+          console.log("inputOutputs组装失败!");
+          return;
+        }
+
+        let deposit = {
+          deposit: transferInfo.amount,
+          address: transferInfo.fromAddress,
+          assetsChainId: transferInfo.assetsChainId,//链ID
+          assetsId: transferInfo.assetsId,//资产ID
+          depositType: this.joinStakingModel.deadline === 0 ? 0 : 1,//委托类型
+          timeType: this.joinStakingModel.deadline === 0 ? 0 : this.joinStakingModel.deadline,//委托时长
+        };
+        //console.log(deposit);
+
+        let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, "", 5, deposit);
+        //console.log(tAssemble);
+        let txhex = await nerve.transactionSerialize(info.pri, info.pub, tAssemble);
+
+        await validateAndBroadcast(txhex).then((response) => {
+          if (response.success) {
+            //console.log(response);
+            this.$message({message: this.$t('tips.tips0'), type: 'success', duration: 1000});
+            this.$router.push({
+              name: "txList"
+            })
+          } else {
+            this.$message({message: this.$t('public.err') + response.data.code, type: 'error', duration: 1000});
+          }
+        }).catch((err) => {
+          this.$message({message: this.$t('public.err0') + err, type: 'error', duration: 1000});
+        });
 
       },
 
@@ -362,7 +484,7 @@
     .staking-info {
       margin-top: 40px;
     }
-    .total-staking,.staking-rate {
+    .total-staking, .staking-rate {
       height: 315px;
       h3 {
         font-size: 16px;
@@ -383,7 +505,9 @@
       width: 460px;
       margin-right: 40px;
       margin-bottom: 30px;
-      h3 {padding-left: 30px;}
+      h3 {
+        padding-left: 30px;
+      }
       .info-wrap {
         margin-top: 25px;
         .infos {
@@ -396,7 +520,9 @@
             font-size: 18px;
             font-weight: 600;
             color: #475472;
-            span {font-size: 14px}
+            span {
+              font-size: 14px
+            }
           }
           .fl:first-of-type {
             width: 165px;
@@ -423,15 +549,23 @@
       .el-table {
         width: 640px;
         margin: 30px 0 0 30px;
-        th .cell {color: #fff;}
-        td {padding: 5px 0 !important;}
+        th .cell {
+          color: #fff;
+        }
+        td {
+          padding: 5px 0 !important;
+        }
         .el-table__body-wrapper .el-table__body tr td {
           padding: 5px 0 !important;
+          .cell {
+            padding: 0 5px;
+          }
         }
       }
     }
   }
-  .join-staking-dialog,.change-staking-dialog {
+
+  .join-staking-dialog, .change-staking-dialog {
     .el-form-item__content {
       .el-select {
         width: 520px;

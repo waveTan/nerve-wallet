@@ -1,7 +1,7 @@
 import axios from 'axios'
 import {post} from './https'
-import {Plus, chainID} from './util'
-import {MAIN_INFO} from '@/config.js'
+import {chainID} from './util'
+import {MAIN_INFO,API_URL} from '@/config.js'
 
 /**
  * 判断是否为主网
@@ -55,6 +55,7 @@ export async function countCtxFee(tx, signatrueCount) {
  * @returns {*}
  **/
 export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
+  console.log(balanceInfo);
   let newAmount = transferInfo.amount + transferInfo.fee;
   let newLocked = 0;
   let newNonce = balanceInfo.nonce;
@@ -66,8 +67,91 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
   if (type === 4) {
     newLockTime = -1;
   } else if (type === 5) {
-    newLockTime = -1;
-  } else if (type === 9) { //注销节点
+    if (transferInfo.defaultAssetsInfo) { // 加入的资产不是nvt input组装两个
+      let newArr = {
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: transferInfo.amount,
+        locked: 0,
+        nonce: balanceInfo.nonce
+      };
+      inputs.push(newArr);
+      let feeArr = {
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.defaultAssetsInfo.chainId,
+        assetsId: transferInfo.defaultAssetsInfo.assetsId,
+        amount: transferInfo.fee,
+        locked: 0,
+        nonce: transferInfo.feeBalanceInfo.nonce
+      };
+      inputs.push(feeArr);
+    } else { // 加入的资产是nvt 合并amount+fee
+      inputs.push({
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: transferInfo.amount + transferInfo.fee,
+        locked: 0,
+        nonce: balanceInfo.nonce
+      });
+    }
+
+    outputs.push({
+      address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+      assetsChainId: transferInfo.assetsChainId,
+      assetsId: transferInfo.assetsId,
+      amount: transferInfo.amount,
+      lockTime: transferInfo.locked
+    });
+    return {success: true, data: {inputs: inputs, outputs: outputs}};
+  } else if (type === 6) {
+    if (transferInfo.defaultAssetsInfo) { // 加入的资产不是nvt input组装两个
+      let newArr = {
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: transferInfo.amount,
+        locked: 0,
+        nonce: balanceInfo.nonce
+      };
+      inputs.push(newArr);
+      let feeArr = {
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.defaultAssetsInfo.chainId,
+        assetsId: transferInfo.defaultAssetsInfo.assetsId,
+        amount: transferInfo.fee,
+        locked: 0,
+        nonce: transferInfo.feeBalanceInfo.nonce
+      };
+      inputs.push(feeArr);
+      outputs.push({
+        address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: transferInfo.amount,
+        lockTime: 0
+      });
+    } else { // 加入的资产是nvt 合并amount+fee
+      inputs.push({
+        address: transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: transferInfo.amount,
+        locked: 0,
+        nonce: balanceInfo.nonce
+      });
+      outputs.push({
+        address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: transferInfo.amount - transferInfo.fee,
+        lockTime: 0
+      });
+    }
+
+    return {success: true, data: {inputs: inputs, outputs: outputs}};
+  }  else if (type === 9) { //注销节点
     newoutputAmount = transferInfo.amount - transferInfo.fee;
     let times = (new Date()).valueOf() + 3600000 * 72;//锁定三天
     newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
@@ -411,7 +495,10 @@ export async function commitData(txHexKey, signDataKey, address, assembleHex) {
  * @author: Wave
  */
 export async function getReduceNonceList(agentHash, reduceAmount, quitAll) {
-  let url = 'http://seede.nuls.io:17004/jsonrpc';
+  console.log(API_URL);
+  //let url = 'http://seede.nuls.io:17004/jsonrpc';
+  //let url = 'http://192.168.1.122:17004/jsonrpc';
+  let url = API_URL;
   let data = [chainID(), agentHash, reduceAmount, quitAll];
   const params = {
     "jsonrpc": "2.0",

@@ -84,6 +84,8 @@ module.exports = {
       tt = new txs.CreateAgentTransaction(info);
     } else if (type === 5) { //加入staking
       tt = new txs.addStakingTransaction(info);
+    } else if (type === 6) { //退出staking
+      tt = new txs.outStakingTransaction(info);
     }else if (type === 9) { //注销节点
       tt = new txs.StopAgentTransaction(info, outputs[0].lockTime - 86400 * 3);
     } else if (type === 28) { //追加保证金

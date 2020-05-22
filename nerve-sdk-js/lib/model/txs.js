@@ -238,9 +238,10 @@ module.exports = {
    * @constructor
    */
   addStakingTransaction: function (entity) {
+    //console.log(entity);
     Transaction.call(this);
     //对象属性结构
-    if (!entity || !entity.deposit || !entity.address || !entity.assetsChainId || !entity.assetsId || !entity.depositType || !entity.timeType) {
+    if (!entity || !entity.deposit || !entity.address || !entity.assetsChainId || !entity.assetsId) {
       throw "Data Wrong!";
     }
     this.type = 5;
@@ -251,6 +252,25 @@ module.exports = {
     bw.getBufWriter().writeUInt16LE(entity.assetsId);
     bw.getBufWriter().write(Buffer.from([entity.depositType]));
     bw.getBufWriter().write(Buffer.from([entity.timeType]));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * 退出staking
+   * @param entity
+   * @constructor
+   */
+  outStakingTransaction: function (entity) {
+    //console.log(entity);
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity || !entity.address || !entity.agentHash) {
+      throw "Data Wrong!";
+    }
+    this.type = 6;
+    let bw = new Serializers();
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.address));
+    bw.getBufWriter().write(Buffer.from(entity.agentHash, 'hex'));
     this.txData = bw.getBufWriter().toBuffer();
   },
 

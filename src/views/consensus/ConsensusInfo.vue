@@ -276,7 +276,7 @@
         this.$post('/', 'getConsensusNode', [this.$route.query.hash])
           .then((response) => {
             this.nodeInfoLoading = false;
-            console.log(response);
+            //console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.agentReward = divisionDecimals(response.result.agentReward);
               response.result.deposits = divisionDecimals(response.result.deposit);
@@ -413,7 +413,7 @@
           } else if (this.passwordType === 1) { //退出保证金
             let depositHash = this.nodeInfo.txHash;
             let reduceNonceList = await getReduceNonceList(depositHash, amount, 0);
-            //console.log(reduceNonceList);
+            console.log(reduceNonceList);
             if (!reduceNonceList.success) {
               console.log("获取退出保证金ReduceNonceList错误");
               return;
@@ -422,7 +422,7 @@
             transferInfo.nonceList = reduceNonceList.data;
 
             inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 29);
-            //console.log(inOrOutputs);
+            console.log(inOrOutputs);
             if (!inOrOutputs.success) {
               this.$message({message: this.$t('public.err1') + inOrOutputs.data, type: 'error', duration: 3000});
               console.log("inputOutputs组装失败!");
