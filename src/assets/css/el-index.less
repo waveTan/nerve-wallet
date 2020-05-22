@@ -137,6 +137,7 @@
     }
   }
 }
+
 .el-table--border td, .el-table--border th, .el-table__body-wrapper .el-table--border.is-scrolling-left ~ .el-table__fixed {
   border: 0 !important;
 }
@@ -197,8 +198,19 @@
   text-align: right;
   height: 50px;
   .el-pager {
-    .active {
-      background-color: @Ncolour !important;
+    .number {
+      font-size: 12px;
+    }
+  }
+  .el-pagination__jump {
+    font-size: 12px !important;
+    .el-pagination__editor {
+      width: 40px;
+      height: 20px;
+      .el-input__inner {
+        line-height: 20px;
+        height: 20px;
+      }
     }
   }
 }
@@ -304,29 +316,29 @@
   }
 }
 
-.userDiolog{
-  .el-dialog__body{
+.userDiolog {
+  .el-dialog__body {
     padding: 20px;
-    .userInfo{
+    .userInfo {
       padding: 10px 0;
       max-height: 500px;
       overflow-x: auto;
       border: @BD1;
-      &::-webkit-scrollbar {/*滚动条整体样式*/
-        width: 5px;     /*高宽分别对应横竖滚动条的尺寸*/
+      &::-webkit-scrollbar { /*滚动条整体样式*/
+        width: 5px; /*高宽分别对应横竖滚动条的尺寸*/
         height: 1px;
       }
-      &::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+      &::-webkit-scrollbar-thumb { /*滚动条里面小方块*/
         border-radius: 10px;
-        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
         background: #535353;
       }
-      &::-webkit-scrollbar-track {/*滚动条里面轨道*/
-        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+      &::-webkit-scrollbar-track { /*滚动条里面轨道*/
+        -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
         border-radius: 10px;
         background: #EDEDED;
       }
-      p{
+      p {
         margin: 0 auto;
         text-indent: 2rem;
         line-height: 1.4rem;
@@ -354,34 +366,37 @@
     color: @Ncolour !important;
   }
 }
-.el-checkbox-group{
+
+.el-checkbox-group {
   .is-checked {
     .is-checked {
-      .el-checkbox__inner{
-        background-color:@Ncolour !important;
+      .el-checkbox__inner {
+        background-color: @Ncolour !important;
         border-color: @Ncolour !important;
       }
     }
-    .el-checkbox__label{
+    .el-checkbox__label {
       color: @Ncolour !important;
     }
   }
 }
 
-.el-tooltip__popper{
-  div{
+.el-tooltip__popper {
+  div {
     color: #ffffff !important;
   }
 }
-.is-dark{
+
+.is-dark {
   background-color: #8c8c8c !important;
 }
 
-.el-message{
-  .el-message__content{
+.el-message {
+  .el-message__content {
     line-height: 20px;
   }
 }
+
 .el-button {
   &.el-button--primary, &.el-button--success {
     background-color: @Ncolour;
@@ -389,7 +404,7 @@
   }
 }
 
-.form-dialog .el-dialog{
+.form-dialog .el-dialog {
   padding-bottom: 20px;
   .el-dialog__header {
     text-align: center;

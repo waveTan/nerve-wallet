@@ -50,6 +50,18 @@
             <staking-list :data="stakingList"/>
           </el-tab-pane>
         </el-tabs>
+
+        <div class="pages">
+          <div class="page-total">
+            {{$t('public.display')}} {{pageIndex-1 === 0 ? 1 : (pageIndex-1) *pageSize}}-{{pageIndex*pageSize}}
+            {{$t('public.total')}} {{pageTotal}}
+          </div>
+          <el-pagination class="fr" background v-show="pageTotal>pageSize" @current-change="pageSizeChange"
+                         :page-size="pageSize"
+                         layout=" prev, pager, next, jumper"
+                         :total="pageTotal">
+          </el-pagination>
+        </div>
       </div>
     </div>
     <!--加入staking弹窗-->
@@ -124,12 +136,13 @@
 </template>
 
 <script>
+  import moment from 'moment'
   import nerve from 'nerve-sdk-js'
   import PieChart from '@/components/PieChart'
   import Password from '@/components/PasswordBar'
   import stakingList from "./stakingList"
   import {MAIN_INFO} from '@/config'
-  import {passwordVerification, Minus, Times, timesDecimals} from '@/api/util'
+  import {passwordVerification, Minus, Times, timesDecimals, divisionDecimals, getLocalTime} from '@/api/util'
   import {getNulsBalance, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
 
   export default {
@@ -182,6 +195,9 @@
         stakingRate: [], //staking利率
         activeTab: 'first',
         stakingList: [],
+        pageIndex: 1, //页码
+        pageSize: 5, //每页条数
+        pageTotal: 0,//总页数
         joinStakingDialog: false, //加入staking弹窗
         joinStakingModel: {
           currency: '',
@@ -239,56 +255,9 @@
       this.addressInfo = this.$store.getters.getSelectAddress;
       this.getStackingInfo();
       this.getStackingRate();
+      this.getStackingList(this.pageIndex, this.pageSize, this.addressInfo.address);
     },
     mounted() {
-      const list = [
-        {
-          height: 654814,
-          symbol: 'NVT',
-          amount: 5647.26,
-          deadline: '1年',
-          nodeType: '银行节点',
-          extra: '42.48%',
-          joinTime: '2020-02-16 16:48:20',
-          endTime: '2020-02-16 16:48:20',
-          totalReward: 2000.00
-        },
-        {
-          height: 654814,
-          symbol: 'BTC',
-          amount: 5647.26,
-          deadline: '3个月',
-          nodeType: '银行节点',
-          extra: '42.48%',
-          joinTime: '2020-02-16 16:48:20',
-          endTime: '2020-02-16 16:48:20',
-          totalReward: 2000.00
-        },
-        {
-          height: 654814,
-          symbol: 'NULS',
-          amount: 5647.26,
-          deadline: '1年',
-          nodeType: '银行节点',
-          extra: '42.48%',
-          joinTime: '2020-02-16 16:48:20',
-          endTime: '2020-02-16 16:48:20',
-          totalReward: 2000.00
-        },
-        {
-          height: 654814,
-          symbol: 'ETH',
-          amount: 5647.26,
-          deadline: '活期',
-          nodeType: '银行节点',
-          extra: '42.48%',
-          joinTime: '2020-02-16 16:48:20',
-          endTime: '2020-02-16 16:48:20',
-          totalReward: 2000.00,
-          type: 1
-        },
-      ];
-      this.stakingList = list
     },
     methods: {
       //Staking总量
@@ -314,7 +283,7 @@
       getStackingRate() {
         this.$post('/', 'getStackingRate', [])
           .then((response) => {
-            console.log(response);
+            //console.log(response);
             if (response.hasOwnProperty("result")) {
               const res = [];
               response.result.map(v => {
@@ -374,7 +343,6 @@
         this.submitType = 3;
         this.$refs.password.showPassword(true);
         this.quitStakingDialog = false;
-        console.log(e, 'quit')
       },
 
       async submit(password) {
@@ -429,7 +397,7 @@
         //根据委托类型设置锁定时间
         transferInfo.locked = -1;
         let inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo.data, 5);
-        console.log(inOrOutputs);
+        //console.log(inOrOutputs);
         if (!inOrOutputs.success) {
           console.log("inputOutputs组装失败!");
           return;
@@ -473,7 +441,40 @@
       //退出staking组装交易
       submitQuitStaking(info) {
 
-      }
+      },
+
+      /**
+       * @disc: 获取stacking列表根据地址
+       * @params: pageNumber
+       * @params: pageSize
+       * @params: address
+       * @date: 2020-05-22 15:05
+       * @author: Wave
+       */
+      async getStackingList(pageNumber, pageSize, address) {
+        await this.$post('/', 'pageStackingListByAddress', [pageNumber, pageSize, address])
+          .then((response) => {
+            console.log(response);
+            if (response.hasOwnProperty("result")) {
+              for (let item of response.result.list) {
+                item.amounts = Number(divisionDecimals(item.amount, item.decimal));
+                item.createTime = moment(getLocalTime(item.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
+              }
+              this.stakingList = response.result.list;
+              this.pageTotal = response.result.totalCount;
+            } else {
+              this.myNodeLoading = false;
+            }
+          })
+          .catch((error) => {
+            console.log("getAccountConsensus:" + error);
+          });
+      },
+
+      pageSizeChange(val) {
+        this.pageIndex = val;
+        this.getStackingList(this.pageIndex, this.pageSize, this.addressInfo.address);
+      },
     }
 
   }

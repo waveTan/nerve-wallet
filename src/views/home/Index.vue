@@ -27,29 +27,29 @@
       </div>
       <div class="cb">
         <el-table :data="$store.state.accountList" stripe class="tabs">
-          <el-table-column label="" width="30">
+          <el-table-column label="" width="10">
           </el-table-column>
           <!--<el-table-column prop="currency" :label="$t('tab.tab35')" width="100">
           </el-table-column>-->
-          <el-table-column :label="$t('tab.tab35')" width="80">
+          <el-table-column :label="$t('tab.tab35')" width="80" align="center">
             <template slot-scope="scope">
               <img :src="scope.row.icon" alt="" class="coin-img">
             </template>
           </el-table-column>
-          <el-table-column prop="name" :label="$t('tab.tab36')" width="100">
+          <el-table-column prop="name" :label="$t('tab.tab36')" width="90" align="center">
           </el-table-column>
-          <el-table-column prop="number" :label="$t('tab.tab37')" width="170">
+          <el-table-column prop="number" :label="$t('tab.tab37')" width="130" align="center">
           </el-table-column>
-          <el-table-column :label="$t('tab.tab38')" width="180">
+          <el-table-column :label="$t('tab.tab38')" width="180" align="center">
             <template slot-scope="scope">
               ${{scope.row.valuation | toThousands}}
             </template>
           </el-table-column>
-          <el-table-column prop="locking" :label="$t('tab.tab3')" width="170">
+          <el-table-column prop="locking" :label="$t('tab.tab3')" width="160" align="center">
           </el-table-column>
-          <el-table-column prop="available" :label="$t('tab.tab4')" width="170">
+          <el-table-column prop="available" :label="$t('tab.tab4')" width="160" align="center">
           </el-table-column>
-          <el-table-column :label="$t('nodeService.nodeService6')" min-width="200">
+          <el-table-column :label="$t('nodeService.nodeService6')" min-width="200" align="center">
             <template slot-scope="scope">
               <el-button @click="inChains(scope.row)" type="text" size="small">{{$t('home.home3')}}</el-button>
               <el-button @click="crossLink(scope.row)" type="text" size="small" disabled>{{$t('home.home4')}}
@@ -92,22 +92,21 @@
     },
     watch: {
       '$store.state.accountList': {
-        handler: function() {
+        handler: function () {
           this.init()
         }
       }
     },
-    computed: {
-    },
+    computed: {},
     methods: {
 
       init() {
         const assetsInfo = this.$store.state.accountList;
-        const myAssetsInfo = {total:0,available:0,locking:0};
+        const myAssetsInfo = {total: 0, available: 0, locking: 0};
         const chartData = [];
-        const total = assetsInfo.reduce((cur,next)=>{
+        const total = assetsInfo.reduce((cur, next) => {
           return Number(Plus(cur, next.valuation))
-        },0);
+        }, 0);
         assetsInfo.forEach(item => {
           myAssetsInfo.total = Number(Plus(myAssetsInfo.total, item.valuation));
           myAssetsInfo.available = Number(Plus(myAssetsInfo.available, item.usdAvailable));
