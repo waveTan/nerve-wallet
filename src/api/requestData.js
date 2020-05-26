@@ -1,7 +1,7 @@
 import axios from 'axios'
 import {post} from './https'
 import {chainID} from './util'
-import {MAIN_INFO,API_URL} from '@/config.js'
+import {MAIN_INFO, API_URL} from '@/config.js'
 
 /**
  * 判断是否为主网
@@ -55,7 +55,7 @@ export async function countCtxFee(tx, signatrueCount) {
  * @returns {*}
  **/
 export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
-  console.log(balanceInfo);
+  //console.log(balanceInfo);
   let newAmount = transferInfo.amount + transferInfo.fee;
   let newLocked = 0;
   let newNonce = balanceInfo.nonce;
@@ -112,7 +112,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
         amount: transferInfo.amount,
-        locked: 0,
+        locked: -1,
         nonce: balanceInfo.nonce
       };
       inputs.push(newArr);
@@ -132,13 +132,13 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         amount: transferInfo.amount,
         lockTime: 0
       });
-    } else { // 加入的资产是nvt 合并amount+fee
+    } else {  //加入的资产是nvt 合并amount+fee
       inputs.push({
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
         amount: transferInfo.amount,
-        locked: 0,
+        locked: -1,
         nonce: balanceInfo.nonce
       });
       outputs.push({
@@ -151,7 +151,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
     }
 
     return {success: true, data: {inputs: inputs, outputs: outputs}};
-  }  else if (type === 9) { //注销节点
+  } else if (type === 9) { //注销节点
     newoutputAmount = transferInfo.amount - transferInfo.fee;
     let times = (new Date()).valueOf() + 3600000 * 72;//锁定三天
     newLockTime = Number(times.toString().substr(0, times.toString().length - 3));

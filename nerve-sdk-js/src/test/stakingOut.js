@@ -18,7 +18,7 @@ let timeType = [0, 1, 2, 3, 4, 5, 6];//【三个月，半年，一年，两年�
 
 let deposit = {
   address: fromAddress,
-  agentHash: '9345f6083ec7d8ab173415091f3a9d59d0555fef66b11abd504ef883229a0c16',
+  agentHash: '4b48c23a9c9717bf47660885fbdf83f673eddc661e0f14d83b26be7fd04ed37b',
   deposit: 200000000000,
   assetsChainId: 4,//退出staking链ID
   assetsId: 1,//退出staking资产ID
@@ -44,7 +44,6 @@ async function outStaking(pri, pub, fromAddress, assetsChainId, assetsId, amount
       success: true,
       data: {balance: amount, nonce: deposit.agentHash.substring(deposit.agentHash.length - 16)}
     };
-
   } else {
     feeBalanceInfo = await getNulsBalance(fromAddress, defaultAssetsInfo.chainId, defaultAssetsInfo.assetsId);
     //console.log(feeBalanceInfo);
@@ -63,10 +62,10 @@ async function outStaking(pri, pub, fromAddress, assetsChainId, assetsId, amount
   let txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
   console.log(txhex);
   let result = await validateTx(txhex);
-  //console.log(result);
+  console.log(result);
   if (result) {
-    console.log(result.data.value);
     let results = await broadcastTx(txhex);
+    console.log(results);
     if (results && results.hash) {
       console.log("交易完成")
     } else {

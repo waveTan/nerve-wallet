@@ -138,7 +138,7 @@ module.exports = {
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
           amount: transferInfo.amount,
-          locked: 0,
+          locked: -1,
           nonce: balanceInfo.nonce
         };
         inputs.push(newArr);
@@ -147,7 +147,7 @@ module.exports = {
           assetsChainId: transferInfo.defaultAssetsInfo.chainId,
           assetsId: transferInfo.defaultAssetsInfo.assetsId,
           amount: transferInfo.fee,
-          locked: 0,
+          locked: -1,
           nonce: transferInfo.feeBalanceInfo.nonce
         };
         inputs.push(feeArr);
@@ -165,7 +165,7 @@ module.exports = {
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
           amount: transferInfo.amount,
-          locked: 0,
+          locked: -1,
           nonce: balanceInfo.nonce
         });
         outputs.push({

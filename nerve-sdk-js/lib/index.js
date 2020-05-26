@@ -94,6 +94,9 @@ module.exports = {
     } else if (type === 9) {
       //注销节点
       tt = new txs.StopAgentTransaction(info, outputs[0].lockTime - 86400 * 3);
+    } else if (type === 10) {
+      //跨链转账
+      tt = new txs.CrossChainTransaction();
     } else if (type === 28) {
       //追加保证金
       tt = new txs.DepositTransaction(info);

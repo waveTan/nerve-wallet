@@ -684,6 +684,8 @@ const cn = {
     "transfer21": "资产的NRC-20合约已经被注销，请选择其他资产!",
     "transfer22": "资产验证中...",
     "transfer23": "收款地址格式错误,请检查地址收款地址!",
+    "transfer24": "Tips：该笔转账为跨链交易，将收取NULS和NVT作为手续费",
+    "transfer25": "改资产不支持跨链交易",
     "transfer": "",
   },
 
@@ -723,14 +725,14 @@ const cn = {
   },
 
   "stakingType":{
-    "0": "活期",
-    "1": "3月",
-    "2": "半年",
-    "3": "1年",
-    "4": "2年",
-    "5": "3年",
-    "6": "5年",
-    "7": "10年",
+    "NONE": "活期",
+    "THREE_MONTHS": "3月",
+    "HALF_YEAR": "半年",
+    "ONE_YEAR": "1年",
+    "TOW_YEARS": "2年",
+    "THREE_YEARS": "3年",
+    "FIVE_YEARS": "5年",
+    "TEN_YEARS": "10年",
   },
 
   "consensus": {

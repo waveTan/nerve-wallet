@@ -17,8 +17,8 @@
           <el-input v-model.trim="transferForm.toAddress" @input="changeToAddress">
           </el-input>
         </el-form-item>
-        <div class="yellow font10" style="margin-top:-15px" v-if="transferType ===1">
-          Tips：该笔转账为跨链交易，将收取NULS和NVT作为手续费
+        <div class="yellow font10" style="margin-top:-15px" v-if="transferType ===1 && transferTips">
+          {{$t('transfer.transfer24')}}
         </div>
         <div style="width: 630px;height: 30px"></div>
         <div class="fr font12" style="padding: 8px 0 0 0">{{$t('public.usableBalance')}}: {{balanceInfo.balances}}</div>
@@ -79,7 +79,7 @@
     data() {
       let validateToAddress = (rule, value, callback) => {
         let patrn = /^(?![a-zA-Z]+$)(?![^\da-zA-Z]+$).{20,50}$/;
-        let toAddressInfo = {right: true,};
+        let toAddressInfo = {right: true};
         if (value.length > 20 && value.length < 60) {
           toAddressInfo = nerve.verifyAddress(value);
         }
@@ -89,6 +89,14 @@
           callback(new Error(this.$t('transfer.transfer10')))
         } else if (!toAddressInfo.right) {
           callback(new Error(this.$t('transfer.transfer10')))
+        } else if (this.transferType === 1) {
+          if (!this.changeAssetInfo.isAcross) {
+            callback(new Error(this.$t('transfer.transfer25')));
+            this.transferTips = false;
+          } else {
+            this.transferTips = true;
+            callback()
+          }
         } else {
           callback()
         }
@@ -141,6 +149,7 @@
           amount: [{validator: validateAmount, trigger: ['blur', 'change']}],
         },
         transferType: 0,//转账类型 0:链内转账 1:跨链转账
+        transferTips: false,
         prefix: MAIN_INFO.prefix,
         transferFormDialog: false,//确认弹框
       };
@@ -194,6 +203,10 @@
         //console.info(e);
         this.changeAssetInfo = e;
         this.transferForm.assetType = e.symbol;
+        if (this.transferForm.toAddress) {
+          this.changeToAddress(this.transferForm.toAddress)
+        }
+
         try {
           let resBalanceInfo = await getNulsBalance(e.chainId, e.assetsId, this.addressInfo.address);
           //console.log(resBalanceInfo);
@@ -224,7 +237,9 @@
           if (toAddressInfo.right && fromAddressInfo.chainId === toAddressInfo.chainId) {
             this.transferType = 0
           } else {
-            this.transferType = 1
+            this.transferType = 1;
+            /* console.info(this.assetList);
+             console.info(this.transferForm);*/
           }
         }
 
@@ -289,22 +304,24 @@
           //获取hash
           hash = await tAssemble.getHash();
         } else { //跨链交易
-          console.log(inOrOutputs);
-          console.log(MAIN_INFO);
-          console.log(CROSS_INFO);
+
+          /*console.log(MAIN_INFO);
+          console.log(CROSS_INFO);*/
           const balanceInfo = await getBaseAssetInfo(CROSS_INFO.chainId, CROSS_INFO.assetsId, transferInfo.fromAddress);
-          console.info(balanceInfo);
-         /* newAmount = Number(transferInfo.amount);
-          inputs = [{
+          //console.info(balanceInfo);
+          inOrOutputs.data.inputs.push({
             address: transferInfo.fromAddress,
-            assetsChainId: transferInfo.assetsChainId,
-            assetsId: transferInfo.assetsId,
-            amount: newAmount,
+            assetsChainId: CROSS_INFO.chainId,
+            assetsId: CROSS_INFO.assetId,
+            amount: Number(transferInfo.amount),
             locked: 0,
             nonce: balanceInfo.data.nonce
-          }];*/
-
-
+          });
+          console.log(inOrOutputs);
+          //交易组装
+          tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 10);
+          //获取hash
+          hash = await tAssemble.getHash();
           return;
         }
 
@@ -335,7 +352,6 @@
           this.toUrl("txList");
         }
       },
-
 
       /**
        * @disc: 链内交易
@@ -425,7 +441,6 @@
         return {success: true, data: {inputs: inputs, outputs: outputs}};
       },
 
-
       /**
        * 连接跳转
        * @param name
@@ -436,6 +451,7 @@
           name: name
         })
       },
+
     }
   }
 </script>

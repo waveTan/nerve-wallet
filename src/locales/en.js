@@ -684,6 +684,8 @@ const en = {
     "transfer21": " the NRC-20 contract for assets has been cancelled. Please choose other assets!",
     "transfer22": "Asset validation in progress...",
     "transfer23": "Payment address format error, please check the payment address!",
+    "transfer24": "Tips: the transfer is a cross chain transaction, and nuls and NVT will be charged as handling fees",
+    "transfer25": "Cross chain transaction is not supported in asset change",
     "transfer": "transfer",
   },
   "staking": {
@@ -722,14 +724,14 @@ const en = {
   },
 
   "stakingType":{
-    "0": "Current",
-    "1": "3 months",
-    "2": "Half year",
-    "3": "1 year",
-    "4": "2 years",
-    "5": "3 years",
-    "6": "5 years",
-    "7": "10 years",
+    "NONE": "Current",
+    "THREE_MONTHS": "3 months",
+    "HALF_YEAR": "Half year",
+    "ONE_YEAR": "1 year",
+    "TOW_YEARS": "2 years",
+    "THREE_YEARS": "3 years",
+    "FIVE_YEARS": "5 years",
+    "TEN_YEARS": "10 years",
   },
 
   "consensus": {

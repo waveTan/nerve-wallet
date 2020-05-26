@@ -7,12 +7,12 @@
     </el-table-column>
     <el-table-column min-width="90" :label="$t('staking.staking16')" align="center" prop="amounts">
     </el-table-column>
-    <el-table-column min-width="90" :label="$t('staking.staking17')" align="center" prop="type">
+    <el-table-column min-width="90" :label="$t('staking.staking17')" align="center">
       <template v-slot="scope">
-        <span>{{ $t('stakingType.'+scope.row.type)}}</span>
+        <span>{{ $t('stakingType.'+scope.row.fixedType)}}</span>
       </template>
     </el-table-column>
-    <el-table-column min-width="95" :label="$t('staking.staking31')" align="center" prop="extra">
+    <el-table-column min-width="95" :label="$t('staking.staking31')" align="center" prop="interest">
     </el-table-column>
     <el-table-column min-width="95" :label="$t('staking.staking19')" align="center" prop="extra">
     </el-table-column>
@@ -22,8 +22,8 @@
     </el-table-column>
     <el-table-column min-width="90" :label="$t('staking.staking22')" v-if="staking">
       <template v-slot="scope">
-        <div v-if="scope.row.type===1">
-          <span class="click" @click="handleChange(scope.row)">{{$t('staking.staking23')}}</span> 丨
+        <div v-if="scope.row.fixedType==='NONE'">
+          <!--<span class="click" @click="handleChange(scope.row)">{{$t('staking.staking23')}}</span> 丨-->
           <span class="click" @click="handleQuit(scope.row)">{{$t('staking.staking24')}}</span>
         </div>
         <span v-else>-</span>

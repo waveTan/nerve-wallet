@@ -70,8 +70,7 @@
       <el-form ref="joinStakingForm" :model="joinStakingModel" :rules="joinStakingRule">
         <el-form-item :label="$t('staking.staking4')+': '" prop="currency">
           <el-select v-model="joinStakingModel.currency" @change="changeCurrency">
-            <el-option v-for="item in $store.state.accountList" :key="item.assetKey" :label="item.symbol"
-                       :value="item.symbol">
+            <el-option v-for="(item,index) in canStakingList" :key="index" :label="item.symbol" :value="item.symbol">
             </el-option>
           </el-select>
         </el-form-item>
@@ -79,12 +78,13 @@
           {{currentCurrency.available}}
         </div>
         <el-form-item :label="$t('staking.staking16')+': '" prop="amount">
-          <el-input v-model="joinStakingModel.amount"></el-input>
+          <el-input v-model="joinStakingModel.amount">
+          </el-input>
         </el-form-item>
         <el-form-item :label="$t('staking.staking17')+': '" prop="deadline">
           <el-select v-model="joinStakingModel.deadline">
-            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label"
-                       :value="item.value"></el-option>
+            <el-option v-for="item in deadlineList" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('staking.staking29')+': '">
@@ -160,7 +160,6 @@
           callback()
         }
       };
-      // todo
       const validateJoinAmount = (rule, value, callback) => {
         const decimals = 8;
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,8})?$");
@@ -194,10 +193,12 @@
         stakingRateLoading: true,
         stakingRate: [], //staking利率
         activeTab: 'first',
-        stakingList: [],
+        stakingList: [], //staking中列表
         pageIndex: 1, //页码
         pageSize: 5, //每页条数
         pageTotal: 0,//总页数
+        outStakingInfo: {},//退出staking信息
+        canStakingList: [],//能加入staking的资产列表
         joinStakingDialog: false, //加入staking弹窗
         joinStakingModel: {
           currency: '',
@@ -256,10 +257,13 @@
       this.getStackingInfo();
       this.getStackingRate();
       this.getStackingList(this.pageIndex, this.pageSize, this.addressInfo.address);
+
+      this.getStackingAssetList();
     },
     mounted() {
     },
     methods: {
+
       //Staking总量
       getStackingInfo() {
         this.$post('/', 'getStackingInfo', [])
@@ -308,24 +312,18 @@
       },
 
       /**
-       * @disc: 获取可参与stacking资产的列表 todo
+       * @disc: 获取可参与stacking资产的列表
        * @date: 2020-05-25 14:00
        * @author: Wave
        */
       getStackingAssetList() {
-        this.$post('/', 'getStackingAssetList', [])
+        this.$post('/', 'getCanStackingAssetList', [])
           .then((response) => {
-            console.log(response);
+            //console.log(response);
             if (response.hasOwnProperty("result")) {
-              /* for (let itme of response.result.list) {
-                 itme.amount = timesDecimals(itme.amount);
-                 //itme.txHashs = superLong(itme.txHash, 20);
-                 itme.agendID = itme.agentHash.substr(-8);
-                 itme.createTime = moment(getLocalTime(itme.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
-                 //this.totalAmount = this.totalAmount + Number(itme.amount);
-               }*/
+              this.canStakingList = response.result
             } else {
-              //this.consensusDataLoading = false;
+              this.canStakingList = []
             }
           })
           .catch((error) => {
@@ -366,6 +364,7 @@
 
       //退出staking
       quitStaking(e) {
+        this.outStakingInfo = e;
         this.submitType = 3;
         this.$refs.password.showPassword(true);
         this.quitStakingDialog = false;
@@ -464,13 +463,87 @@
 
       },
 
-      //退出staking组装交易
-      submitQuitStaking(info) {
+      /**
+       * @disc: 退出staking组装交易
+       * @params: info 账户信息
+       * @date: 2020-05-26 15:51
+       * @author: Wave
+       */
+      async submitQuitStaking(info) {
+        //console.info(this.outStakingInfo);
+        //console.info(info);
+        let defaultAssetsInfo = MAIN_INFO;
+        let transferInfo = {
+          fromAddress: info.address,
+          assetsChainId: this.outStakingInfo.assetChainId,
+          assetsId: this.outStakingInfo.assetId,
+          amount: this.outStakingInfo.amount,
+          fee: 100000
+        };
+        let balanceInfo = {};
+        let feeBalanceInfo = {};
+        //console.info(defaultAssetsInfo);
+        //console.info(transferInfo);
+
+        let deposit = {
+          address: info.address,
+          agentHash: this.outStakingInfo.txHash,
+          deposit: this.outStakingInfo.amount,
+          assetsChainId: this.outStakingInfo.assetChainId, //退出staking链ID
+          assetsId: this.outStakingInfo.assetId, //退出staking资产ID
+          depositType: 0,//委托类型 只能退出活期 0:代表活期
+          timeType: 0,//委托时长
+        };
+        //console.info(deposit);
+
+        if (defaultAssetsInfo.chainId === transferInfo.assetsChainId && defaultAssetsInfo.assetId === transferInfo.assetsId) {  //资产信息相同合并 amount+fee
+          balanceInfo = {
+            success: true,
+            data: {
+              balance: this.outStakingInfo.amount,
+              nonce: deposit.agentHash.substring(deposit.agentHash.length - 16)
+            }
+          };
+        } else {
+          feeBalanceInfo = await getNulsBalance(transferInfo.fromAddress, defaultAssetsInfo.chainId, defaultAssetsInfo.assetsId);
+          //console.log(feeBalanceInfo);
+          if (!feeBalanceInfo.success) {
+            console.log("获取账户feeBalanceInfo错误");
+            return;
+          }
+          transferInfo.feeBalanceInfo = feeBalanceInfo.data;
+          transferInfo.defaultAssetsInfo = defaultAssetsInfo;
+        }
+
+        let inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo.data, 6);
+        //console.log(inOrOutputs);
+
+        let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, '', 6, deposit);
+        let txhex = await nerve.transactionSerialize(info.pri, info.pub, tAssemble);
+
+        await validateAndBroadcast(txhex).then((response) => {
+          if (response.success) {
+            //console.log(response);
+            this.$message({message: this.$t('tips.tips0'), type: 'success', duration: 1000});
+            this.$router.push({
+              name: "txList"
+            })
+          } else {
+            this.$message({
+              message: this.$t('public.err') + JSON.stringify(response.data),
+              type: 'error',
+              duration: 3000
+            });
+          }
+        }).catch((err) => {
+          this.$message({message: this.$t('public.err0') + err, type: 'error', duration: 3000});
+        });
+
 
       },
 
       /**
-       * @disc: 获取stacking列表根据地址
+       * @disc: 获取stacking中列表根据地址
        * @params: pageNumber
        * @params: pageSize
        * @params: address
@@ -485,6 +558,7 @@
               for (let item of response.result.list) {
                 item.amounts = Number(divisionDecimals(item.amount, item.decimal));
                 item.createTime = moment(getLocalTime(item.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
+                item.endTime = item.endTime ? moment(getLocalTime(item.endTime * 1000)).format('YYYY-MM-DD HH:mm:ss') : '-';
               }
               this.stakingList = response.result.list;
               this.pageTotal = response.result.totalCount;
@@ -497,6 +571,12 @@
           });
       },
 
+      /**
+       * @disc: 翻译功能
+       * @params: val
+       * @date: 2020-05-26 15:10
+       * @author: Wave
+       */
       pageSizeChange(val) {
         this.pageIndex = val;
         this.getStackingList(this.pageIndex, this.pageSize, this.addressInfo.address);

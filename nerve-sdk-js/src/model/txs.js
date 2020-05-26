@@ -197,6 +197,15 @@ module.exports = {
   },
 
   /**
+   * 跨链交易
+   * @constructor
+   */
+  CrossChainTransaction: function () {
+    Transaction.call(this);
+    this.type = 10;
+  },
+
+  /**
    * 设置别名交易
    * @param address
    * @param alias
