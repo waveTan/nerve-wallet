@@ -326,7 +326,7 @@
               newAssetsList.balance = 0;
             }
             const addressList = localStorageByAddressInfo(newAssetsList);
-            this.$store.commit('setAddressInfo', addressList)
+            this.$store.commit('setAddressInfo', addressList);
             this.toUrl('address')
           })
       },
@@ -363,7 +363,7 @@
           keystoreAddressInfo.aesPri = isPassword.aesPri;
           keystoreAddressInfo.pub = isPassword.pub;
           const addressList = localStorageByAddressInfo(keystoreAddressInfo);
-          this.$store.commit('setAddressInfo', addressList)
+          this.$store.commit('setAddressInfo', addressList);
           this.toUrl('address')
         } else {
           this.$message({message: this.$t('address.address13'), type: 'error', duration: 3000});
@@ -385,7 +385,7 @@
             keyAddressInfo.aesPri = newAddressInfo.aesPri;
             keyAddressInfo.pub = newAddressInfo.pub;
             const addressList = localStorageByAddressInfo(keyAddressInfo);
-            this.$store.commit('setAddressInfo', addressList)
+            this.$store.commit('setAddressInfo', addressList);
             this.toUrl('address')
           } else {
             return false;

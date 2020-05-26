@@ -122,7 +122,6 @@
   import nerve from 'nerve-sdk-js'
   import {
     getNulsBalance,
-    countFee,
     inputsOrOutputs,
     validateAndBroadcast,
     agentDeposistList,
@@ -338,8 +337,8 @@
       quit() {
         this.additionDialog = true;
         this.passwordType = 1;
-        const reduceAmount = Number(Times(this.jionNodeForm.amount, 100000000));
-        //getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash, '', reduceAmount)
+        /*const reduceAmount = Number(Times(this.jionNodeForm.amount, 100000000));
+        getReduceDepositList(this.agentAsset.agentAsset.chainId, this.$route.query.hash, '', reduceAmount)*/
       },
 
       //追加,退出保证金

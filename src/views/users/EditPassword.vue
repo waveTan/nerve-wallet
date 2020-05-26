@@ -35,7 +35,7 @@
 <script>
   import nerve from 'nerve-sdk-js'
   import BackBar from '@/components/BackBar'
-  import {addressInfo, chainIdNumber,chainID} from '@/api/util'
+  import {chainID} from '@/api/util'
   import {getPrefixByChainId} from '@/api/requestData'
 
   export default {

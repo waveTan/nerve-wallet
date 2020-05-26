@@ -61,6 +61,9 @@
 </template>
 
 <script>
+  import Element from 'element-ui'
+  import locale_zh from 'element-ui/lib/locale/lang/zh-CN'
+  import locale_en from 'element-ui/lib/locale/lang/en'
   import logo from '@/assets/img/logo.svg'
   import {superLong, connectToExplorer} from '@/api/util'
   import {IS_DEV} from '@/config.js'
@@ -71,7 +74,7 @@
         logoSvg: logo, //logo
         navActive: '/',//菜单选中
         addressList: [], //地址列表
-        lang: 'cn', //语言选择
+        lang: 'en', //语言选择
         symbol: 'NVT', //symbol
       };
     },
@@ -90,12 +93,21 @@
         handler: function() {
           this.getAddressList()
         }
+      },
+      lang: function (val, oldVal) {
+        //console.log(val, oldVal);
+        if (val && val !== oldVal) {
+          let locale = this.lang === 'en' ? locale_en : locale_zh;
+          Vue.use(Element, {locale});
+        }
       }
     },
     created() {
-      this.$store.dispatch('getAccountList')
-      this.setLang()
+      this.$store.dispatch('getAccountList');
+      this.setLang();
       this.getAddressList();
+      let locale = this.lang === 'en' ? locale_en : locale_zh;
+      Vue.use(Element, {locale});
     },
     mounted() {
       setInterval(() => {

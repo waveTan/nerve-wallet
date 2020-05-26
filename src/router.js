@@ -9,12 +9,12 @@ export default new Router({
     {
       path: '*',
       name: 'home',
-      component: resolve => require(['@/views/home/Index.vue'], resolve)
+      component: resolve => require(['@/views/home/Home.vue'], resolve)
     },
     {
       path: '/',
       name: 'home',
-      component: resolve => require(['@/views/home/Index.vue'], resolve)
+      component: resolve => require(['@/views/home/Home.vue'], resolve)
     },
     {
       path: '/wallet/frozenList',
@@ -104,7 +104,7 @@ export default new Router({
     {
       path: '/staking',
       name: 'staking',
-      component: resolve => require(['@/views/staking/index.vue'], resolve)
+      component: resolve => require(['@/views/staking/Staking.vue'], resolve)
     }
   ]
 })

@@ -87,7 +87,7 @@
 <script>
   import nerve from 'nerve-sdk-js'
   import Password from '@/components/PasswordBar'
-  import {divisionDecimals, chainIdNumber, addressInfo, chainID, Plus} from '@/api/util'
+  import {divisionDecimals, chainID} from '@/api/util'
   import {getPrefixByChainId} from '@/api/requestData'
 
   export default {

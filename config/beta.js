@@ -7,14 +7,18 @@
 export const IS_DEV = process.env.NODE_ENV === 'development';
 //燃烧地址的公钥
 export const API_BURNING_ADDRESS_PUB = '000000000000000000000000000000000000000000000000000000000000000000';
-//ChainId和资产ID
-export const MAIN_INFO = IS_DEV ? {chainId: 4, assetId: 1, prefix: 'TNVT'} : {chainId: 3, assetId: 1, prefix: 'NVT'};
+//chainId、assetId、prefix
+export const MAIN_INFO = {chainId: 4, assetId: 1, prefix: 'TNVT'};
+//跨链资产信息 chainId、assetId
+export const CROSS_INFO = {chainId: 2, assetId: 1};
 //正式、测试网络的api
 const url = localStorage.hasOwnProperty("url") && localStorage.getItem('url') !== 'undefined' ? JSON.parse(localStorage.getItem("url")).urls : '/api';
 let API_URL = url;
+
 function changeApiUrl(url) {
   API_URL = url
 }
+
 export {API_URL, changeApiUrl}
 //请求延迟时间
 export const API_TIME = '8000';

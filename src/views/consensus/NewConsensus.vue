@@ -89,10 +89,9 @@
     getNulsBalance,
     inputsOrOutputs,
     validateAndBroadcast,
-    getPrefixByChainId,
-    commitData
+    getPrefixByChainId
   } from '@/api/requestData'
-  import {Times, chainID, getRamNumber} from '@/api/util'
+  import {Times, chainID} from '@/api/util'
   import Password from '@/components/PasswordBar'
   import BackBar from '@/components/BackBar'
 

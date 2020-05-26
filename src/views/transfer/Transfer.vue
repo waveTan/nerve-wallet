@@ -1,10 +1,11 @@
 <template>
   <div class="transfer">
     <div class="w1200">
-      <div class="title">{{$t('home.home3')}}</div>
+      <div class="title">{{$t('nav.transfer')}}</div>
       <el-form :model="transferForm" :rules="transferRules" ref="transferForm" class="w630 transfer_form">
         <el-form-item :label="$t('transfer.transfer0')" prop="fromAddress">
-          <el-input v-model="transferForm.fromAddress" disabled></el-input>
+          <el-input v-model="transferForm.fromAddress" disabled>
+          </el-input>
         </el-form-item>
         <el-form-item :label="$t('transfer.transfer2')" prop="assetType" class="asset_type">
           <el-select v-model="transferForm.assetType" filterable placeholder="" @change="changeAssetType">
@@ -13,15 +14,21 @@
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('transfer.transfer1')" prop="toAddress">
-          <el-input v-model.trim="transferForm.toAddress"></el-input>
+          <el-input v-model.trim="transferForm.toAddress" @input="changeToAddress">
+          </el-input>
         </el-form-item>
+        <div class="yellow font10" style="margin-top:-15px" v-if="transferType ===1">
+          Tips：该笔转账为跨链交易，将收取NULS和NVT作为手续费
+        </div>
         <div style="width: 630px;height: 30px"></div>
         <div class="fr font12" style="padding: 8px 0 0 0">{{$t('public.usableBalance')}}: {{balanceInfo.balances}}</div>
         <el-form-item :label="$t('transfer.transfer3')" prop="amount">
-          <el-input v-model="transferForm.amount"></el-input>
+          <el-input v-model="transferForm.amount">
+          </el-input>
         </el-form-item>
         <el-form-item :label="$t('transfer.transfer4')" prop="remarks">
-          <el-input type="textarea" v-model="transferForm.remarks"></el-input>
+          <el-input type="textarea" v-model="transferForm.remarks">
+          </el-input>
         </el-form-item>
         <div class="fee font14 mb_20">{{$t('public.fee')}}: {{transferForm.fee}} {{prefix}}</div>
         <el-form-item class="btn-next">
@@ -56,7 +63,7 @@
   import nerve from 'nerve-sdk-js'
   import sdk from 'nerve-sdk-js/lib/api/sdk'
   import {getNulsBalance, validateAndBroadcast, getBaseAssetInfo} from '@/api/requestData'
-  import {MAIN_INFO} from '@/config.js'
+  import {MAIN_INFO, CROSS_INFO} from '@/config.js'
   import {
     Plus,
     divisionDecimals,
@@ -72,9 +79,15 @@
     data() {
       let validateToAddress = (rule, value, callback) => {
         let patrn = /^(?![a-zA-Z]+$)(?![^\da-zA-Z]+$).{20,50}$/;
+        let toAddressInfo = {right: true,};
+        if (value.length > 20 && value.length < 60) {
+          toAddressInfo = nerve.verifyAddress(value);
+        }
         if (value === '') {
           callback(new Error(this.$t('transfer.transfer9')))
         } else if (!patrn.exec(value)) {
+          callback(new Error(this.$t('transfer.transfer10')))
+        } else if (!toAddressInfo.right) {
           callback(new Error(this.$t('transfer.transfer10')))
         } else {
           callback()
@@ -127,6 +140,7 @@
           toAddress: [{validator: validateToAddress, trigger: 'change'}],
           amount: [{validator: validateAmount, trigger: ['blur', 'change']}],
         },
+        transferType: 0,//转账类型 0:链内转账 1:跨链转账
         prefix: MAIN_INFO.prefix,
         transferFormDialog: false,//确认弹框
       };
@@ -143,8 +157,7 @@
     },
     created() {
       this.assetList = this.$store.state.accountList;
-      console.log(this.assetList);
-      this.initInfo()
+      this.initInfo();
     },
     mounted() {
       let transferParams = {};
@@ -164,6 +177,7 @@
       sessionStorage.removeItem('transferParams')
     },
     methods: {
+
       //初始化选中账户数据
       initInfo() {
         this.addressInfo = this.$store.getters.getSelectAddress;
@@ -177,6 +191,7 @@
        * @author: Wave
        */
       async changeAssetType(e) {
+        //console.info(e);
         this.changeAssetInfo = e;
         this.transferForm.assetType = e.symbol;
         try {
@@ -190,6 +205,29 @@
         } catch (err) {
           console.log(err);
         }
+      },
+
+      /**
+       * @disc: 收款地址改变执行方法
+       * @params: e
+       * @date: 2020-05-26 9:42
+       * @author: Wave
+       */
+      changeToAddress(e) {
+        //console.info(e);
+        if (e.length > 20 && e.length < 60) {
+          let toAddressInfo = nerve.verifyAddress(e);
+          if (!toAddressInfo.right) {
+            return;
+          }
+          let fromAddressInfo = nerve.verifyAddress(this.transferForm.fromAddress);
+          if (toAddressInfo.right && fromAddressInfo.chainId === toAddressInfo.chainId) {
+            this.transferType = 0
+          } else {
+            this.transferType = 1
+          }
+        }
+
       },
 
       /**
@@ -231,7 +269,7 @@
           this.$message({message: this.$t('tips.tips24'), type: 'error', duration: 3000});
           return;
         }
-        //console.log(this.assetsInfo);
+
         let transferInfo = {
           fromAddress: this.addressInfo.address,
           assetsChainId: this.changeAssetInfo.chainId,
@@ -243,10 +281,33 @@
         //console.log(transferInfo);
         let inOrOutputs = await this.inputsOrOutputs(transferInfo);
         //console.log(inOrOutputs);
-        //交易组装
-        let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 2);
-        //获取hash
-        let hash = await tAssemble.getHash();
+        let tAssemble = {};
+        let hash = {};
+        if (this.transferType === 0) { //链内转账
+          //交易组装
+          tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 2);
+          //获取hash
+          hash = await tAssemble.getHash();
+        } else { //跨链交易
+          console.log(inOrOutputs);
+          console.log(MAIN_INFO);
+          console.log(CROSS_INFO);
+          const balanceInfo = await getBaseAssetInfo(CROSS_INFO.chainId, CROSS_INFO.assetsId, transferInfo.fromAddress);
+          console.info(balanceInfo);
+         /* newAmount = Number(transferInfo.amount);
+          inputs = [{
+            address: transferInfo.fromAddress,
+            assetsChainId: transferInfo.assetsChainId,
+            assetsId: transferInfo.assetsId,
+            amount: newAmount,
+            locked: 0,
+            nonce: balanceInfo.data.nonce
+          }];*/
+
+
+          return;
+        }
+
         //console.log(hash);
         //交易签名
         let txSignature = await sdk.getSignData(hash.toString('hex'), passwordInfo.pri);
@@ -273,6 +334,43 @@
           this.transferForm.remarks = '';
           this.toUrl("txList");
         }
+      },
+
+
+      /**
+       * @disc: 链内交易
+       * @params:
+       * @date: 2020-05-26 10:43
+       * @author: Wave
+       */
+      async chainTransfer() {
+        let transferInfo = {
+          fromAddress: this.addressInfo.address,
+          assetsChainId: this.changeAssetInfo.chainId,
+          assetsId: this.changeAssetInfo.assetId,
+          fee: 100000
+        };
+        transferInfo['toAddress'] = this.transferForm.toAddress;
+        transferInfo['amount'] = timesDecimals(this.transferForm.amount, this.changeAssetInfo.decimal);
+        //console.log(transferInfo);
+        let inOrOutputs = await this.inputsOrOutputs(transferInfo);
+        //console.log(inOrOutputs);
+        //交易组装
+        let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, htmlEncode(this.transferForm.remarks), 2);
+        //获取hash
+        let hash = await tAssemble.getHash();
+        return hash
+      },
+
+      /**
+       * @disc: 跨链交易
+       * @params:
+       * @date: 2020-05-26 10:43
+       * @author: Wave
+       */
+      crossChainTransfer() {
+        console.log(MAIN_INFO);
+        console.log(CROSS_INFO);
       },
 
       /**
@@ -326,6 +424,7 @@
         }];
         return {success: true, data: {inputs: inputs, outputs: outputs}};
       },
+
 
       /**
        * 连接跳转

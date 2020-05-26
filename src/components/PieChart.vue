@@ -1,11 +1,7 @@
 <template>
   <div class="pie-chart clear" v-loading="loading">
-    <ve-pie
-      height="100%"
-      :data="chartData"
-      :extend="chartExtends"
-      :after-set-option-once="getChart"
-    ></ve-pie>
+    <ve-pie height="100%" :data="chartData" :extend="chartExtends" :after-set-option-once="getChart">
+    </ve-pie>
     <div class="chart-legend">
       <div class="legend-item scroll" v-for="(item,index) in data" :key="item.key">
         <i class="legend-circle" :style="{backgroundColor: color[index]}"></i>
@@ -20,16 +16,10 @@
 <script>
   import _ from 'lodash'
   import {toThousands} from "../api/util";
-  /*const data = [
-    {key:'NVT',value:1,rate: 0.1},
-    {key:'NULS',value:2,rate: 0.2},
-    {key:'BTC',value:3,rate: 0.3},
-    {key:'ETH',value:3,rate: 0.4},
-    {key:'BCH',value:5,rate: 0.5}
-  ];*/
+
   export default {
     data() {
-      this.color = ['#759bf5','#76e9a7','#f3a83c','#9f95f0','#67d1fe']
+      this.color = ['#759bf5', '#76e9a7', '#f3a83c', '#9f95f0', '#67d1fe'];
       return {
         chartData: {
           columns: ['key', 'value'],
@@ -42,7 +32,7 @@
     props: {
       data: {
         type: Array,
-        default: ()=>[]
+        default: () => []
       },
       loading: {
         type: Boolean,
@@ -57,9 +47,9 @@
     },
     watch: {
       data(val) {
-        val.forEach(v=>{
+        val.forEach(v => {
           v.value = Number(v.value).toFixed(2)
-        })
+        });
         this.chartData = {
           columns: ['key', 'value'],
           rows: val
@@ -81,7 +71,6 @@
                         ${item.name}: $${toThousands(item.value)} (${item.percent}%)
                   </div>`
           }
-          // formatter: '{b}: ${c} ({d}%)'
         },
         series: {
           type: 'pie',
@@ -108,24 +97,12 @@
             },
           }
         }
-      }
-      this.chartExtends = _.merge({},defaultExtend,this.extends);
+      };
+      this.chartExtends = _.merge({}, defaultExtend, this.extends);
     },
     methods: {
       getChart(charts) {
         this.chart = charts;
-        /* charts.dispatchAction({
-           type: 'highlight',
-           dataIndex: 0,
-         })
-         charts.on('mouseover',function (e) {
-           if (e.dataIndex !==0 ) {
-             charts.dispatchAction({
-               type:'downplay',
-               dataIndex: 0,
-             })
-           }
-         })*/
       }
     },
     beforeDestroy() {
@@ -175,7 +152,7 @@
           font-size: 14px;
           width: 50px;
           margin-right: 10px;
-          &+span {
+          & + span {
             margin-right: 20px;
             /*min-width: 80px;*/
           }
@@ -183,11 +160,12 @@
       }
     }
   }
+
   .pie-chart-tooltip {
     background-color: transparent;
     color: #fff;
     line-height: 20px;
-    i{
+    i {
       display: inline-block;
       width: 10px;
       height: 10px;
