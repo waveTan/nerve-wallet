@@ -41,13 +41,13 @@
         </div>
       </div>
       <div class="my-staking">
-        <el-tabs v-model="activeTab">
+        <el-tabs v-model="activeTab" @tab-click="handleClick">
           <el-tab-pane :label="$t('staking.staking13')" name="first">
             <staking-list staking :data="stakingList" @changeStaking="showChangeStakingDialog"
                           @quitStaking="quitStaking"/>
           </el-tab-pane>
           <el-tab-pane :label="$t('staking.staking14')" name="second">
-            <staking-list :data="stakingList"/>
+            <staking-list :data="finishStakingList" :staking="true"/>
           </el-tab-pane>
         </el-tabs>
 
@@ -194,6 +194,7 @@
         stakingRate: [], //staking利率
         activeTab: 'first',
         stakingList: [], //staking中列表
+        finishStakingList: [],//已结束列表
         pageIndex: 1, //页码
         pageSize: 5, //每页条数
         pageTotal: 0,//总页数
@@ -256,11 +257,10 @@
       this.addressInfo = this.$store.getters.getSelectAddress;
       this.getStackingInfo();
       this.getStackingRate();
-      this.getStackingList(this.pageIndex, this.pageSize, this.addressInfo.address);
-
       this.getStackingAssetList();
     },
     mounted() {
+      this.tabClick();
     },
     methods: {
 
@@ -542,6 +542,18 @@
 
       },
 
+      handleClick() {
+        this.tabClick();
+      },
+
+      tabClick() {
+        if (this.activeTab === 'first') {
+          this.getStackingList(this.pageIndex, this.pageSize, this.addressInfo.address);
+        } else {
+          this.getFinishStackingList(this.pageIndex, this.pageSize, this.addressInfo.address);
+        }
+      },
+
       /**
        * @disc: 获取stacking中列表根据地址
        * @params: pageNumber
@@ -553,7 +565,7 @@
       async getStackingList(pageNumber, pageSize, address) {
         await this.$post('/', 'pageStackingListByAddress', [pageNumber, pageSize, address])
           .then((response) => {
-            console.log(response);
+            //console.log(response);
             if (response.hasOwnProperty("result")) {
               for (let item of response.result.list) {
                 item.amounts = Number(divisionDecimals(item.amount, item.decimal));
@@ -561,6 +573,35 @@
                 item.endTime = item.endTime ? moment(getLocalTime(item.endTime * 1000)).format('YYYY-MM-DD HH:mm:ss') : '-';
               }
               this.stakingList = response.result.list;
+              this.pageTotal = response.result.totalCount;
+            } else {
+              this.myNodeLoading = false;
+            }
+          })
+          .catch((error) => {
+            console.log("getAccountConsensus:" + error);
+          });
+      },
+
+      /**
+       * @disc: 获取stacking中列表根据地址
+       * @params: pageNumber
+       * @params: pageSize
+       * @params: address
+       * @date: 2020-05-22 15:05
+       * @author: Wave
+       */
+      async getFinishStackingList(pageNumber, pageSize, address) {
+        await this.$post('/', 'pageFinishStackingListByAddress', [pageNumber, pageSize, address])
+          .then((response) => {
+            //console.log(response);
+            if (response.hasOwnProperty("result")) {
+              /*for (let item of response.result.list) {
+                item.amounts = Number(divisionDecimals(item.amount, item.decimal));
+                item.createTime = moment(getLocalTime(item.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
+                item.endTime = item.endTime ? moment(getLocalTime(item.endTime * 1000)).format('YYYY-MM-DD HH:mm:ss') : '-';
+              }*/
+              this.finishStakingList = response.result.list;
               this.pageTotal = response.result.totalCount;
             } else {
               this.myNodeLoading = false;
