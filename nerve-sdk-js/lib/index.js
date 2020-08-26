@@ -1,3 +1,5 @@
+const BufferReader = require("./utils/bufferreader");
+const txsignatures = require("./model/txsignatures");
 const sdk = require('./api/sdk');
 const txs = require('./model/txs');
 const crypto = require("./crypto/eciesCrypto");
@@ -92,8 +94,8 @@ module.exports = {
       //退出staking
       tt = new txs.outStakingTransaction(info);
     } else if (type === 9) {
-      //注销节点
-      tt = new txs.StopAgentTransaction(info, outputs[0].lockTime - 86400 * 3);
+      //注销节点  锁定15天 =86400*15
+      tt = new txs.StopAgentTransaction(info, outputs[0].lockTime - 86400 * 15);
     } else if (type === 10) {
       //跨链转账
       tt = new txs.CrossChainTransaction();
@@ -103,6 +105,9 @@ module.exports = {
     } else if (type === 29) {
       //退出保证金
       tt = new txs.WithdrawTransaction(info);
+    } else if (type === 43) {
+      //跨链提现
+      tt = new txs.WithdrawalTransaction(info);
     }
     tt.setCoinData(inputs, outputs);
     tt.remark = remark;
@@ -172,6 +177,45 @@ module.exports = {
     let bufferEncrypted = Buffer.from(encrypted, "hex");
     let decrypted = await eccrypto.decrypt(pri, bufferData);
     return decrypted.toString();
+  },
+
+  /**
+   * @disc: 追加签名
+   * @params: txHex 签名hex
+   * @params: prikeyHex 追加签名私钥
+   * @params: chainInfo 链信息
+   * @date: 2020-08-12 15:24
+   * @author: Wave
+   */
+  appendSignature(txHex, prikeyHex, chainInfo) {
+    // 解析交易
+    let bufferReader = new BufferReader(Buffer.from(txHex, "hex"), 0);
+    // 反序列回交易对象
+    let tx = new txs.Transaction();
+    tx.parse(bufferReader);
+    // 初始化签名对象
+    let txSignData = new txsignatures.TransactionSignatures();
+    // 反序列化签名对象
+    let reader = new BufferReader(tx.signatures, 0);
+    txSignData.parse(reader);
+    // 打印已签名地址
+    let address = this.getAddressByPub(chainInfo.chainId, chainInfo.assetsId, txSignData.signatures[0].pubkey, chainInfo.prefix);
+    //console.log(address);
+    //获取本账户公钥
+    let pub = sdk.getPub(prikeyHex);
+    // 签名
+    let sigHex = sdk.signature(tx.getHash().toString("hex"), prikeyHex);
+    let signValue = Buffer.from(sigHex, 'hex');
+    // 追加签名到对象中
+    txSignData.addSign(Buffer.from(pub, "hex"), signValue);
+    // 追加签名到交易中
+    tx.signatures = txSignData.serialize();
+    //计算交易hash
+    tx.calcHash();
+    //console.log(tx.getHash().toString("hex"));
+    // 结果
+    //console.log(tx.txSerialize().toString("hex"));
+    return { success: true, data: { hash: tx.getHash().toString("hex"), hex: tx.txSerialize().toString("hex") } };
   }
 
 };

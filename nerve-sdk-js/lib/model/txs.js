@@ -284,6 +284,25 @@ module.exports = {
   },
 
   /**
+   * 注销节点
+   * @param entity
+   * @constructor
+   */
+  StopAgentTransaction: function (entity, lockTime) {
+    Transaction.call(this);
+    if (!entity || !entity.address || !entity.agentHash) {
+      throw "Data wrong!";
+    }
+    this.type = 9;
+    this.time = lockTime;
+
+    let bw = new Serializers();
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.address));
+    bw.getBufWriter().write(Buffer.from(entity.agentHash, 'hex'));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
    * 追加保证金
    * @param entity
    * @constructor
@@ -322,22 +341,15 @@ module.exports = {
     this.txData = bw.getBufWriter().toBuffer();
   },
 
-  /**
-   * 注销节点
-   * @param entity
-   * @constructor
-   */
-  StopAgentTransaction: function (entity, lockTime) {
+  WithdrawalTransaction: function (entity) {
     Transaction.call(this);
-    if (!entity || !entity.address || !entity.agentHash) {
-      throw "Data wrong!";
+    //对象属性结构
+    if (!entity || !entity.heterogeneousAddress) {
+      throw "Data Wrong!";
     }
-    this.type = 9;
-    this.time = lockTime;
-
+    this.type = 43;
     let bw = new Serializers();
-    bw.writeBytesWithLength(sdk.getBytesAddress(entity.address));
-    bw.getBufWriter().write(Buffer.from(entity.agentHash, 'hex'));
+    bw.writeString(entity.heterogeneousAddress);
     this.txData = bw.getBufWriter().toBuffer();
   }
 

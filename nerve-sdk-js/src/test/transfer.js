@@ -6,15 +6,18 @@ const {getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx} = req
  * @date: 2020-05-20 13:47
  * @author: Wave
  */
-
-let pri = '10d8804991ceaafa5d19dfa30d79c5091767a48da8e66b73494f0b6af8554618';
-let pub = '024bafc4a364659db1674d888bd3e0e7ab11cc4ca02dca95d548637c6b66d63f42';
-let fromAddress = "TNVTdN9iJcMNiTttfV4Wdi6wUp3k8NteoebYo";
-let toAddress = 'TNVTdN9i4JSE9C1PrZZzuQpvrzdhXakSw3UxY';
+/*let pri = '477059f40708313626cccd26f276646e4466032cabceccbf571a7c46f954eb75';
+let pub = '0318f683066b45e7a5225779061512e270044cc40a45c924afcf78bb7587758ca0';
+let fromAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
+let toAddress = 'TNVTdTSPUZYyUW8ThLzJXWdgWaDFSy5trakjk';*/
+let pri = 'dramaendorsepotterystingattitudejaguarslightsnakelemonamazin';
+let pub = '03ac01bbb717f9f28db9b7d3ae62555060bf2024825d92259887ab12dbdd6c689e';
+let fromAddress = "TNVTdTSPUZYyUW8ThLzJXWdgWaDFSy5trakjk";
+let toAddress = 'TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz';
 let amount = 100000000;
 let remark = 'transfer transaction remark...';
 //调用
-transferTransaction(pri, pub, fromAddress, toAddress, 4, 1, amount, remark);
+transferTransaction(pri, pub, fromAddress, toAddress, 5, 1, amount, remark);
 
 /**
  * 转账交易
@@ -30,6 +33,7 @@ transferTransaction(pri, pub, fromAddress, toAddress, 4, 1, amount, remark);
  */
 async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChainId, assetsId, amount, remark) {
   const balanceInfo = await getNulsBalance(fromAddress);
+  console.log(balanceInfo);
   if (!balanceInfo.success) {
     console.log("获取账户balanceInfo错误");
     return;
@@ -68,7 +72,7 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
   } else {
     txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
   }
-  //console.log(txhex);
+  console.log(txhex);
 
   let result = await validateTx(txhex);
   if (result.success) {
@@ -80,7 +84,7 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
       console.log("广播交易失败")
     }
   } else {
-    console.log("验证交易失败:" + result.error)
+    console.log("验证交易失败:" + JSON.stringify(result.error))
   }
 }
 

@@ -1,7 +1,7 @@
 const axios = require('axios');
-const API_CHAIN_ID = 4;
+const API_CHAIN_ID = 5;
 axios.defaults.timeout = 9000;
-axios.defaults.baseURL = 'http://192.168.1.123:17003';
+axios.defaults.baseURL = 'http://beta.public.nerve.network';
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 /**
